@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import { Compass, UploadCloud, type LucideIcon } from 'lucide-react';
+import { sidebarConfig } from '../config/sidebar';
+import type { LucideIcon } from 'lucide-react';
 
 export default function Sidebar() {
     return (
@@ -9,18 +10,28 @@ export default function Sidebar() {
                     Duckflix
                 </Link>
             </div>
-            <div className="flex flex-col items-start gap-4 mt-4">
-                <SidebarItem to="/browse" icon={Compass} text="Browse" />
-                <SidebarItem to="/upload" icon={UploadCloud} text="Upload" />
+            <div className="flex flex-col items-start gap-12 mt-4">
+                {sidebarConfig.map((group, idx) => (
+                    <div key={idx} className="flex flex-col gap-2">
+                        {group.title && (
+                            <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2">{group.title}</h3>
+                        )}
+                        <div className="flex flex-col gap-4">
+                            {group.items.map((item) => (
+                                <SidebarItem key={item.link} {...item} />
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     );
 }
 
-function SidebarItem({ to, icon: Icon, text }: { to: string; icon: LucideIcon; text: string }) {
+function SidebarItem({ link, icon: Icon, text }: { link: string; icon: LucideIcon; text: string }) {
     return (
-        <Link to={to}>
-            <div className="flex items-center gap-4 text-sm">
+        <Link to={link}>
+            <div title={text} className="flex items-center gap-4 text-sm">
                 <Icon size={20} color="white" />
                 <span>{text}</span>
             </div>

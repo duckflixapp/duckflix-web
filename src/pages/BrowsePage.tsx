@@ -1,9 +1,14 @@
 import type { MovieDTO } from '@duckflix/shared';
 import { useMovies } from '../hooks/use-movies';
 import { Play, Info, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function BrowsePage() {
     const { data, isLoading, isError } = useMovies(1);
+    const navigate = useNavigate();
+
+    const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
+    const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.id}`);
 
     if (isError) return <div className="p-10 text-center text-red-500">Error while loading</div>;
 
@@ -17,7 +22,7 @@ export default function BrowsePage() {
                 style={{ animationDuration: '8s' }}
             />
 
-            <HeroSection loading={isLoading} movie={heroMovie} />
+            <HeroSection loading={isLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
             <section className="px-8 py-12 relative z-10">
                 <div className="flex flex-col gap-1 mb-8">
                     <h2 className="text-2xl font-bold font-poppins tracking-tight text-text">Recently Added</h2>
@@ -25,21 +30,29 @@ export default function BrowsePage() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                    <MovieListSection loading={isLoading} movies={movies} />
+                    <MovieListSection loading={isLoading} movies={movies} onOpenDetails={openDetails} />
                 </div>
             </section>
         </div>
     );
 }
 
-function MovieListSection({ loading: isLoading, movies }: { loading: boolean; movies: MovieDTO[] }) {
+function MovieListSection({
+    loading: isLoading,
+    movies,
+    onOpenDetails: openDetails,
+}: {
+    loading: boolean;
+    movies: MovieDTO[];
+    onOpenDetails: (movie: MovieDTO) => void;
+}) {
     if (isLoading)
         return Array(12)
             .fill(0)
             .map((_, i) => <MovieSkeleton key={i} />);
 
     return movies.map((movie) => (
-        <div key={movie.id} className="group cursor-pointer">
+        <div key={movie.id} className="group cursor-pointer" onClick={() => openDetails(movie)}>
             <div className="relative aspect-2/3 rounded-2xl overflow-hidden mb-4 border border-white/5 shadow-xl transition-all duration-500 group-hover:border-primary/50 group-hover:-translate-y-2">
                 <img src={movie.posterUrl ?? ''} alt={movie.title} className="w-full h-full object-cover" />
             </div>
@@ -48,7 +61,17 @@ function MovieListSection({ loading: isLoading, movies }: { loading: boolean; mo
     ));
 }
 
-function HeroSection({ loading: isLoading, movie }: { loading: boolean; movie: MovieDTO }) {
+function HeroSection({
+    loading: isLoading,
+    movie,
+    onOpenDetails: openDetails,
+    onOpenWatch: openWatch,
+}: {
+    loading: boolean;
+    movie: MovieDTO;
+    onOpenDetails: (movie: MovieDTO) => void;
+    onOpenWatch: (movie: MovieDTO) => void;
+}) {
     if (isLoading) return <HeroSkeleton />;
     return (
         <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10">
@@ -61,12 +84,13 @@ function HeroSection({ loading: isLoading, movie }: { loading: boolean; movie: M
                     </h1>
                     <div className="flex gap-2 mb-6">
                         {movie.rating && (
-                            <span className="px-3 py-1.5 rounded-lg bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-primary">
+                            <span className="px-3 py-1.5 rounded-lg bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
                                 <Star size={12} fill="currentColor" /> {movie.rating}
                             </span>
                         )}
                         {movie.genres.map((genre) => (
                             <span
+                                key={genre.id}
                                 title={genre.id}
                                 className="px-3 py-1.5 rounded-lg bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
                             >
@@ -76,10 +100,16 @@ function HeroSection({ loading: isLoading, movie }: { loading: boolean; movie: M
                     </div>
 
                     <div className="flex gap-4">
-                        <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-2xl font-bold transition-all transform cursor-pointer hover:scale-[1.03] active:scale-[0.98] shadow-lg shadow-primary/20">
+                        <button
+                            onClick={() => openWatch(movie)}
+                            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-2xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
+                        >
                             <Play size={20} fill="currentColor" /> Play Now
                         </button>
-                        <button className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-2xl font-bold transition-all cursor-pointer">
+                        <button
+                            onClick={() => openDetails(movie)}
+                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-2xl font-medium transition-all cursor-pointer"
+                        >
                             <Info size={20} /> Details
                         </button>
                     </div>
@@ -105,10 +135,6 @@ function HeroSkeleton() {
     return (
         <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10 animate-pulse">
             <div className="w-full h-full rounded-4xl bg-secondary/10 border border-white/5 flex flex-col justify-end p-12 space-y-6">
-                <div className="flex gap-2">
-                    <div className="h-6 w-20 bg-secondary/20 rounded-lg" />
-                    <div className="h-6 w-16 bg-secondary/20 rounded-lg" />
-                </div>
                 <div className="h-14 w-1/2 bg-secondary/20 rounded-xl" />
                 <div className="h-10 w-1/3 bg-secondary/10 rounded-xl" />
                 <div className="flex gap-4">

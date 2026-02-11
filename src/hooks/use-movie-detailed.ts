@@ -7,8 +7,8 @@ export const useMovieDetail = (id: string | undefined) => {
         queryKey: ['movie', id],
         queryFn: async () => {
             if (!id) return null;
-            const { data } = await api.get<MovieDetailedDTO>(`/movies/${id}`);
-            return data;
+            const { movie } = await api.get<{ movie: MovieDetailedDTO }>(`/movies/${id}`);
+            return movie;
         },
         enabled: !!id,
     });

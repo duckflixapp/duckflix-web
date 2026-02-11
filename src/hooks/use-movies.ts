@@ -6,7 +6,7 @@ export const useMovies = (page = 1, search = '') => {
     return useQuery({
         queryKey: ['movies', page, search],
         queryFn: async () => {
-            const { data } = await api.get<PaginatedResponse<MovieDTO>>('/movies', {
+            const data = await api.get<PaginatedResponse<MovieDTO>>('/movies', {
                 params: { page, limit: 12, search },
             });
             return data;

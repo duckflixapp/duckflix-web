@@ -43,8 +43,8 @@ export default function LoginPage() {
             const data = await queryClient.fetchQuery({
                 queryKey: ['auth-user'],
                 queryFn: async () => {
-                    const { data } = await api.get<UserDTO>('/auth/me');
-                    return data;
+                    const { user } = await api.get<{ user: UserDTO }>('/auth/me');
+                    return user;
                 },
             });
 

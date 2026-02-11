@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -7,6 +7,10 @@ import BrowsePage from './pages/BrowsePage';
 import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
 import SearchPage from './pages/SearchPage';
+import DetailsPage from './pages/DetailsPage';
+import WatchPage from './pages/WatchPage';
+import NotFoundPage from './pages/NotFoundPage';
+import LibraryPage from './pages/LibraryPage';
 
 function App() {
     return (
@@ -14,17 +18,22 @@ function App() {
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
-                <Route
-                    element={
-                        <ProtectedRoute>
-                            <MainLayout />
-                        </ProtectedRoute>
-                    }
-                >
-                    <Route path="/browse" element={<BrowsePage />} />
-                    <Route path="/search" element={<SearchPage />} />
-                    <Route path="/upload" element={<UploadPage />} />
+                <Route element={<ProtectedRoute />}>
+                    <Route element={<MainLayout />}>
+                        <Route path="/browse" element={<BrowsePage />} />
+                        <Route path="/library" element={<LibraryPage />} />
+                        <Route path="/search" element={<SearchPage />} />
+                        <Route path="/details/:id" element={<DetailsPage />} />
+                        <Route path="/upload" element={<UploadPage />} />
+
+                        {/* catch bad urls with redirect */}
+                        <Route path="/details" element={<Navigate to="/browse" replace />} />
+                        <Route path="/watch" element={<Navigate to="/browse" replace />} />
+                    </Route>
+                    <Route path="/watch/:id" element={<WatchPage />} />
                 </Route>
+                {/* catch page not found */}
+                <Route path="*" element={<NotFoundPage />} />
             </Routes>
         </BrowserRouter>
     );
