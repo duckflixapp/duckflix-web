@@ -1,68 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+/* use default dark so editor can recognize color */
+@theme {
+    --color-text: #f9f8ff;
+    --color-background: #07080d;
+    --color-primary: #b5c8ff;
+    --color-secondary: #959ca3;
+    --color-accent: #71cd71;
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* @theme {
+    --color-text: var(--text);
+    --color-background: var(--background);
+    --color-primary: var(--primary);
+    --color-secondary: var(--secondary);
+    --color-accent: var(--accent);
+}
+
 :root {
-    font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
+    --text: #0e101b;
+    --background: #f2f3f8;
+    --primary: #2f3b5b;
+    --secondary: #c8bf92;
+    --accent: #509b50;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
-
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-    font-weight: 500;
-    color: #646cff;
-    text-decoration: inherit;
-}
-a:hover {
-    color: #535bf2;
-}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --text: #e4e6f1;
+        --background: #07080d;
+        --primary: #a4b0d0;
+        --secondary: #6a6537;
+        --accent: #65af65;
+    }
+} */
 
 body {
-    margin: 0;
-    display: flex;
-    place-items: center;
-    min-width: 320px;
-    min-height: 100vh;
+    background-color: var(--color-background);
+    color: var(--color-text);
 }
 
-h1 {
-    font-size: 3.2em;
-    line-height: 1.1;
+input[type='search']::-webkit-search-decoration,
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-webkit-search-results-button,
+input[type='search']::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
-button {
-    border-radius: 8px;
-    border: 1px solid transparent;
-    padding: 0.6em 1.2em;
-    font-size: 1em;
-    font-weight: 500;
-    font-family: inherit;
-    background-color: #1a1a1a;
-    cursor: pointer;
-    transition: border-color 0.25s;
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
 }
-button:hover {
-    border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
+.animate-shake {
+    animation: shake 0.2s ease-in-out 0s 2;
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        color: #213547;
-        background-color: #ffffff;
-    }
-    a:hover {
-        color: #747bff;
-    }
-    button {
-        background-color: #f9f9f9;
-    }
+main {
+    isolation: isolate;
 }
