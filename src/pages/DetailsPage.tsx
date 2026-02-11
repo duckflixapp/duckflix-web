@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import type { MovieVersionDTO } from '@duckflix/shared';
-import { formatBytes } from '../utils/movies';
+import { formatBytes } from '../utils/format';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
