@@ -48,7 +48,7 @@ const MainLayout = () => {
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
             <Sidebar />
-            <div className="relative pl-56 flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="relative pl-48 lg:pl-56 flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Navbar />
                 <main className="flex-1 overflow-y-auto custom-scrollbar">
                     <Outlet />

@@ -10,9 +10,9 @@ export default function Navbar() {
 
     return (
         <nav className="relative h-18 z-50">
-            <div className="px-8 h-full flex items-center justify-between">
+            <div className="px-4 md:px-6 lg:px-8 h-full flex items-center justify-between">
                 <SearchBar />
-                <div className="flex flex-row items-center gap-4">
+                <div className="flex flex-row items-center gap-2 md:gap-4">
                     {!user ? (
                         <Link to="/login">Login</Link>
                     ) : (
@@ -41,7 +41,12 @@ function SearchBar() {
         if (query.length > 0) {
             setLoading(true);
             setShowResults(true);
-            api.get<PaginatedResponse<MovieDTO>>('/movies/?limit=5&search=' + query).then((result) => {
+            api.get<PaginatedResponse<MovieDTO>>('/movies/', {
+                params: {
+                    limit: 5,
+                    search: query,
+                },
+            }).then((result) => {
                 setLoading(false);
                 setShowResults(true);
                 setResults(result.data);
@@ -97,7 +102,7 @@ function SearchBar() {
                         onKeyDown={(e) => e.key === 'Enter' && externalSearch()}
                         onFocus={onFocus}
                         type="search"
-                        className="border-0 outline-0 pr-8 text-[13px] w-96 bg-transparent text-text"
+                        className="border-0 outline-0 pr-8 text-[13px] w-52 md:w-72 lg:w-96 bg-transparent text-text"
                         placeholder="Search movies..."
                     />
                     {loading && (

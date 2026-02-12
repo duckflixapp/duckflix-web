@@ -63,6 +63,7 @@ export default function WatchPage() {
     const handleWaiting = () => setIsBuffering(true);
     const handlePlaying = () => setIsBuffering(false);
     const handleSeeked = () => setIsBuffering(false);
+    const handleEnded = () => setIsPaused(true);
     // update buffer
     const updateBuffer = useCallback(() => {
         const video = videoRef.current;
@@ -70,8 +71,6 @@ export default function WatchPage() {
 
         const buffered = video.buffered;
         if (buffered.length > 0) {
-            // Tražimo kraj poslednjeg baferovanog segmenta
-            // (U 99% slučajeva to je onaj koji nas zanima)
             const bufferedEnd = buffered.end(buffered.length - 1);
             const bufferPercent = (bufferedEnd / video.duration) * 100;
 
@@ -125,8 +124,14 @@ export default function WatchPage() {
     const togglePause = () => setIsPaused((prev) => !prev);
 
     // volume controlls
-    const volumeUp = () => setVolume((prev) => Math.min(10, (prev += 1)));
-    const volumeDown = () => setVolume((prev) => Math.max(0, prev - 1));
+    const volumeUp = () => {
+        setMuted(false);
+        setVolume((prev) => Math.min(10, (prev += 1)));
+    };
+    const volumeDown = () => {
+        setMuted(false);
+        setVolume((prev) => Math.max(0, prev - 1));
+    };
     const toggleMute = () => setMuted((prev) => !prev);
 
     // apply effects on video element
@@ -208,7 +213,6 @@ export default function WatchPage() {
     const PlayIcon = paused ? Play : Pause;
 
     const FullScrnIcon = fullScreen ? Minimize : Maximize;
-    console.log('render');
 
     return (
         <div
@@ -221,6 +225,7 @@ export default function WatchPage() {
             onWaiting={handleWaiting}
             onPlaying={handlePlaying}
             onSeeked={handleSeeked}
+            onEnded={handleEnded}
             onCanPlay={() => setIsBuffering(false)}
         >
             <video ref={videoRef} src={activeVersion?.streamUrl} className="w-full h-full max-h-screen" onClick={togglePause} />

@@ -29,6 +29,8 @@ export default function DetailsPage() {
 
     const tag = getTagFromVersions(movie.versions);
 
+    if (movie.status !== 'ready') return <p>{JSON.stringify(movie)}</p>;
+
     return (
         <div className="min-h-screen pb-20">
             <div className="relative w-full aspect-21/9 min-h-140 overflow-hidden">

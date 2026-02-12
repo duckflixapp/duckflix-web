@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 
 export default function Sidebar() {
     return (
-        <div className="absolute w-56 h-full px-8 flex flex-col z-50">
+        <div className="absolute w-48 lg:w-56 h-full px-4 md:px-6 lg:px-8 flex flex-col z-50">
             <div className="h-18 flex items-center gap-6">
                 <Link to="/browse" className="flex items-center gap-2 text-white font-bold text-xl uppercase">
                     Duckflix

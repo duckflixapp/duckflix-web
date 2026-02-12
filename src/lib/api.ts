@@ -2,7 +2,6 @@ import axios from 'axios';
 
 declare module 'axios' {
     export interface AxiosInstance {
-        // Govorimo Axiosu da get/post/itd. vraćaju direktno tip T, a ne AxiosResponse<T>
         get<T = never, R = T, D = never>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
         post<T = never, R = T, D = never>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
         put<T = never, R = T, D = never>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
