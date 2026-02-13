@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Play, Pause, Maximize, Volume2, Settings, Loader2, VolumeOff, Volume, Volume1, Minimize } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
-import { formatBytes } from '../utils/format';
+import { formatBytes, getQualityLabel } from '../utils/format';
 import type { MovieVersionDTO } from '@duckflix/shared';
 import { playerShortcuts, type PlayerFunc } from '../config/player';
 
@@ -98,7 +98,9 @@ export default function WatchPage() {
         if (!showControls) setShowControls(true);
     }, [showControls]);
 
-    const availableVersions = movie ? movie.versions.filter((v) => v.mimeType === 'video/mp4').sort((a, b) => b.height - a.height) : [];
+    const availableVersions = movie
+        ? movie.versions.filter((v) => v.status === 'ready' && v.mimeType === 'video/mp4').sort((a, b) => b.height - a.height)
+        : [];
 
     const activeVersion = userPreferedResolution
         ? (availableVersions.find((v) => v.height === userPreferedResolution) ?? null)
@@ -243,9 +245,11 @@ export default function WatchPage() {
 
                     <div className="flex flex-col text-white/80 hover:text-white transition-all">
                         <h1 className="text-xl font-bold tracking-tight leading-none">{movie.title}</h1>
-                        <p className="text-xs text-white/40 mt-1 uppercase tracking-widest font-black">
-                            Watching in {activeVersion?.height}p
-                        </p>
+                        {activeVersion && (
+                            <p className="text-xs text-white/40 mt-1 uppercase tracking-widest font-black">
+                                Watching in {getQualityLabel(activeVersion.width ?? 0, activeVersion.height)}
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -356,7 +360,7 @@ function SettingsBox({
                             }`}
                         >
                             <div className="flex items-center gap-2">
-                                <span className="font-bold">{v.height}p</span>
+                                <span className="font-bold">{getQualityLabel(v.width ?? 0, v.height)}</span>
                                 <span className="text-[9px] opacity-30 uppercase">{v.mimeType?.split('/')[1]}</span>
                             </div>
                             <span className="text-[10px] opacity-40">{v.fileSize ? formatBytes(v.fileSize, 0) : ''}</span>

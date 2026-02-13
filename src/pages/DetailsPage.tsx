@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import type { MovieVersionDTO } from '@duckflix/shared';
-import { formatBytes } from '../utils/format';
+import { formatBytes, getQualityLabel } from '../utils/format';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -28,6 +28,7 @@ export default function DetailsPage() {
     if (!movie) return null;
 
     const tag = getTagFromVersions(movie.versions);
+    const availableVersions = movie.versions.filter((v) => v.status === 'ready');
 
     if (movie.status !== 'ready') return <p>{JSON.stringify(movie)}</p>;
 
@@ -133,7 +134,7 @@ export default function DetailsPage() {
                     <div>
                         <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Available Qualities</h3>
                         <div className="flex flex-wrap gap-2">
-                            {movie.versions.map((v) => {
+                            {availableVersions.map((v) => {
                                 const rawExt = v.mimeType?.split('/')[1] || '';
                                 const ext = rawExt.replace('x-', '').replace('msvideo', 'avi').replace('matroska', 'mkv').slice(0, 3);
 
@@ -144,7 +145,9 @@ export default function DetailsPage() {
                                         className="group flex items-center bg-white/3 border border-white/5 rounded-lg px-2.5 py-1.5 hover:border-white/20 transition-all cursor-default"
                                     >
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-[11px] font-bold text-text/70 group-hover:text-text">{v.height}p</span>
+                                            <span className="text-[11px] font-bold text-text/70 group-hover:text-text">
+                                                {getQualityLabel(v.width ?? 0, v.height)}
+                                            </span>
 
                                             <span className="text-[9px] text-white/20 font-black uppercase tracking-tighter group-hover:text-white/40">
                                                 {ext}
