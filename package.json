@@ -17,6 +17,7 @@
         "bencode": "^4.0.0",
         "buffer": "^6.0.3",
         "clsx": "^2.1.1",
+        "framer-motion": "^12.34.0",
         "js-sha1": "^0.7.0",
         "lucide-react": "^0.563.0",
         "parse-torrent": "^11.0.19",

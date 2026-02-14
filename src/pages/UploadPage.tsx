@@ -254,8 +254,7 @@ function UploadSection({
                 {/* Dropzone */}
                 <div
                     {...getRootProps()}
-                    className={`flex-1 w-full border-2 border-dashed rounded-2xl p-6 flex items-center gap-4 transition-all cursor-pointer group
-                            ${isDragActive ? 'border-primary bg-primary/5' : 'border-white/10 hover:bg-white/2'}`}
+                    className={`flex-1 min-w-0 w-full border-2 border-dashed rounded-2xl p-6 flex items-center gap-4 transition-all cursor-pointer group ${isDragActive ? 'border-primary bg-primary/5' : 'border-white/10 hover:bg-white/2'}`}
                 >
                     <input {...getInputProps()} />
 
@@ -263,10 +262,10 @@ function UploadSection({
                         {file ? <FileIcon className="text-primary" size={24} /> : <Upload className="text-primary" size={24} />}
                     </div>
 
-                    <div className="text-left flex-1">
+                    <div className="text-left flex-1 min-w-0">
                         {file ? (
                             <>
-                                <h2 className="font-bold text-sm text-primary truncate max-w-37 md:max-w-full">{file.name}</h2>
+                                <h2 className="font-bold text-sm text-primary truncate">{file.name}</h2>
                                 <p className="text-[10px] text-white/30 uppercase tracking-widest mt-1">{fileSize}</p>
                             </>
                         ) : (
@@ -286,9 +285,8 @@ function UploadSection({
                         </button>
                     )}
                 </div>
-
                 {/* Database Links & Manual Toggle */}
-                <div className="w-full lg:w-80 xl:w-100 space-y-4">
+                <div className="flex-1 w-full lg:w-80 xl:w-100 space-y-4">
                     <div className="flex flex-col gap-px">
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-2">
