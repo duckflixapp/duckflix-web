@@ -1,10 +1,9 @@
-import { Upload, Link, FileIcon, X, Check } from 'lucide-react';
+import { Upload, FileIcon, X, Check, Database, Settings2 } from 'lucide-react';
 import { forwardRef, useCallback, useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useWatch, type FieldErrors, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDropzone } from 'react-dropzone';
 import { formatBytes } from '../utils/format';
-import { getMagnetFromTorrentFile } from '../utils/torrent';
 import { createMovieSchema, type MovieFormValues } from '../schemas/movie';
 import { useGenres } from '../hooks/use-genres';
 import { api } from '../lib/api';
@@ -14,8 +13,8 @@ import type { MovieDTO } from '@duckflix/shared';
 export default function UploadPage() {
     const { data: genres } = useGenres();
     const [file, setFile] = useState<File | null>(null);
-    const [magnet, setMagnet] = useState<string>('');
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [showManual, setShowManual] = useState(false); // State za prikazivanje rucnog unosa
     const navigate = useNavigate();
 
     const {
@@ -28,7 +27,8 @@ export default function UploadPage() {
         resolver: zodResolver(createMovieSchema),
         defaultValues: {
             title: '',
-            description: '',
+            overview: '',
+            dbUrl: '',
             genreIds: [],
         },
     });
@@ -40,13 +40,12 @@ export default function UploadPage() {
     });
 
     const onSubmit = async (values: MovieFormValues) => {
-        if (!file && !magnet) {
-            alert('Please upload a video file or provide a magnet link.');
+        if (!file) {
+            alert('Please upload a video or a .torrent file.');
             return;
         }
 
         setUploadProgress(0);
-
         const formData = new FormData();
 
         Object.entries(values).forEach(([key, value]) => {
@@ -57,8 +56,13 @@ export default function UploadPage() {
             }
         });
 
-        if (file) formData.append('video', file);
-        if (magnet) formData.append('magnet', magnet);
+        if (file) {
+            if (file.name.endsWith('.torrent')) {
+                formData.append('torrent', file);
+            } else {
+                formData.append('video', file);
+            }
+        }
 
         const data = await api
             .post<{ movie: MovieDTO }>('/movies/upload', formData as never, {
@@ -69,14 +73,14 @@ export default function UploadPage() {
             })
             .catch((err) => {
                 console.error('Upload error:', err);
-                alert('error while uploading');
+                alert('Error while uploading');
+                setUploadProgress(null);
             });
 
         if (data) navigate(`/details/${data.movie.id}`);
     };
 
     const changeFile = (file: File | null) => setFile(file);
-    const changeMagnet = (magnet: string) => setMagnet(magnet);
 
     return (
         <div className="w-full xl:pr-56 transition-all duration-300">
@@ -84,95 +88,116 @@ export default function UploadPage() {
                 <header className="mb-4">
                     <h1 className="text-2xl font-black tracking-tight">Upload Video</h1>
                 </header>
+
                 <UploadSection
                     progress={uploadProgress}
                     file={file}
-                    magnet={magnet}
                     onFileChange={changeFile}
-                    onMagnetChange={changeMagnet}
+                    onToggleManual={() => setShowManual(!showManual)}
+                    showManual={showManual}
+                    register={register}
+                    errors={errors}
                 />
-                <section className="bg-white/5 border border-white/10 rounded-4xl p-8 md:p-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-                        <FormInput
-                            label="Movie Title"
-                            error={errors.title}
-                            placeholder="Star Wars: Revenge of the Sith"
-                            {...register('title')}
-                        />
-                        <FormInput
-                            elementType="textarea"
-                            label="Description"
-                            error={errors.description}
-                            placeholder="Brief summary..."
-                            {...register('description')}
-                        />
 
-                        <div className="space-y-6">
-                            <FormInput label="Poster URL" error={errors.posterUrl} placeholder="https://..." {...register('posterUrl')} />
-                            <FormInput
-                                label="Release Year"
-                                error={errors.releaseYear}
-                                placeholder="e.g. 1983"
-                                {...register('releaseYear')}
-                            />
+                {showManual && (
+                    <section className="bg-white/5 border border-white/10 rounded-4xl p-8 md:p-10 animate-in fade-in slide-in-from-top-4 duration-500">
+                        <div className="flex items-center gap-3 mb-8 border-b border-white/5 pb-4">
+                            <Settings2 size={18} className="text-primary" />
+                            <h2 className="text-sm font-black uppercase tracking-widest text-white/50">Manual Information</h2>
                         </div>
 
-                        <div className="space-y-6">
-                            <FormInput label="Banner URL" error={errors.bannerUrl} placeholder="https://..." {...register('bannerUrl')} />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+                            <FormInput
+                                label="Movie Title"
+                                error={errors.title}
+                                placeholder="Star Wars: Revenge of the Sith"
+                                {...register('title')}
+                            />
+                            <FormInput
+                                elementType="textarea"
+                                label="Overview"
+                                error={errors.overview}
+                                placeholder="Brief summary..."
+                                {...register('overview')}
+                            />
 
-                            <div>
-                                <div className="flex justify-between items-center">
-                                    <label className="text-[10px] mb-2 uppercase tracking-[0.2em] text-white/30 font-black block">
-                                        Select Genres
-                                    </label>
-                                    {errors.genreIds && (
-                                        <span className="text-red-500 text-[10px] font-bold ">{errors.genreIds.message}</span>
-                                    )}
-                                </div>
+                            <div className="space-y-6">
+                                <FormInput
+                                    label="Poster URL"
+                                    error={errors.posterUrl}
+                                    placeholder="https://..."
+                                    {...register('posterUrl')}
+                                />
+                                <FormInput
+                                    label="Release Year"
+                                    error={errors.releaseYear}
+                                    placeholder="e.g. 1983"
+                                    {...register('releaseYear')}
+                                />
+                            </div>
 
-                                <div className="flex flex-wrap gap-3">
-                                    {genres &&
-                                        genres.map((genre) => {
-                                            const isSelected = selectedGenreIds.includes(genre.id);
-                                            return (
-                                                <button
-                                                    key={genre.id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const nextValue = isSelected
-                                                            ? selectedGenreIds.filter((id) => id !== genre.id)
-                                                            : [...selectedGenreIds, genre.id];
+                            <div className="space-y-6">
+                                <FormInput
+                                    label="Banner URL"
+                                    error={errors.bannerUrl}
+                                    placeholder="https://..."
+                                    {...register('bannerUrl')}
+                                />
 
-                                                        setValue('genreIds', nextValue, { shouldValidate: true });
-                                                    }}
-                                                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
-                                                ${
-                                                    isSelected
-                                                        ? 'bg-primary border-primary text-black shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]'
-                                                        : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:bg-white/10'
-                                                }`}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        {genre.name}
-                                                        {isSelected && <Check size={12} strokeWidth={3} />}
-                                                    </div>
-                                                </button>
-                                            );
-                                        })}
+                                <div>
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-[10px] mb-2 uppercase tracking-[0.2em] text-white/30 font-black block">
+                                            Select Genres
+                                        </label>
+                                        {errors.genreIds && (
+                                            <span className="text-red-500 text-[10px] font-bold ">{errors.genreIds.message}</span>
+                                        )}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-3">
+                                        {genres &&
+                                            genres.map((genre) => {
+                                                const isSelected = selectedGenreIds?.includes(genre.id);
+                                                return (
+                                                    <button
+                                                        key={genre.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const nextValue = isSelected
+                                                                ? selectedGenreIds?.filter((id) => id !== genre.id)
+                                                                : [...(selectedGenreIds ?? []), genre.id];
+
+                                                            setValue('genreIds', nextValue, { shouldValidate: true });
+                                                        }}
+                                                        className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                                                    ${
+                                                        isSelected
+                                                            ? 'bg-primary border-primary text-black shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]'
+                                                            : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:bg-white/10'
+                                                    }`}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            {genre.name}
+                                                            {isSelected && <Check size={12} strokeWidth={3} />}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </section>
+                )}
 
-                    <div className="mt-10 pt-4 border-t border-white/5 flex justify-end">
-                        <button
-                            type="submit"
-                            className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
-                        >
-                            Upload
-                        </button>
-                    </div>
-                </section>
+                <div className="mt-6 lg:mt-10 pt-4 flex justify-end">
+                    <button
+                        type="submit"
+                        className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
+                    >
+                        Upload
+                    </button>
+                </div>
             </form>
         </div>
     );
@@ -180,36 +205,31 @@ export default function UploadPage() {
 
 function UploadSection({
     file,
-    magnet,
     progress,
     onFileChange: changeFile,
-    onMagnetChange: changeMagnet,
+    onToggleManual,
+    showManual,
+    register,
+    errors,
 }: {
     file: File | null;
-    magnet: string;
     progress: number | null;
     onFileChange: (file: File | null) => void;
-    onMagnetChange: (uri: string) => void;
+    onToggleManual: () => void;
+    showManual: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    register: UseFormRegister<any>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    errors: FieldErrors<any>;
 }) {
-    const [isTorrentParsed, setIsTorrentParsed] = useState(false);
-
     const onDrop = useCallback(
         async (acceptedFiles: File[]) => {
             const droppedFile = acceptedFiles[0];
             if (!droppedFile) return;
 
-            if (droppedFile.name.endsWith('.torrent')) {
-                const mangetURI = await getMagnetFromTorrentFile(droppedFile);
-                changeMagnet(mangetURI ?? '');
-                setIsTorrentParsed(true);
-                changeFile(null);
-            } else {
-                changeFile(droppedFile);
-                changeMagnet('');
-                setIsTorrentParsed(false);
-            }
+            changeFile(droppedFile);
         },
-        [changeFile, changeMagnet]
+        [changeFile]
     );
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -221,18 +241,17 @@ function UploadSection({
         },
     });
 
-    const onRemoveFile = () => changeFile(null);
-    const onMagnetChange = (value: string) => {
-        changeMagnet(value);
-        setIsTorrentParsed(false);
-        if (value) changeFile(null);
+    const onRemoveFile = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        changeFile(null);
     };
 
     const fileSize = file ? formatBytes(file.size) : null;
 
     return (
-        <section className="bg-white/5 border border-white/10 rounded-4xl p-6 shadow-xl space-y-4">
-            <div className="flex flex-col items-center gap-6">
+        <section className="bg-white/5 border border-white/10 rounded-4xl p-6 md:p-8 shadow-xl space-y-8">
+            <div className="relative flex flex-col lg:flex-row gap-6 justify-stretch items-stretch">
+                {/* Dropzone */}
                 <div
                     {...getRootProps()}
                     className={`flex-1 w-full border-2 border-dashed rounded-2xl p-6 flex items-center gap-4 transition-all cursor-pointer group
@@ -247,7 +266,7 @@ function UploadSection({
                     <div className="text-left flex-1">
                         {file ? (
                             <>
-                                <h2 className="font-bold text-sm text-primary truncate max-w-50">{file.name}</h2>
+                                <h2 className="font-bold text-sm text-primary truncate max-w-37 md:max-w-full">{file.name}</h2>
                                 <p className="text-[10px] text-white/30 uppercase tracking-widest mt-1">{fileSize}</p>
                             </>
                         ) : (
@@ -259,43 +278,58 @@ function UploadSection({
                     </div>
 
                     {file && (
-                        <button onClick={onRemoveFile} className="p-2 hover:bg-white/10 rounded-lg text-white/20 hover:text-white">
+                        <button
+                            onClick={onRemoveFile}
+                            className="p-2 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-colors"
+                        >
                             <X size={16} />
                         </button>
                     )}
                 </div>
 
-                <div className="flex-[1.2] w-full space-y-3">
-                    <div className="flex items-center justify-between ml-1">
-                        <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20">
-                            <Link size={12} />
-                            <span>Or paste magnet</span>
+                {/* Database Links & Manual Toggle */}
+                <div className="w-full lg:w-80 xl:w-100 space-y-4">
+                    <div className="flex flex-col gap-px">
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mb-2">
+                                <Database size={12} />
+                                <span>Auto-fill from DB</span>
+                            </div>
+                            {errors.dbUrl && (
+                                <p className="text-red-500 text-[10px] font-bold animate-in fade-in">{errors.dbUrl.message?.toString()}</p>
+                            )}
                         </div>
 
-                        {isTorrentParsed && (
-                            <div className="flex items-center gap-1 text-primary animate-in fade-in zoom-in duration-300">
-                                <Check size={12} strokeWidth={2} />
-                                <span className="text-[10px]">Parsed</span>
+                        <div className="grid grid-cols-1 gap-3">
+                            <div className="relative">
+                                <input
+                                    {...register('dbUrl')}
+                                    placeholder="imdb.com/title/tt2527336..."
+                                    className={`w-full bg-black/20 border border-white/5 rounded-xl py-3 px-4 text-xs outline-none focus:border-primary/30 transition-all ${errors.dbUrl ? 'border-red-500/50 focus:border-red-500' : 'border-white/10'}`}
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-white/10 uppercase flex gap-2">
+                                    <span>IMDb</span>
+                                    <span>TMDB</span>
+                                </span>
                             </div>
-                        )}
+                        </div>
                     </div>
 
-                    <div className="relative group">
-                        <input
-                            type="text"
-                            value={magnet}
-                            onChange={(e) => onMagnetChange(e.target.value)}
-                            placeholder="magnet:?xt=urn:btih:..."
-                            className={`w-full bg-black/40 border rounded-xl py-3 px-4 text-xs font-mono outline-none transition-all
-                                        ${
-                                            isTorrentParsed
-                                                ? 'border-primary/50 text-primary shadow-[0_0_15px_rgba(var(--primary-rgb),0.1)]'
-                                                : 'border-white/5 focus:border-primary/40 text-primary'
-                                        }`}
-                        />
-                    </div>
+                    <button
+                        type="button"
+                        onClick={onToggleManual}
+                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2
+                            ${
+                                showManual
+                                    ? 'bg-white/10 border-white/20 text-white'
+                                    : 'bg-transparent border-white/5 text-white/30 hover:border-white/10 hover:text-white/50'
+                            }`}
+                    >
+                        {showManual ? 'Hide Manual Fields' : 'Manual Entry'}
+                    </button>
                 </div>
             </div>
+
             {progress !== null && (
                 <div className="w-full p-2 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="flex justify-between items-center mb-2">

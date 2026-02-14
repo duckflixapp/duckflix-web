@@ -341,6 +341,10 @@ function SettingsBox({
     activeVersion: MovieVersionDTO | null;
     onChangeResolution: (v: MovieVersionDTO) => unknown;
 }) {
+    const changeResolution = (v: MovieVersionDTO) => {
+        if (v === activeVersion) return;
+        handleChangeResolution(v);
+    };
     if (!isOpen) return null;
     return (
         <>
@@ -352,7 +356,7 @@ function SettingsBox({
                     {versions.map((v) => (
                         <button
                             key={v.id}
-                            onClick={() => handleChangeResolution(v)}
+                            onClick={() => changeResolution(v)}
                             className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
                                 activeVersion?.id === v.id
                                     ? 'bg-primary/10 text-primary border border-primary/20'

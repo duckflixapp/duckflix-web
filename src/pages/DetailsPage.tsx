@@ -3,6 +3,7 @@ import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import type { MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
+import { useState } from 'react';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -20,6 +21,7 @@ const getTagFromVersions = (versions: MovieVersionDTO[]) => {
 export default function DetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [showDescription, setShowDesc] = useState<boolean>(false);
 
     const { data, isLoading } = useMovieDetail(id);
     const movie = data;
@@ -53,9 +55,9 @@ export default function DetailsPage() {
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
-                        <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
+                        <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
                             {movie.rating && (
-                                <div className="flex items-center gap-1.5 text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-lg border border-yellow-500/20">
+                                <div className="flex items-center gap-1.5 text-yellow-500  bg-yellow-500/10 px-3 py-1 rounded-lg border border-yellow-500/20">
                                     <Star size={16} fill="currentColor" />
                                     <span>{movie.rating}</span>
                                 </div>
@@ -81,13 +83,9 @@ export default function DetailsPage() {
                             )}
                         </div>
 
-                        <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-none">{movie.title}</h1>
-
-                        {movie.description && (
-                            <p className="text-lg text-text/70 max-w-2xl line-clamp-3 md:line-clamp-none leading-relaxed">
-                                {movie.description}
-                            </p>
-                        )}
+                        <h1 className="text-5xl md:text-7xl font-black text-white text-shadow-2xs text-shadow-black tracking-tight leading-none">
+                            {movie.title}
+                        </h1>
 
                         <div className="flex flex-wrap gap-4 pt-4">
                             <button
@@ -98,7 +96,7 @@ export default function DetailsPage() {
                                 PLAY NOW
                             </button>
 
-                            <button className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-2xl transition-all">
+                            <button className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-2xl transition-all">
                                 <Bookmark size={20} />
                                 Add to My List
                             </button>
@@ -107,8 +105,21 @@ export default function DetailsPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
+                    {movie.description && (
+                        <div>
+                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Description</h3>
+                            <div className="flex flex-wrap gap-3">
+                                <p
+                                    onClick={() => setShowDesc((prev) => !prev)}
+                                    className={`text-text/70 w-full text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-3'}`}
+                                >
+                                    {movie.description}
+                                </p>
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Genres</h3>
                         <div className="flex flex-wrap gap-3">
@@ -124,9 +135,13 @@ export default function DetailsPage() {
                                 ))}
                         </div>
                     </div>
+                    <div>
+                        <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
+                        <div className="flex flex-wrap gap-3"></div>
+                    </div>
                 </div>
 
-                <div className="space-y-8 p-8 h-fit">
+                <div className="space-y-8 h-fit">
                     <div>
                         <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
                         <p className="text-white font-medium">{movie.user.name}</p>
