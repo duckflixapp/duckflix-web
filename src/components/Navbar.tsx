@@ -171,17 +171,16 @@ function SearchResultBox({
                                         <Play size={16} fill="currentColor" />
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                    <Play size={14} fill="white" className="drop-shadow-md" />
-                                </div>
                             </div>
                             <div className="flex flex-col flex-1 gap-1 min-w-0">
                                 <span className="font-bold text-[13px] text-text/90 transition-colors truncate">{movie.title}</span>
                                 <div className="flex items-center gap-2 text-[10px] text-text/40 font-medium tracking-tight">
                                     <span className="text-text/60 bg-white/5 px-1.5 py-0.5 rounded">{movie.releaseYear}</span>
-                                    <span>
-                                        {Math.floor(movie.duration / 3600)}h {Math.ceil(movie.duration / 60) % 60}m
-                                    </span>
+                                    {movie.duration && (
+                                        <span>
+                                            {Math.floor(movie.duration / 3600)}h {Math.ceil(movie.duration / 60) % 60}m
+                                        </span>
+                                    )}
                                 </div>
                             </div>
                             <div className="pr-2">

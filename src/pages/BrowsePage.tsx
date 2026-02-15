@@ -2,6 +2,7 @@ import type { MovieDTO } from '@duckflix/shared';
 import { useMovies } from '../hooks/use-movies';
 import { Play, Info, Star, UploadCloud, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { MovieCard } from '../components/movies/MovieCard';
 
 export default function BrowsePage() {
     const { data, isLoading, isError } = useMovies(1);
@@ -81,14 +82,7 @@ function MovieListSection({
             .fill(0)
             .map((_, i) => <MovieSkeleton key={i} />);
 
-    return movies.map((movie) => (
-        <div key={movie.id} className="group cursor-pointer" onClick={() => openDetails(movie)}>
-            <div className="relative aspect-2/3 rounded-2xl overflow-hidden mb-4 border border-white/5 shadow-xl transition-all duration-500 group-hover:border-primary/50 group-hover:-translate-y-2">
-                <img src={movie.posterUrl ?? ''} alt={movie.title} className="w-full h-full object-cover" />
-            </div>
-            <h3 className="font-bold text-sm truncate text-text/90 group-hover:text-primary transition-colors">{movie.title}</h3>
-        </div>
-    ));
+    return movies.map((movie) => <MovieCard movie={movie} key={movie.id} onClick={() => openDetails(movie)} />);
 }
 
 function HeroSection({

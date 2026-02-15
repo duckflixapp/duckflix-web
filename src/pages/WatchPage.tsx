@@ -47,7 +47,8 @@ export default function WatchPage() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const [manualRes, setManualRes] = useState<number | null>(null);
-    const availableVersions = movie?.versions.filter((v) => v.status === 'ready').sort((a, b) => b.height - a.height) || [];
+    const availableVersions =
+        movie?.versions.filter((v) => v.mimeType === 'video/mp4' && v.status === 'ready').sort((a, b) => b.height - a.height) || [];
     const activeVersion = manualRes ? availableVersions.find((v) => v.height === manualRes) : availableVersions[0];
 
     const actionCallback = () => {
@@ -213,7 +214,10 @@ export default function WatchPage() {
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition">
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition cursor-pointer"
+                        >
                             <ChevronLeft size={24} className="text-white" />
                         </button>
                         <div>
@@ -257,16 +261,22 @@ export default function WatchPage() {
                             <button onClick={player.toggleMute} className="text-white/70 hover:text-white">
                                 <VolumeIcon size={20} />
                             </button>
-                            <div className="flex items-center w-0 overflow-x-clip group-hover/vol:w-24 transition-all duration-300">
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="10"
-                                    step="1"
-                                    value={player.volume}
-                                    onChange={(e) => player.setVolume(Number(e.target.value))}
-                                    className="h-1 w-20 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary"
-                                />
+                            <div className="flex items-center w-0 overflow-hidden group-hover/vol:w-24 group-hover/vol:ml-2 transition-all duration-300 ease-out">
+                                <div className="relative w-20 h-1 hover:h-2 transition-all bg-white/20 rounded-full overflow-hidden">
+                                    <div
+                                        className="absolute top-0 left-0 h-full bg-primary transition-all duration-100"
+                                        style={{ width: `${(player.volume / 10) * 100}%` }}
+                                    />
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max="10"
+                                        step="1"
+                                        value={player.volume}
+                                        onChange={(e) => player.setVolume(Number(e.target.value))}
+                                        className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                    />
+                                </div>
                             </div>
                         </div>
 
