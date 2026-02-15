@@ -9,7 +9,7 @@ export const useAuth = () => {
         queryKey: ['auth-user'],
         queryFn: async () => {
             try {
-                const { user } = await api.get<{ user: UserDTO }>('/auth/me');
+                const { user } = await api.get<{ user: UserDTO }>('/users/@me');
                 return user;
             } catch {
                 return null;

@@ -68,7 +68,7 @@ export function SettingsBox({
                 transition={{
                     layout: { duration: 0.2, ease: 'easeOut' },
                 }}
-                className="absolute bottom-full right-0 mb-4 w-64 bg-black/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden origin-bottom-right"
+                className="absolute bottom-full right-0 mb-4 w-64 bg-background/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden origin-bottom-right"
             >
                 <AnimatePresence mode="popLayout" custom={direction} initial={false}>
                     <motion.div

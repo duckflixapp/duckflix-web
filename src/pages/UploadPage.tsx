@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import type { MovieDTO } from '@duckflix/shared';
 
 export default function UploadPage() {
-    const { data: genres } = useGenres();
+    const { genres } = useGenres();
     const [file, setFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const [showManual, setShowManual] = useState(false); // State za prikazivanje rucnog unosa

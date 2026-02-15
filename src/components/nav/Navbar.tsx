@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/use-auth';
-import { BellDot, ChevronRight, Loader2, Play, Search, User } from 'lucide-react';
+import { useAuth } from '../../hooks/use-auth';
+import { ChevronRight, Loader2, Play, Search, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
 import type { MovieDTO, PaginatedResponse, UserDTO } from '@duckflix/shared';
-import { api } from '../lib/api';
+import { api } from '../../lib/api';
+import { NotificationBox } from './Notifications';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
@@ -204,16 +205,6 @@ function SearchResultBox({
                 </div>
             )}
         </div>
-    );
-}
-
-function NotificationBox() {
-    return (
-        <GlassyBox>
-            <div className="flex items-center justify-center p-3 cursor-pointer">
-                <BellDot size={18} />
-            </div>
-        </GlassyBox>
     );
 }
 
