@@ -11,6 +11,7 @@ export const useMovies = (page = 1, search = '') => {
             });
             return data;
         },
+        retry: false,
         placeholderData: (previousData) => previousData,
     });
 };

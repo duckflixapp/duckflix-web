@@ -16,6 +16,7 @@ export const useAuth = () => {
             }
         },
         retry: false,
+        staleTime: 1000,
     });
 
     const logout = useMutation({

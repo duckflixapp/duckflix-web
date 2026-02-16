@@ -9,6 +9,8 @@ export const useGenres = () => {
             const { genres } = await api.get<{ genres: GenreDTO[] }>('/movies/genres');
             return genres;
         },
+        retry: false,
+        staleTime: 1000,
         placeholderData: (previousData) => previousData,
     });
 

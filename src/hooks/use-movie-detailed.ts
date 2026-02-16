@@ -10,6 +10,8 @@ export const useMovieDetail = (id: string | undefined) => {
             const { movie } = await api.get<{ movie: MovieDetailedDTO }>(`/movies/${id}`);
             return movie;
         },
+        retry: false,
+        staleTime: 5 * 1000,
         enabled: !!id,
     });
 };
