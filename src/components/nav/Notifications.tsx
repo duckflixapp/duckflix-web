@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { BellDot, Info, AlertTriangle, History, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, Info, AlertTriangle, History, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNotifications } from '../../hooks/use-notifications';
 import type { NotificationDTO } from '@duckflix/shared';
 
@@ -29,7 +29,7 @@ export function NotificationBox() {
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="flex items-center justify-center p-3 relative">
-                    <BellDot size={18} className={unreadCount > 0 ? 'animate-pulse text-primary' : ''} />
+                    <Bell size={18} className={unreadCount > 0 ? 'animate-pulse text-primary' : ''} />
                     {unreadCount > 0 && (
                         <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]" />
                     )}
@@ -65,7 +65,7 @@ export function NotificationBox() {
                             </div>
                         ) : (
                             <div className="py-16 flex flex-col items-center justify-center text-center opacity-20">
-                                <BellDot size={48} strokeWidth={1} className="mb-4" />
+                                <Bell size={48} strokeWidth={1} className="mb-4" />
                                 <p className="text-sm italic">The pond is quiet today...</p>
                             </div>
                         )}

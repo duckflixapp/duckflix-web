@@ -23,6 +23,7 @@ import { PlayerOverlay } from '../components/player/PlayerOverlay';
 import { ProgressBar } from '../components/player/ProgressBar';
 import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
+import type { MovieVersionDTO } from '@duckflix/shared';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -41,7 +42,9 @@ export default function WatchPage() {
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
     const [isScrubbing, setIsScrubbing] = useState(false);
+    const progressBarRef = useRef<HTMLDivElement>(null);
     const timeDisplayRef = useRef<HTMLSpanElement>(null);
+    const videoStateRef = useRef<boolean>(false);
 
     const lastActionTimeRef = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -61,7 +64,6 @@ export default function WatchPage() {
 
     // progress memory
     const saveProgress = useCallback(() => {
-        console.log('called');
         const video = videoRef.current;
         if (!video) return;
 
@@ -121,8 +123,8 @@ export default function WatchPage() {
     // Scrubbing Logic
     const handleSeek = useCallback(
         (e: React.MouseEvent | MouseEvent) => {
-            if (!videoRef.current || !containerRef.current) return;
-            const rect = containerRef.current.getBoundingClientRect();
+            if (!videoRef.current || !progressBarRef.current) return;
+            const rect = progressBarRef.current.getBoundingClientRect();
             const clientX = e.clientX;
             const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
             videoRef.current.currentTime = pos * videoRef.current.duration;
@@ -130,17 +132,27 @@ export default function WatchPage() {
         [videoRef]
     );
 
+    const onScrubEnd = useCallback(() => {
+        if (!videoStateRef.current && videoRef.current && videoRef.current.currentTime !== videoRef.current.duration)
+            videoRef.current.play();
+    }, [videoRef]);
+
     useEffect(() => {
         if (!isScrubbing) return;
+        if (!videoStateRef.current && videoRef.current) videoRef.current.pause();
+
         const onMove = (e: MouseEvent) => handleSeek(e);
-        const onUp = () => setIsScrubbing(false);
+        const onUp = () => {
+            setIsScrubbing(false);
+            onScrubEnd();
+        };
         window.addEventListener('mousemove', onMove);
         window.addEventListener('mouseup', onUp);
         return () => {
             window.removeEventListener('mousemove', onMove);
             window.removeEventListener('mouseup', onUp);
         };
-    }, [isScrubbing, handleSeek]);
+    }, [isScrubbing, handleSeek, videoRef, onScrubEnd]);
 
     const toggleSettings = () => {
         setIsSubtitlesOpen(false);
@@ -183,6 +195,27 @@ export default function WatchPage() {
             </div>
         );
 
+    const handleChangeResolution = (v: MovieVersionDTO) => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const t = video.currentTime;
+        const wasPlaying = !video.paused;
+
+        const handleSeekAfterChange = () => {
+            video.currentTime = t;
+            if (wasPlaying) {
+                video.play().catch((e) => console.error('Auto-play failed:', e));
+            }
+            video.removeEventListener('loadedmetadata', handleSeekAfterChange);
+        };
+
+        video.addEventListener('loadedmetadata', handleSeekAfterChange);
+
+        setManualRes(v.height);
+        setIsSettingsOpen(false);
+    };
+
     // Helper icons
     const PlayIcon = player.paused ? Play : Pause;
     const FullScrnIcon = player.fullScreen ? Minimize : Maximize;
@@ -191,7 +224,7 @@ export default function WatchPage() {
     return (
         <div
             ref={containerRef}
-            className={`h-screen w-screen bg-black relative group overflow-hidden ${showControls ? 'cursor-default' : 'cursor-none'}`}
+            className={`h-screen w-screen bg-black relative group overflow-hidden ${showControls ? 'cursor-default' : 'cursor-none'} ${isScrubbing ? 'select-none' : ''}`}
             onMouseMove={registerAction}
             onClick={registerAction}
         >
@@ -199,7 +232,7 @@ export default function WatchPage() {
                 ref={videoRef}
                 src={activeVersion?.streamUrl}
                 className="w-full h-full max-h-screen object-contain"
-                onClick={player.togglePlay}
+                onClick={() => !isScrubbing && player.togglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
                 onPlaying={() => player.setIsBuffering(false)}
                 onCanPlay={() => player.setIsBuffering(false)}
@@ -233,7 +266,7 @@ export default function WatchPage() {
                 </div>
             </div>
 
-            <PlayerOverlay paused={player.paused} isBuffering={player.isBuffering} />
+            <PlayerOverlay paused={isScrubbing ? false : player.paused} isBuffering={player.isBuffering} />
 
             {id && <ResumeNotification movieId={id} videoRef={videoRef} />}
 
@@ -242,13 +275,18 @@ export default function WatchPage() {
                 className={`absolute bottom-0 left-0 w-full p-8 bg-linear-to-t from-black/90 to-transparent transition-opacity duration-300 z-50 ${showControls ? 'opacity-100' : 'opacity-0'}`}
             >
                 <ProgressBar
+                    ref={progressBarRef}
                     videoRef={videoRef}
                     isScrubbing={isScrubbing}
                     onScrubStart={(e) => {
+                        videoStateRef.current = player.paused;
                         setIsScrubbing(true);
                         handleSeek(e);
                     }}
-                    onScrubEnd={() => setIsScrubbing(false)}
+                    onScrubEnd={() => {
+                        setIsScrubbing(false);
+                        onScrubEnd();
+                    }}
                 />
 
                 <div className="flex items-center justify-between mt-4">
@@ -301,14 +339,7 @@ export default function WatchPage() {
                                 onClose={() => setIsSettingsOpen(false)}
                                 versions={availableVersions}
                                 activeVersion={activeVersion ?? null}
-                                onChangeResolution={(v) => {
-                                    const t = videoRef.current?.currentTime || 0;
-                                    setManualRes(v.height);
-                                    setIsSettingsOpen(false);
-                                    setTimeout(() => {
-                                        if (videoRef.current) videoRef.current.currentTime = t;
-                                    }, 100);
-                                }}
+                                onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
                             />
