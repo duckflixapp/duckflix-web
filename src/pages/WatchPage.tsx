@@ -230,6 +230,8 @@ export default function WatchPage() {
         >
             <video
                 ref={videoRef}
+                playsInline
+                preload="metadata"
                 src={activeVersion?.streamUrl}
                 className="w-full h-full max-h-screen object-contain"
                 onClick={() => !isScrubbing && player.togglePlay()}
@@ -248,7 +250,7 @@ export default function WatchPage() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button
-                            onClick={() => navigate(-1)}
+                            onClick={() => navigate(`/details/${id}`)}
                             className="p-2 bg-white/5 rounded-full hover:bg-white/10 transition cursor-pointer"
                         >
                             <ChevronLeft size={24} className="text-white" />
