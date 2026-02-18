@@ -23,7 +23,7 @@ import { PlayerOverlay } from '../components/player/PlayerOverlay';
 import { ProgressBar } from '../components/player/ProgressBar';
 import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
-import type { MovieVersionDTO } from '@duckflix/shared';
+import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -40,7 +40,7 @@ export default function WatchPage() {
 
     const [showControls, setShowControls] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    const [isSubtitlesOpen, setIsSubtitlesOpen] = useState(false);
+    const [subtitle, setSubtitle] = useState<SubtitleDTO | null>(null);
     const [isScrubbing, setIsScrubbing] = useState(false);
     const progressBarRef = useRef<HTMLDivElement>(null);
     const timeDisplayRef = useRef<HTMLSpanElement>(null);
@@ -171,18 +171,22 @@ export default function WatchPage() {
     }, [isScrubbing, handleSeek, videoRef, onScrubEnd]);
 
     const toggleSettings = () => {
-        setIsSubtitlesOpen(false);
         setIsSettingsOpen((p) => !p);
     };
 
-    const toggleSubtitles = () => {
-        setIsSettingsOpen(false);
-        setIsSubtitlesOpen((p) => !p);
-    };
+    const toggleSubtitles = useCallback(() => {
+        if (subtitle) setSubtitle(null);
+        else if (movie && movie.subtitles.length > 0) {
+            const code = localStorage.getItem('prefered-subtitle-lang');
+            const s = movie.subtitles.find((t) => t.language === code);
+            setSubtitle(s ?? movie.subtitles[0]);
+        }
+    }, [movie, subtitle]);
 
-    const closeMenus = () => {
-        setIsSubtitlesOpen(false);
-        setIsSettingsOpen(false);
+    const changeSubtitle = (s: SubtitleDTO | null) => {
+        setSubtitle(s);
+        if (!s) return;
+        localStorage.setItem('prefered-subtitle-lang', s.language);
     };
 
     // Keyboard shortcuts
@@ -194,7 +198,6 @@ export default function WatchPage() {
 
                 if (shortcut.func === 'closeOpenMenu') {
                     if (isSettingsOpen) setIsSettingsOpen(false);
-                    else if (isSubtitlesOpen) setIsSubtitlesOpen(false);
                     else if (showControls) setShowControls(false);
                 }
             });
@@ -202,7 +205,7 @@ export default function WatchPage() {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isSettingsOpen, isSubtitlesOpen, showControls]);
+    }, [isSettingsOpen, showControls]);
 
     if (isLoading || !movie)
         return (
@@ -229,7 +232,6 @@ export default function WatchPage() {
         video.addEventListener('loadedmetadata', handleSeekAfterChange);
 
         setManualRes(v.height);
-        setIsSettingsOpen(false);
     };
 
     // Helper icons
@@ -249,6 +251,7 @@ export default function WatchPage() {
                 playsInline
                 preload="metadata"
                 src={activeVersion?.streamUrl}
+                crossOrigin="use-credentials"
                 className="w-full h-full max-h-screen object-contain"
                 onClick={() => !isScrubbing && player.togglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
@@ -257,7 +260,18 @@ export default function WatchPage() {
                 onEnded={() => player.setPaused(true)}
                 onPause={() => player.setPaused(true)} // e.g. os can pause player
                 onPlay={() => player.setPaused(false)}
-            />
+            >
+                {subtitle && (
+                    <track
+                        key={subtitle.id}
+                        kind="subtitles"
+                        src={subtitle.subtitleUrl}
+                        srcLang={subtitle.language}
+                        label={subtitle.language}
+                        default
+                    />
+                )}
+            </video>
 
             {/* TOP BAR */}
             <div
@@ -344,7 +358,7 @@ export default function WatchPage() {
 
                     <div className="flex items-center gap-2">
                         <div className="relative">
-                            <Button onClick={toggleSubtitles} active={isSubtitlesOpen}>
+                            <Button onClick={toggleSubtitles} active={subtitle != null}>
                                 <Subtitles size={21} />
                             </Button>
                         </div>
@@ -361,13 +375,16 @@ export default function WatchPage() {
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
+                                subtitles={movie.subtitles}
+                                activeSubtitle={subtitle}
+                                setSubtitle={changeSubtitle}
                             />
                         </div>
 
                         <div>
                             <Button
                                 onClick={() => {
-                                    closeMenus();
+                                    // setIsSettingsOpen(false);
                                     player.toggleFullScreen();
                                 }}
                             >

@@ -6,7 +6,8 @@ export type PlayerFunc =
     | 'seekForward'
     | 'closeOpenMenu'
     | 'volumeDown'
-    | 'volumeUp';
+    | 'volumeUp'
+    | 'subtitles';
 export const playerShortcuts: { keys: string[]; func: PlayerFunc }[] = [
     {
         keys: ['k', 'space'],
@@ -39,5 +40,9 @@ export const playerShortcuts: { keys: string[]; func: PlayerFunc }[] = [
     {
         keys: ['escape'],
         func: 'closeOpenMenu',
+    },
+    {
+        keys: ['c'],
+        func: 'subtitles',
     },
 ];

@@ -1,6 +1,6 @@
-import type { MovieVersionDTO } from '@duckflix/shared';
+import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatBytes, getQualityLabel } from '../../utils/format';
+import { formatBytes, getLanguageName, getQualityLabel } from '../../utils/format';
 import { useEffect, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Gauge, Layers, Subtitles } from 'lucide-react';
 
@@ -14,7 +14,24 @@ interface SettingsBoxProps {
     onChangeResolution: (v: MovieVersionDTO) => void;
     playbackSpeed: number;
     onChangeSpeed: (s: number) => void;
+    subtitles: SubtitleDTO[];
+    activeSubtitle: SubtitleDTO | null;
+    setSubtitle: (s: SubtitleDTO | null) => void;
 }
+
+const appendSubtitleName = (subs: SubtitleDTO[]) => {
+    const occ = new Map<string, number>();
+    const ver = (code: string) => {
+        if (occ.has(code)) {
+            const v = occ.get(code)! + 1;
+            occ.set(code, v);
+            return ` ${v}`;
+        }
+        occ.set(code, 1);
+        return '';
+    };
+    return subs.map((s) => ({ name: getLanguageName(s.language) + ver(s.language), ...s }));
+};
 
 export function SettingsBox({
     isOpen,
@@ -24,8 +41,14 @@ export function SettingsBox({
     onChangeResolution,
     playbackSpeed,
     onChangeSpeed,
+    subtitles: _subtitles,
+    setSubtitle,
+    activeSubtitle: _activeSubtitle,
 }: SettingsBoxProps) {
     const [[menu, direction], setMenu] = useState<[MenuState, number]>(['main', 0]);
+
+    const subtitles = appendSubtitleName(_subtitles);
+    const activeSubtitle = subtitles.find((s) => s.id === _activeSubtitle?.id) ?? null;
 
     useEffect(() => {
         if (!isOpen) setTimeout(() => setMenu(['main', 0]), 10);
@@ -101,7 +124,7 @@ export function SettingsBox({
                                 <MenuButton
                                     icon={<Subtitles size={16} />}
                                     label="Subtitles"
-                                    value="Off"
+                                    value={activeSubtitle ? activeSubtitle.name : 'Off'}
                                     onClick={() => setStep('subtitles', 1)}
                                 />
                             </div>
@@ -116,7 +139,7 @@ export function SettingsBox({
                                             key={v.id}
                                             onClick={() => {
                                                 onChangeResolution(v);
-                                                handleClose();
+                                                setStep('main', -1);
                                             }}
                                             className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
                                                 activeVersion?.id === v.id
@@ -146,7 +169,7 @@ export function SettingsBox({
                                             key={s}
                                             onClick={() => {
                                                 onChangeSpeed(s);
-                                                handleClose();
+                                                setStep('main', -1);
                                             }}
                                             className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
                                                 playbackSpeed === s
@@ -165,7 +188,43 @@ export function SettingsBox({
                         {menu === 'subtitles' && (
                             <div>
                                 <MenuHeader label="Subtitles" onBack={() => setStep('main', -1)} />
-                                <div className="p-8 text-center text-white/20 text-xs italic">No subtitles available</div>
+                                {subtitles.length === 0 ? (
+                                    <div className="p-8 text-center text-white/20 text-xs italic">No subtitles available</div>
+                                ) : (
+                                    <div className="flex flex-col gap-1 max-h-64 overflow-y-auto custom-scrollbar">
+                                        <button
+                                            onClick={() => {
+                                                setStep('main', -1);
+                                                setSubtitle(null);
+                                            }}
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                                activeSubtitle === null
+                                                    ? 'bg-primary/10 text-primary border border-primary/20'
+                                                    : 'hover:bg-white/5 text-white/70 border border-transparent'
+                                            }`}
+                                        >
+                                            <span>Off</span>
+                                            {activeSubtitle === null && <Check size={14} />}
+                                        </button>
+                                        {subtitles.map((subtitle) => (
+                                            <button
+                                                key={subtitle.id}
+                                                onClick={() => {
+                                                    setStep('main', -1);
+                                                    setSubtitle(subtitle);
+                                                }}
+                                                className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                                    subtitle.id === activeSubtitle?.id
+                                                        ? 'bg-primary/10 text-primary border border-primary/20'
+                                                        : 'hover:bg-white/5 text-white/70 border border-transparent'
+                                                }`}
+                                            >
+                                                <span>{subtitle.name}</span>
+                                                {subtitle.id === activeSubtitle?.id && <Check size={14} />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </motion.div>

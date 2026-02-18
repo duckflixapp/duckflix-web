@@ -54,13 +54,15 @@ export function NotificationBox() {
                         </div>
                         {notifications.length > 0 && (
                             <div className="flex gap-4">
-                                <button
-                                    disabled={isMarking}
-                                    onClick={() => mark([])}
-                                    className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer uppercase tracking-tighter"
-                                >
-                                    {isMarking ? 'Sinking...' : 'Read All'}
-                                </button>
+                                {unreadCount > 0 && (
+                                    <button
+                                        disabled={isMarking}
+                                        onClick={() => mark([])}
+                                        className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer uppercase tracking-tighter"
+                                    >
+                                        {isMarking ? 'Sinking...' : 'Read All'}
+                                    </button>
+                                )}
                                 <button
                                     disabled={isClearing}
                                     onClick={() => clear()}

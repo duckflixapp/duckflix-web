@@ -60,3 +60,13 @@ export const timeAgo = (dateInput: string | Date): string => {
 
     return 'Just now';
 };
+
+export function getLanguageName(code: string, targetLang = 'en') {
+    try {
+        const displayNames = new Intl.DisplayNames([targetLang], { type: 'language' });
+        return displayNames.of(code) || code;
+    } catch (e) {
+        console.error(e);
+        return code;
+    }
+}
