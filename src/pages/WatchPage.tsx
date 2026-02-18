@@ -35,7 +35,7 @@ const formatTime = (seconds: number) => {
 
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
-    const { data: movie, isLoading } = useMovieDetail(id);
+    const { movie, isLoading } = useMovieDetail(id);
     const navigate = useNavigate();
 
     const [showControls, setShowControls] = useState(true);
@@ -48,6 +48,8 @@ export default function WatchPage() {
 
     const lastActionTimeRef = useRef<number>(0);
     const containerRef = useRef<HTMLDivElement>(null);
+    const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const scrubPercentRef = useRef<number | null>(null);
 
     const [manualRes, setManualRes] = useState<number | null>(null);
     const availableVersions =
@@ -127,7 +129,21 @@ export default function WatchPage() {
             const rect = progressBarRef.current.getBoundingClientRect();
             const clientX = e.clientX;
             const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-            videoRef.current.currentTime = pos * videoRef.current.duration;
+
+            scrubPercentRef.current = pos * 100;
+
+            const newTime = pos * videoRef.current.duration;
+
+            if (timeDisplayRef.current) {
+                timeDisplayRef.current.innerText = `${formatTime(newTime)} / ${formatTime(videoRef.current.duration)}`;
+            }
+
+            if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+            seekTimeoutRef.current = setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.currentTime = newTime;
+                }
+            }, 100);
         },
         [videoRef]
     );
@@ -280,6 +296,7 @@ export default function WatchPage() {
                     ref={progressBarRef}
                     videoRef={videoRef}
                     isScrubbing={isScrubbing}
+                    scrubPercentRef={scrubPercentRef}
                     onScrubStart={(e) => {
                         videoStateRef.current = player.paused;
                         setIsScrubbing(true);

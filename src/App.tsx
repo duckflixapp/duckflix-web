@@ -11,10 +11,29 @@ import DetailsPage from './pages/DetailsPage';
 import WatchPage from './pages/WatchPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LibraryPage from './pages/LibraryPage';
+import { Toaster } from 'sonner';
 
 function App() {
     return (
         <BrowserRouter>
+            <Toaster
+                theme="dark"
+                position="bottom-right"
+                expand={false}
+                richColors
+                toastOptions={{
+                    style: {
+                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(23, 23, 23, 0.5) 100%)',
+                        backdropFilter: 'blur(20px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '1.25rem',
+                        color: '#fff',
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
+                        padding: '12px 16px',
+                    },
+                }}
+            />
             <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />

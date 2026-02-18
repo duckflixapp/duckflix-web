@@ -16,6 +16,7 @@ export const useNotifications = () => {
 
     return {
         notifications: query.data,
+        refresh: query.refetch,
         clear: () => {},
     };
 };

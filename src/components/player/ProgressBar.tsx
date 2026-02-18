@@ -3,12 +3,16 @@ import { useRef, useEffect, memo, forwardRef } from 'react';
 interface ProgressBarProps {
     videoRef: React.RefObject<HTMLVideoElement | null>;
     isScrubbing: boolean;
+    scrubPercentRef: React.RefObject<number | null>;
     onScrubStart: (e: React.MouseEvent) => void;
     onScrubEnd: () => void;
 }
 
 export const ProgressBar = memo(
-    forwardRef<HTMLDivElement, ProgressBarProps>(function ProgressBar({ videoRef, isScrubbing, onScrubStart, onScrubEnd }, ref) {
+    forwardRef<HTMLDivElement, ProgressBarProps>(function ProgressBar(
+        { videoRef, isScrubbing, scrubPercentRef, onScrubStart, onScrubEnd },
+        ref
+    ) {
         const progressBarRef = useRef<HTMLDivElement>(null);
         const bufferBarRef = useRef<HTMLDivElement>(null);
         const requestRef = useRef<number>(0);
@@ -17,17 +21,22 @@ export const ProgressBar = memo(
             const update = () => {
                 const video = videoRef.current;
 
-                if (video) {
-                    if (progressBarRef.current) {
-                        const progress = (video.currentTime / video.duration) * 100 || 0;
-                        progressBarRef.current.style.width = `${progress}%`;
-                    }
+                if (!video || !progressBarRef.current) {
+                    requestRef.current = requestAnimationFrame(update);
+                    return;
+                }
 
-                    if (bufferBarRef.current && video.buffered.length > 0) {
-                        const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-                        const bufferPercent = (bufferedEnd / video.duration) * 100 || 0;
-                        bufferBarRef.current.style.width = `${bufferPercent}%`;
-                    }
+                if (isScrubbing && scrubPercentRef.current !== null) {
+                    progressBarRef.current.style.width = `${scrubPercentRef.current}%`;
+                } else {
+                    const progress = (video.currentTime / video.duration) * 100 || 0;
+                    progressBarRef.current.style.width = `${progress}%`;
+                }
+
+                if (bufferBarRef.current && video.buffered.length > 0) {
+                    const bufferedEnd = video.buffered.end(video.buffered.length - 1);
+                    const bufferPercent = (bufferedEnd / video.duration) * 100 || 0;
+                    bufferBarRef.current.style.width = `${bufferPercent}%`;
                 }
 
                 requestRef.current = requestAnimationFrame(update);
@@ -37,7 +46,7 @@ export const ProgressBar = memo(
             return () => {
                 if (requestRef.current) cancelAnimationFrame(requestRef.current);
             };
-        }, [videoRef, isScrubbing]);
+        }, [videoRef, isScrubbing, scrubPercentRef]);
 
         return (
             <div

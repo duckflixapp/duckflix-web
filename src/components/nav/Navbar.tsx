@@ -5,9 +5,26 @@ import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from
 import type { MovieDTO, PaginatedResponse, UserDTO } from '@duckflix/shared';
 import { api } from '../../lib/api';
 import { NotificationBox } from './Notifications';
+import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
+import { toast } from 'sonner';
 
 export default function Navbar() {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleNotification = (data: NotificationSocketData) => {
+        toast.success(data.title, {
+            description: data.message,
+            action:
+                data.status == 'completed'
+                    ? {
+                          label: 'Watch Now',
+                          onClick: () => navigate(`/details/${data.movieId}`),
+                      }
+                    : undefined,
+        });
+    };
+    useNotificationSocket(handleNotification);
 
     return (
         <nav className="relative h-18 z-50">

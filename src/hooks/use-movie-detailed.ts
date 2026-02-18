@@ -3,7 +3,7 @@ import { api } from '../lib/api';
 import type { MovieDetailedDTO } from '@duckflix/shared';
 
 export const useMovieDetail = (id: string | undefined) => {
-    return useQuery({
+    const query = useQuery({
         queryKey: ['movie', id],
         queryFn: async () => {
             if (!id) return null;
@@ -11,7 +11,13 @@ export const useMovieDetail = (id: string | undefined) => {
             return movie;
         },
         retry: false,
-        staleTime: 5 * 1000,
+        staleTime: 100,
         enabled: !!id,
     });
+
+    return {
+        movie: query.data,
+        isLoading: query.isLoading,
+        refresh: query.refetch,
+    };
 };

@@ -1,9 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
-import type { MovieVersionDTO } from '@duckflix/shared';
+import type { DownloadProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useMovieSocket } from '../hooks/useMovieSocket';
+import { useNotificationSocket, type NotificationSocketData } from '../hooks/useNotificationSocket';
+import { MovieDownloadProgress } from '../components/movies/MovieDownloading';
+import { MovieProcessing } from '../components/movies/MovieProcessing';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -20,11 +24,20 @@ const getTagFromVersions = (versions: MovieVersionDTO[]) => {
 
 export default function DetailsPage() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
-    const [showDescription, setShowDesc] = useState<boolean>(false);
 
-    const { data, isLoading } = useMovieDetail(id);
-    const movie = data;
+    const [showDescription, setShowDesc] = useState<boolean>(false);
+    const { movie, isLoading, refresh } = useMovieDetail(id);
+    const navigate = useNavigate();
+    const movieProgressUpdate = useMovieSocket(id);
+
+    const handleNotification = useCallback(
+        (notification: NotificationSocketData) => {
+            if (notification.movieId !== id) return;
+            refresh();
+        },
+        [id, refresh]
+    );
+    useNotificationSocket(handleNotification);
 
     if (isLoading) return <DetailsSkeleton />;
     if (!movie) return null;
@@ -32,13 +45,20 @@ export default function DetailsPage() {
     const tag = getTagFromVersions(movie.versions);
     const availableVersions = movie.versions.filter((v) => v.status === 'ready');
 
+    if (movie.status === 'downloading')
+        return (
+            <MovieDownloadProgress title={movie.title} progress={(movieProgressUpdate?.progress as DownloadProgress | undefined) ?? null} />
+        );
+
+    if (movie.status === 'processing') return <MovieProcessing movie={movie} />;
+
     if (movie.status !== 'ready') return <p>{JSON.stringify(movie)}</p>;
 
     return (
         <div className="min-h-screen pb-20">
             <div className="relative w-full aspect-21/9 min-h-140 overflow-hidden">
                 <div className="absolute inset-0 rounded-tl-xl overflow-hidden">
-                    <img src={movie.bannerUrl ?? ''} alt={movie.title} className="w-full h-full object-cover" />
+                    {movie.bannerUrl && <img src={movie.bannerUrl} alt={movie.title} className="w-full h-full object-cover" />}
 
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,var(--color-background)_0%,transparent_50%)] z-10 opacity-90" />
                     <div className="absolute inset-0 bg-linear-to-r from-background via-background/40 to-transparent z-10" />
