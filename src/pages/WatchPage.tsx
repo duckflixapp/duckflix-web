@@ -221,6 +221,18 @@ export default function WatchPage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isSettingsOpen, showControls, toggleSubtitles]);
 
+    useEffect(() => {
+        const videoElement = videoRef.current;
+
+        return () => {
+            if (videoElement) {
+                videoElement.pause();
+                videoElement.removeAttribute('src');
+                videoElement.load();
+            }
+        };
+    }, [videoRef]);
+
     if (isLoading || !movie)
         return (
             <div className="h-screen bg-black flex items-center justify-center text-primary">
