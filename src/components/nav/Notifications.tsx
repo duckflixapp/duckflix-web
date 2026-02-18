@@ -2,11 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, Info, AlertTriangle, History, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNotifications } from '../../hooks/use-notifications';
 import type { NotificationDTO } from '@duckflix/shared';
+import { timeAgo } from '../../utils/format';
+import { useNotificationSocket } from '../../hooks/useNotificationSocket';
 
 export function NotificationBox() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, clear } = useNotifications();
+    const { notifications, refresh, clear } = useNotifications();
     const containerRef = useRef<HTMLDivElement>(null);
+
+    useNotificationSocket(() => {
+        refresh();
+    });
 
     useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -103,7 +109,7 @@ function NotificationItem({ notification: n }: { notification: NotificationDTO }
                         <h4 className="text-[13px] font-bold text-text/90 leading-tight truncate">{n.title}</h4>
                         <div className="flex items-center gap-1.5 shrink-0 text-text/30 font-bold uppercase text-[8px] tracking-wider">
                             <History size={10} />
-                            <span>Just now</span>
+                            <span>{timeAgo(n.createdAt)}</span>
                         </div>
                     </div>
 

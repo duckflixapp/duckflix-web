@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
-import type { DownloadProgress, MovieVersionDTO } from '@duckflix/shared';
+import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
 import { useCallback, useState } from 'react';
 import { useMovieSocket } from '../hooks/useMovieSocket';
@@ -28,7 +28,7 @@ export default function DetailsPage() {
     const [showDescription, setShowDesc] = useState<boolean>(false);
     const { movie, isLoading, refresh } = useMovieDetail(id);
     const navigate = useNavigate();
-    const movieProgressUpdate = useMovieSocket(id);
+    const { downloadProgress, progressMap } = useMovieSocket(id);
 
     const handleNotification = useCallback(
         (notification: NotificationSocketData) => {
@@ -43,12 +43,15 @@ export default function DetailsPage() {
     if (!movie) return null;
 
     const tag = getTagFromVersions(movie.versions);
-    const availableVersions = movie.versions.filter((v) => v.status === 'ready');
+    const availableVersions = movie.versions
+        .filter((v) => v.status === 'ready' || v.status === 'processing')
+        .sort((a, b) => {
+            if (a.status === 'ready' && b.status === 'processing') return -1;
+            if (a.status === 'processing' && b.status === 'ready') return 1;
+            return b.height - a.height;
+        });
 
-    if (movie.status === 'downloading')
-        return (
-            <MovieDownloadProgress title={movie.title} progress={(movieProgressUpdate?.progress as DownloadProgress | undefined) ?? null} />
-        );
+    if (movie.status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
 
     if (movie.status === 'processing') return <MovieProcessing movie={movie} />;
 
@@ -125,7 +128,7 @@ export default function DetailsPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-24">
+            <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
                     {movie.description && (
                         <div>
@@ -169,38 +172,9 @@ export default function DetailsPage() {
                     <div>
                         <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Available Qualities</h3>
                         <div className="flex flex-wrap gap-2">
-                            {availableVersions.map((v) => {
-                                const rawExt = v.mimeType?.split('/')[1] || '';
-                                const ext = rawExt.replace('x-', '').replace('msvideo', 'avi').replace('matroska', 'mkv').slice(0, 3);
-
-                                return (
-                                    <div
-                                        key={v.id}
-                                        title={v.isOriginal ? 'Original' : undefined}
-                                        className="group flex items-center bg-white/3 border border-white/5 rounded-lg px-2.5 py-1.5 hover:border-white/20 transition-all cursor-default"
-                                    >
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="text-[11px] font-bold text-text/70 group-hover:text-text">
-                                                {getQualityLabel(v.width ?? 0, v.height)}
-                                            </span>
-
-                                            <span className="text-[9px] text-white/20 font-black uppercase tracking-tighter group-hover:text-white/40">
-                                                {ext}
-                                            </span>
-                                        </div>
-
-                                        <div className="mx-2 w-px h-3 bg-white/10" />
-
-                                        <span className="text-[10px] text-text/30 font-medium group-hover:text-text/50">
-                                            {v.fileSize ? formatBytes(v.fileSize, 0) : 'N/A'}
-                                        </span>
-
-                                        {v.isOriginal && (
-                                            <div className="ml-1.5 w-1 h-1 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
-                                        )}
-                                    </div>
-                                );
-                            })}
+                            {availableVersions.map((v) => (
+                                <VersionBadge key={v.id} v={v} activeProgress={progressMap.get(v.id)} />
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -209,6 +183,60 @@ export default function DetailsPage() {
     );
 }
 
+function VersionBadge({ v, activeProgress }: { v: MovieVersionDTO; activeProgress?: JobProgress }) {
+    const isProcessing = v.status === 'processing';
+    const percent = activeProgress?.progress ?? 0;
+    const isActivelyUpdating = !!activeProgress;
+
+    const rawExt = v.mimeType?.split('/')[1] || '';
+    const ext = rawExt.replace('x-', '').replace('msvideo', 'avi').replace('matroska', 'mkv').slice(0, 3);
+
+    if (!isProcessing) {
+        return (
+            <div className="flex items-center gap-2 bg-white/3 border border-white/5 rounded-lg px-2.5 py-1.5 hover:border-white/10 transition-all group">
+                <span className="text-[11px] font-bold text-text/60 group-hover:text-text/90">
+                    {getQualityLabel(v.width ?? 0, v.height)}
+                </span>
+                <span className="text-[9px] text-white/20 font-black uppercase tracking-tighter">{ext}</span>
+                <div className="w-px h-3 bg-white/10 mx-0.5" />
+                <span className="text-[10px] text-text/30 font-medium group-hover:text-text/40">
+                    {v.fileSize ? formatBytes(v.fileSize, 0) : 'N/A'}
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-xl p-4 overflow-hidden group">
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+
+            <div className="relative z-10 flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center bg-primary/10 rounded-lg w-10 aspect-square">
+                        <span className="text-xs font-black text-primary uppercase">{getQualityLabel(v.width ?? 0, v.height, true)}</span>
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                        <p className="text-xs font-bold text-white/80 leading-none truncate">Processing</p>
+                        <p className="text-[9px] text-white/30 font-medium mt-1 uppercase tracking-wider truncate">
+                            {ext} • {v.fileSize ? formatBytes(v.fileSize, 0) : 'Calculating...'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="text-right">
+                    <span className="font-bold text-sm text-primary">{isActivelyUpdating ? `${Math.floor(percent)}%` : 'waiting'}</span>
+                </div>
+            </div>
+
+            <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div
+                    className="absolute h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_12px_rgba(var(--primary-rgb),0.5)]"
+                    style={{ width: `${isActivelyUpdating ? percent : 0}%` }}
+                />
+            </div>
+        </div>
+    );
+}
 function DetailsSkeleton() {
     return (
         <div className="min-h-screen bg-background animate-pulse">

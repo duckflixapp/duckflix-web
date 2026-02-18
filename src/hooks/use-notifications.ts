@@ -11,7 +11,6 @@ export const useNotifications = () => {
         },
         placeholderData: (previousData) => previousData,
         retry: false,
-        staleTime: 1000,
     });
 
     return {
