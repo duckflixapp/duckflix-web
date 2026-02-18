@@ -16,7 +16,7 @@ import {
     Loader2,
 } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
-import { getQualityLabel } from '../utils/format';
+import { getQualityLabel, srtToVtt } from '../utils/format';
 import { SettingsBox } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';
 import { PlayerOverlay } from '../components/player/PlayerOverlay';
@@ -50,8 +50,11 @@ export default function WatchPage() {
     const containerRef = useRef<HTMLDivElement>(null);
     const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const scrubPercentRef = useRef<number | null>(null);
+    const lastActiveSubtitleIdRef = useRef<string>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [manualRes, setManualRes] = useState<number | null>(null);
+    const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const availableVersions =
         movie?.versions.filter((v) => v.mimeType === 'video/mp4' && v.status === 'ready').sort((a, b) => b.height - a.height) || [];
     const activeVersion = manualRes ? availableVersions.find((v) => v.height === manualRes) : availableVersions[0];
@@ -178,7 +181,12 @@ export default function WatchPage() {
         if (subtitle) setSubtitle(null);
         else if (movie && movie.subtitles.length > 0) {
             const code = localStorage.getItem('prefered-subtitle-lang');
-            const s = movie.subtitles.find((t) => t.language === code);
+            const filter =
+                lastActiveSubtitleIdRef.current != null
+                    ? (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current
+                    : (t: SubtitleDTO) => t.language === code;
+
+            const s = movie.subtitles.find(filter);
             setSubtitle(s ?? movie.subtitles[0]);
         }
     }, [movie, subtitle]);
@@ -186,6 +194,7 @@ export default function WatchPage() {
     const changeSubtitle = (s: SubtitleDTO | null) => {
         setSubtitle(s);
         if (!s) return;
+        lastActiveSubtitleIdRef.current = s.id;
         localStorage.setItem('prefered-subtitle-lang', s.language);
     };
 
@@ -200,12 +209,14 @@ export default function WatchPage() {
                     if (isSettingsOpen) setIsSettingsOpen(false);
                     else if (showControls) setShowControls(false);
                 }
+
+                if (shortcut.func === 'toggleSubtitles') toggleSubtitles();
             });
         };
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isSettingsOpen, showControls]);
+    }, [isSettingsOpen, showControls, toggleSubtitles]);
 
     if (isLoading || !movie)
         return (
@@ -234,6 +245,48 @@ export default function WatchPage() {
         setManualRes(v.height);
     };
 
+    const handleLocalSubtitleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = async (event) => {
+            const result = event.target?.result as ArrayBuffer;
+
+            const buffer = result; // Sada TS zna da je ovo ArrayBuffer
+            let decoder = new TextDecoder('utf-8');
+            let content = decoder.decode(buffer);
+
+            if (content.includes('')) {
+                // on fail
+                decoder = new TextDecoder('windows-1250');
+                content = decoder.decode(buffer);
+            }
+
+            if (file.name.toLowerCase().endsWith('.srt')) {
+                content = srtToVtt(content);
+            }
+
+            const blob = new Blob([content], { type: 'text/vtt' });
+            const blobUrl = URL.createObjectURL(blob);
+
+            const localSub = {
+                id: `local-${Date.now()}`,
+                language: 'local',
+                name: file.name.slice(0, 20),
+                subtitleUrl: blobUrl,
+                movieId: id || '',
+                createdAt: new Date().toISOString(),
+            };
+
+            setLocalSubs([localSub]);
+            setSubtitle(localSub);
+        };
+
+        reader.readAsArrayBuffer(file);
+    };
+
     // Helper icons
     const PlayIcon = player.paused ? Play : Pause;
     const FullScrnIcon = player.fullScreen ? Minimize : Maximize;
@@ -252,7 +305,7 @@ export default function WatchPage() {
                 preload="metadata"
                 src={activeVersion?.streamUrl}
                 crossOrigin="use-credentials"
-                className="w-full h-full max-h-screen object-contain"
+                className={`w-full h-full max-h-screen object-contain ${showControls && 'subtitles-up'}`}
                 onClick={() => !isScrubbing && player.togglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
                 onPlaying={() => player.setIsBuffering(false)}
@@ -375,9 +428,10 @@ export default function WatchPage() {
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
-                                subtitles={movie.subtitles}
+                                subtitles={[...movie.subtitles, ...localSubs]}
                                 activeSubtitle={subtitle}
                                 setSubtitle={changeSubtitle}
+                                onUploadLocal={() => fileInputRef.current?.click()}
                             />
                         </div>
 
@@ -394,6 +448,7 @@ export default function WatchPage() {
                     </div>
                 </div>
             </div>
+            <input type="file" ref={fileInputRef} onChange={(e) => handleLocalSubtitleUpload(e)} accept=".vtt,.srt" className="hidden" />
         </div>
     );
 }

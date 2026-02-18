@@ -70,3 +70,11 @@ export function getLanguageName(code: string, targetLang = 'en') {
         return code;
     }
 }
+
+export const srtToVtt = (srtText: string): string => {
+    let vtt = 'WEBVTT\n\n';
+
+    vtt += srtText.replace(/(\d{2}:\d{2}:\d{2}),(\d{3})/g, '$1.$2');
+
+    return vtt;
+};

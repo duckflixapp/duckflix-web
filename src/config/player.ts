@@ -7,7 +7,7 @@ export type PlayerFunc =
     | 'closeOpenMenu'
     | 'volumeDown'
     | 'volumeUp'
-    | 'subtitles';
+    | 'toggleSubtitles';
 export const playerShortcuts: { keys: string[]; func: PlayerFunc }[] = [
     {
         keys: ['k', 'space'],
@@ -43,6 +43,6 @@ export const playerShortcuts: { keys: string[]; func: PlayerFunc }[] = [
     },
     {
         keys: ['c'],
-        func: 'subtitles',
+        func: 'toggleSubtitles',
     },
 ];

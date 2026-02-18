@@ -71,3 +71,13 @@ input[type='search']::-webkit-search-results-decoration {
 main {
     isolation: isolate;
 }
+
+::-webkit-media-text-track-display {
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.subtitles-up::-webkit-media-text-track-display {
+    transform: translateY(-110px);
+    transition: transform 0.3s ease;
+}

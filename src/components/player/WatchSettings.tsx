@@ -2,22 +2,9 @@ import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatBytes, getLanguageName, getQualityLabel } from '../../utils/format';
 import { useEffect, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Gauge, Layers, Subtitles } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, FileUp, Gauge, Layers, Subtitles } from 'lucide-react';
 
 type MenuState = 'main' | 'quality' | 'speed' | 'subtitles';
-
-interface SettingsBoxProps {
-    isOpen: boolean;
-    onClose: () => void;
-    versions: MovieVersionDTO[];
-    activeVersion: MovieVersionDTO | null;
-    onChangeResolution: (v: MovieVersionDTO) => void;
-    playbackSpeed: number;
-    onChangeSpeed: (s: number) => void;
-    subtitles: SubtitleDTO[];
-    activeSubtitle: SubtitleDTO | null;
-    setSubtitle: (s: SubtitleDTO | null) => void;
-}
 
 const appendSubtitleName = (subs: SubtitleDTO[]) => {
     const occ = new Map<string, number>();
@@ -30,7 +17,9 @@ const appendSubtitleName = (subs: SubtitleDTO[]) => {
         occ.set(code, 1);
         return '';
     };
-    return subs.map((s) => ({ name: getLanguageName(s.language) + ver(s.language), ...s }));
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    return subs.map((s) => ({ name: s.name || getLanguageName(s.language) + ver(s.language), ...s }));
 };
 
 export function SettingsBox({
@@ -44,7 +33,20 @@ export function SettingsBox({
     subtitles: _subtitles,
     setSubtitle,
     activeSubtitle: _activeSubtitle,
-}: SettingsBoxProps) {
+    onUploadLocal,
+}: {
+    isOpen: boolean;
+    onClose: () => void;
+    versions: MovieVersionDTO[];
+    activeVersion: MovieVersionDTO | null;
+    onChangeResolution: (v: MovieVersionDTO) => void;
+    playbackSpeed: number;
+    onChangeSpeed: (s: number) => void;
+    subtitles: SubtitleDTO[];
+    activeSubtitle: SubtitleDTO | null;
+    setSubtitle: (s: SubtitleDTO | null) => void;
+    onUploadLocal: () => void;
+}) {
     const [[menu, direction], setMenu] = useState<[MenuState, number]>(['main', 0]);
 
     const subtitles = appendSubtitleName(_subtitles);
@@ -187,7 +189,14 @@ export function SettingsBox({
 
                         {menu === 'subtitles' && (
                             <div>
-                                <MenuHeader label="Subtitles" onBack={() => setStep('main', -1)} />
+                                <MenuHeader label="Subtitles" onBack={() => setStep('main', -1)}>
+                                    <button
+                                        onClick={onUploadLocal}
+                                        className="p-2 cursor-pointer hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
+                                    >
+                                        <FileUp size={17} />
+                                    </button>
+                                </MenuHeader>
                                 {subtitles.length === 0 ? (
                                     <div className="p-8 text-center text-white/20 text-xs italic">No subtitles available</div>
                                 ) : (
@@ -245,23 +254,26 @@ function MenuButton({ icon, label, value, onClick }: { icon: React.ReactNode; la
                 <span className="text-[13px] font-medium">{label}</span>
             </div>
             <div className="flex items-center gap-2">
-                <span className="text-[11px] text-white/30">{value}</span>
+                <span className="text-[11px] text-white/30 text-end truncate line-clamp-1 max-w-20">{value}</span>
                 <ChevronRight size={14} className="text-white/20" />
             </div>
         </button>
     );
 }
 
-function MenuHeader({ label, onBack }: { label: string; onBack: () => void }) {
+function MenuHeader({ label, onBack, children }: { label: string; onBack: () => void; children?: React.ReactNode }) {
     return (
-        <div className="flex items-center gap-2 border-b border-white/5 mb-2 pb-1 px-1">
-            <button
-                onClick={onBack}
-                className="p-2 cursor-pointer hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
-            >
-                <ChevronLeft size={18} />
-            </button>
-            <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold py-3">{label}</p>
+        <div className="flex items-center justify-between border-b border-white/5 mb-2 pb-1 px-1">
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={onBack}
+                    className="p-2 cursor-pointer hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-all"
+                >
+                    <ChevronLeft size={18} />
+                </button>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold py-3">{label}</p>
+            </div>
+            {children}
         </div>
     );
 }
