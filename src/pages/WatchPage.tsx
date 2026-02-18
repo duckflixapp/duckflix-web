@@ -179,22 +179,25 @@ export default function WatchPage() {
 
     const toggleSubtitles = useCallback(() => {
         if (subtitle) setSubtitle(null);
-        else if (movie && movie.subtitles.length > 0) {
+        else if (movie && (movie.subtitles.length > 0 || localSubs.length > 0)) {
             const code = localStorage.getItem('prefered-subtitle-lang');
             const filter =
                 lastActiveSubtitleIdRef.current != null
                     ? (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current
                     : (t: SubtitleDTO) => t.language === code;
 
-            const s = movie.subtitles.find(filter);
-            setSubtitle(s ?? movie.subtitles[0]);
+            const s = movie.subtitles.find(filter) ?? localSubs.find(filter);
+            if (s) setSubtitle(s);
+            else if (localSubs.length > 0) setSubtitle(localSubs[0]);
+            else setSubtitle(movie.subtitles[0]);
         }
-    }, [movie, subtitle]);
+    }, [localSubs, movie, subtitle]);
 
     const changeSubtitle = (s: SubtitleDTO | null) => {
         setSubtitle(s);
         if (!s) return;
         lastActiveSubtitleIdRef.current = s.id;
+        if (s.language.startsWith('local')) return;
         localStorage.setItem('prefered-subtitle-lang', s.language);
     };
 
