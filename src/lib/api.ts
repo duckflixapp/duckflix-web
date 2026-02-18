@@ -2,11 +2,16 @@ import axios from 'axios';
 
 declare module 'axios' {
     export interface AxiosInstance {
-        get<T = never, R = T, D = never>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
-        post<T = never, R = T, D = never>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
-        put<T = never, R = T, D = never>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
-        patch<T = never, R = T, D = never>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
-        delete<T = never, R = T, D = never>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        get<R = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        post<R = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        put<R = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        patch<R = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete<R = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<R>;
     }
 }
 

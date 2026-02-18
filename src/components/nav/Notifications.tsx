@@ -7,7 +7,7 @@ import { useNotificationSocket } from '../../hooks/useNotificationSocket';
 
 export function NotificationBox() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, refresh, clear } = useNotifications();
+    const { notifications, refresh, clear, isClearing, mark, isMarking } = useNotifications();
     const containerRef = useRef<HTMLDivElement>(null);
 
     useNotificationSocket(() => {
@@ -53,12 +53,22 @@ export function NotificationBox() {
                             </p>
                         </div>
                         {notifications.length > 0 && (
-                            <button
-                                onClick={clear}
-                                className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer uppercase tracking-tighter"
-                            >
-                                Clear All
-                            </button>
+                            <div className="flex gap-4">
+                                <button
+                                    disabled={isMarking}
+                                    onClick={() => mark([])}
+                                    className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer uppercase tracking-tighter"
+                                >
+                                    {isMarking ? 'Sinking...' : 'Read All'}
+                                </button>
+                                <button
+                                    disabled={isClearing}
+                                    onClick={() => clear()}
+                                    className="text-[10px] font-bold text-primary hover:text-primary/80 transition-colors cursor-pointer uppercase tracking-tighter"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -66,7 +76,7 @@ export function NotificationBox() {
                         {notifications.length > 0 ? (
                             <div className="flex flex-col gap-1">
                                 {notifications.map((n) => (
-                                    <NotificationItem key={n.id} notification={n} />
+                                    <NotificationItem key={n.id} notification={n} mark={() => mark([n.id])} />
                                 ))}
                             </div>
                         ) : (
@@ -89,12 +99,15 @@ const iconMap = {
     warning: { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
 };
 
-function NotificationItem({ notification: n }: { notification: NotificationDTO }) {
+function NotificationItem({ notification: n, mark }: { notification: NotificationDTO; mark: () => unknown }) {
     const config = iconMap[n.type] || iconMap.info;
     const Icon = config.icon;
 
     return (
-        <div className="group relative p-4 rounded-3xl transition-all hover:bg-white/5 border border-transparent hover:border-white/5 cursor-default overflow-hidden">
+        <div
+            onClick={mark}
+            className="group relative p-4 rounded-3xl transition-all hover:bg-white/5 border border-transparent hover:border-white/5 cursor-default overflow-hidden"
+        >
             {!n.isRead && <div className="absolute inset-0 bg-primary/2 pointer-events-none" />}
 
             <div className="flex gap-4 relative z-10">
