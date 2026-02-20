@@ -4,7 +4,7 @@ export function MovieCard({ movie, onClick: handleClick }: { movie: MovieDTO; on
     return (
         <div className="group cursor-pointer" onClick={handleClick}>
             <div className="relative aspect-2/3 rounded-2xl overflow-hidden mb-4 border border-white/5 shadow-xl transition-all duration-500 group-hover:border-primary/50 group-hover:-translate-y-2">
-                <img src={movie.posterUrl ?? ''} alt={movie.title} className="w-full h-full object-cover" />
+                {movie.posterUrl && <img src={movie.posterUrl} alt={movie.title} className="w-full h-full object-cover" />}
             </div>
             <h3 className="font-bold text-sm truncate text-text/90 group-hover:text-primary transition-colors">{movie.title}</h3>
         </div>

@@ -9,6 +9,7 @@ interface SidebarItem {
 interface SidebarGroup {
     title?: string;
     items: SidebarItem[];
+    role?: 'contributor' | 'admin';
 }
 
 export const sidebarConfig: SidebarGroup[] = [
@@ -27,6 +28,7 @@ export const sidebarConfig: SidebarGroup[] = [
     //     ],
     // },
     {
+        role: 'contributor',
         title: 'Contribute',
         items: [{ link: '/upload', icon: UploadCloud, text: 'Upload Movie' }],
     },

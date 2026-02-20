@@ -5,10 +5,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import type { UserDTO } from '@duckflix/shared';
-import { useAuth } from '../hooks/use-auth';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export default function LoginPage() {
-    const { user, isLoading: isAuthLoading } = useAuth();
+    const auth = useAuthContext();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
@@ -19,12 +19,12 @@ export default function LoginPage() {
     const queryClient = useQueryClient();
 
     useEffect(() => {
-        if (!isAuthLoading && user) {
+        if (auth && !auth.isLoading && auth.user) {
             navigate('/browse', { replace: true });
         }
-    }, [user, isAuthLoading, navigate]);
+    }, [auth, navigate]);
 
-    if (isAuthLoading) {
+    if (auth && auth.isLoading) {
         return (
             <div className="min-h-screen bg-background flex items-center justify-center">
                 <Loader2 className="animate-spin text-primary" size={40} />
@@ -137,6 +137,13 @@ export default function LoginPage() {
                         >
                             {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
                         </button>
+
+                        <p className="text-text/50 text-sm text-center mt-4">
+                            Don't have an account?&ensp;
+                            <span className="text-primary cursor-pointer" onClick={() => navigate('/register')}>
+                                Register
+                            </span>
+                        </p>
                     </form>
                 </div>
             </div>

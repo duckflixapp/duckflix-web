@@ -57,7 +57,9 @@ export default function WatchPage() {
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const availableVersions =
         movie?.versions.filter((v) => v.mimeType === 'video/mp4' && v.status === 'ready').sort((a, b) => b.height - a.height) || [];
-    const activeVersion = manualRes ? availableVersions.find((v) => v.height === manualRes) : availableVersions[0];
+    const activeVersion = manualRes
+        ? (availableVersions.find((v) => v.height === manualRes) ?? availableVersions[0])
+        : availableVersions[0];
 
     const actionCallback = () => {
         lastActionTimeRef.current = Date.now();
@@ -223,15 +225,17 @@ export default function WatchPage() {
 
     useEffect(() => {
         const videoElement = videoRef.current;
+        if (!videoElement) return;
+
+        videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+        videoElement.load();
 
         return () => {
-            if (videoElement) {
-                videoElement.pause();
-                videoElement.removeAttribute('src');
-                videoElement.load();
-            }
+            videoElement.pause();
+            videoElement.removeAttribute('src');
+            videoElement.load();
         };
-    }, [videoRef]);
+    }, [activeVersion, videoRef]);
 
     if (isLoading || !movie)
         return (
@@ -318,7 +322,6 @@ export default function WatchPage() {
                 ref={videoRef}
                 playsInline
                 preload="metadata"
-                src={activeVersion?.streamUrl}
                 crossOrigin="use-credentials"
                 className={`w-full h-full max-h-screen object-contain ${showControls && 'subtitles-up'}`}
                 onClick={() => !isScrubbing && player.togglePlay()}

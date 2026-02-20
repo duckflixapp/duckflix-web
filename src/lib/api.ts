@@ -23,15 +23,56 @@ export const api = axios.create({
     withXSRFToken: true,
 });
 
+let isRefreshing = false;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let failedQueue: any[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
+    failedQueue.forEach((prom) => {
+        if (error) prom.reject(error);
+        else prom.resolve(token);
+    });
+    failedQueue = [];
+};
+
 api.interceptors.response.use(
     (response) => {
         const res = response.data;
+        return res.meta ? res : res.data;
+    },
+    async (error) => {
+        const originalRequest = error.config;
+        const isAuthRequest =
+            originalRequest.url.includes('/auth/login') ||
+            originalRequest.url.includes('/auth/refresh') ||
+            originalRequest.url.includes('/auth/verify-email');
 
-        if (res.meta) {
-            return res;
+        if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedQueue.push({ resolve, reject });
+                })
+                    .then(() => api(originalRequest))
+                    .catch((err) => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
+                processQueue(null);
+
+                return api(originalRequest);
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+
+                return Promise.reject(refreshError);
+            } finally {
+                isRefreshing = false;
+            }
         }
 
-        return res.data;
-    },
-    (error) => Promise.reject(error)
+        return Promise.reject(error);
+    }
 );

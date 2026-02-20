@@ -1,15 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/use-auth';
-import { ChevronRight, Loader2, Play, Search, User } from 'lucide-react';
+import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import type { MovieDTO, PaginatedResponse, UserDTO } from '@duckflix/shared';
+import type { MovieDTO, PaginatedResponse } from '@duckflix/shared';
 import { api } from '../../lib/api';
 import { NotificationBox } from './Notifications';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 export default function Navbar() {
-    const { user, logout } = useAuth();
+    const auth = useAuthContext();
     const navigate = useNavigate();
 
     const handleNotification = (data: NotificationSocketData) => {
@@ -26,17 +26,19 @@ export default function Navbar() {
     };
     useNotificationSocket(handleNotification);
 
+    if (!auth) return null;
+
     return (
         <nav className="relative h-18 z-50">
             <div className="px-4 md:px-6 lg:px-8 h-full flex items-center justify-between">
                 <SearchBar />
                 <div className="flex flex-row items-center gap-2 md:gap-4">
-                    {!user ? (
+                    {!auth.user ? (
                         <Link to="/login">Login</Link>
                     ) : (
                         <>
                             <NotificationBox />
-                            <UserBox user={user} logout={logout} />
+                            <UserBox logout={auth.logout} />
                         </>
                     )}
                 </div>
@@ -134,7 +136,7 @@ function SearchBar() {
             <SearchResultBox
                 hidden={!showResults || search.length == 0}
                 results={results}
-                moreResults={results.length > totalResults}
+                moreResults={results.length < totalResults}
                 onExternalSearch={externalSearch}
                 onOpenMovie={openDetails}
             />
@@ -225,14 +227,91 @@ function SearchResultBox({
     );
 }
 
-function UserBox({ user, logout }: { user: UserDTO; logout: () => unknown }) {
+function UserBox({ logout }: { logout: () => unknown }) {
+    const auth = useAuthContext();
+    const [isOpen, setIsOpen] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const menuItems = [
+        {
+            label: 'Admin Panel',
+            icon: LayoutDashboard,
+            onClick: () => navigate('/admin'),
+            show: auth?.hasRole('admin'),
+        },
+        {
+            label: 'Settings',
+            icon: Settings,
+            onClick: () => navigate('/settings'),
+            show: true,
+        },
+    ];
+
+    if (!auth) return;
+
     return (
-        <GlassyBox>
-            <div className="flex items-center cursor-pointer p-3 gap-2" onClick={() => logout()}>
-                <User size={18} />
-                <p className="text-sm max-w-16 overflow-clip text-ellipsis">{user.name}</p>
+        <div className="relative" ref={containerRef}>
+            <div
+                className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <div className="rounded-lg">
+                    <User size={18} />
+                </div>
+                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
-        </GlassyBox>
+
+            {isOpen && (
+                <div className="absolute top-full right-0 mt-4 w-56 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="p-2 flex flex-col gap-1">
+                        <div className="p-3 pt-2 mb-1 border-b border-white/5">
+                            <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>
+                            <p className="text-xs text-text/40 truncate line-clamp-1">{auth.user?.email}</p>
+                        </div>
+
+                        {menuItems
+                            .filter((item) => item.show)
+                            .map((item, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => {
+                                        item.onClick();
+                                        setIsOpen(false);
+                                    }}
+                                    className="flex items-center gap-3 w-full p-2.5 text-left text-[13px] cursor-pointer font-medium text-text/70 hover:bg-white/5 hover:text-primary rounded-xl transition-all group"
+                                >
+                                    <item.icon size={16} className="group-hover:scale-110 transition-transform" />
+                                    {item.label}
+                                </button>
+                            ))}
+
+                        <div className="h-px bg-white/5 my-1" />
+
+                        <button
+                            onClick={() => {
+                                logout();
+                                setIsOpen(false);
+                            }}
+                            className="flex items-center gap-3 w-full p-2.5 text-left text-[13px] cursor-pointer font-medium text-red-400 hover:bg-red-500/10 rounded-xl transition-all group"
+                        >
+                            <LogOut size={16} className="group-hover:scale-110 transition-transform" />
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 
