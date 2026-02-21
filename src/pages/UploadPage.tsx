@@ -169,7 +169,7 @@ export default function UploadPage() {
 
                                                             setValue('genreIds', nextValue, { shouldValidate: true });
                                                         }}
-                                                        className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                                                        className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border
                                                     ${
                                                         isSelected
                                                             ? 'bg-primary border-primary text-black shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]'
@@ -193,7 +193,7 @@ export default function UploadPage() {
                 <div className="mt-6 lg:mt-10 pt-4 flex justify-end">
                     <button
                         type="submit"
-                        className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
+                        className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-2xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
                     >
                         Upload
                     </button>
@@ -254,11 +254,11 @@ function UploadSection({
                 {/* Dropzone */}
                 <div
                     {...getRootProps()}
-                    className={`flex-1 min-w-0 w-full border-2 border-dashed rounded-2xl p-6 flex items-center gap-4 transition-all cursor-pointer group ${isDragActive ? 'border-primary bg-primary/5' : 'border-white/10 hover:bg-white/2'}`}
+                    className={`flex-1 min-w-0 w-full border-2 border-dashed rounded-3xl p-6 flex items-center gap-4 transition-all cursor-pointer group ${isDragActive ? 'border-primary bg-primary/5' : 'border-white/10 hover:bg-white/2'}`}
                 >
                     <input {...getInputProps()} />
 
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
                         {file ? <FileIcon className="text-primary" size={24} /> : <Upload className="text-primary" size={24} />}
                     </div>
 
@@ -279,7 +279,7 @@ function UploadSection({
                     {file && (
                         <button
                             onClick={onRemoveFile}
-                            className="p-2 hover:bg-white/10 rounded-lg text-white/20 hover:text-white transition-colors"
+                            className="p-2 hover:bg-white/10 rounded-xl text-white/20 hover:text-white transition-colors"
                         >
                             <X size={16} />
                         </button>
@@ -303,7 +303,7 @@ function UploadSection({
                                 <input
                                     {...register('dbUrl')}
                                     placeholder="themoviedb.org/movie..."
-                                    className={`w-full bg-black/20 border border-white/5 rounded-xl py-3 px-4 text-xs outline-none focus:border-primary/30 transition-all ${errors.dbUrl ? 'border-red-500/50 focus:border-red-500' : 'border-white/10'}`}
+                                    className={`w-full bg-black/20 border border-white/5 rounded-2xl py-3 px-4 text-xs outline-none focus:border-primary/30 transition-all ${errors.dbUrl ? 'border-red-500/50 focus:border-red-500' : 'border-white/10'}`}
                                 />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-white/10 uppercase flex gap-2">
                                     {/* <span>IMDb</span> */}
@@ -316,7 +316,7 @@ function UploadSection({
                     <button
                         type="button"
                         onClick={onToggleManual}
-                        className={`w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2
+                        className={`w-full py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2
                             ${
                                 showManual
                                     ? 'bg-white/10 border-white/20 text-white'
@@ -370,7 +370,7 @@ export const FormInput = forwardRef<HTMLInputElement | HTMLTextAreaElement, Form
                 <Tag
                     {...props}
                     ref={ref as never}
-                    className={`w-full bg-white/5 border rounded-xl px-4 py-3.5 outline-none text-sm transition-all resize-none
+                    className={`w-full bg-white/5 border rounded-2xl px-4 py-3.5 outline-none text-sm transition-all resize-none
                         ${error ? 'border-red-500/50 focus:border-red-500' : 'border-white/10 focus:bg-white/10 focus:border-white/20'}`}
                 />
             </div>

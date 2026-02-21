@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom
 import Navbar from './components/nav/Navbar';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
-import { ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute, ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
 import BrowsePage from './pages/BrowsePage';
 import Sidebar from './components/Sidebar';
 import UploadPage from './pages/UploadPage';
@@ -15,6 +15,7 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './providers/AuthProvider';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
+import AdminPage from './pages/AdminPage';
 
 function App() {
     return (
@@ -52,6 +53,9 @@ function App() {
 
                             <Route element={<ContributorRoute />}>
                                 <Route path="/upload" element={<UploadPage />} />
+                            </Route>
+                            <Route element={<AdminRoute />}>
+                                <Route path="/admin" element={<AdminPage />} />
                             </Route>
 
                             {/* catch bad urls with redirect */}

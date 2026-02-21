@@ -25,6 +25,14 @@ export const ContributorRoute = () => {
     return <Outlet />;
 };
 
+export const AdminRoute = () => {
+    const auth = useAuthContext()!;
+
+    if (!auth.hasRole('admin')) return <Navigate to="/browse" replace />;
+
+    return <Outlet />;
+};
+
 const Loading = () => (
     <div className="absolute left-0 top-0 flex flex-col items-center justify-center w-screen h-screen">
         <div className="relative flex items-center justify-center">

@@ -113,7 +113,7 @@ function SearchBar() {
     return (
         <div className="relative" ref={searchContainerRef}>
             <GlassyBox>
-                <div className="flex items-center py-2.5" onClick={() => inputRef.current?.focus()}>
+                <div className="flex items-center py-3" onClick={() => inputRef.current?.focus()}>
                     <Search size={18} className="mx-4 text-text/40 cursor-pointer" onClick={externalSearch} />
                     <input
                         value={search}
@@ -316,5 +316,5 @@ function UserBox({ logout }: { logout: () => unknown }) {
 }
 
 function GlassyBox({ children }: PropsWithChildren) {
-    return <div className="bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60">{children}</div>;
+    return <div className="bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60">{children}</div>;
 }
