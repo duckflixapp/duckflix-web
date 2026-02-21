@@ -262,7 +262,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
 
     return (
         <div className="relative" ref={containerRef}>
-            <div
+            <button
                 className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
@@ -270,7 +270,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                     <User size={18} />
                 </div>
                 <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </div>
+            </button>
 
             {isOpen && (
                 <div className="absolute top-full right-0 mt-4 w-56 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">

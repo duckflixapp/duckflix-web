@@ -82,7 +82,7 @@ export default function AdminPage() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                 <div>
                     <h1 className="text-2xl font-bold text-text flex items-center gap-3">
-                        Admin Control Center
+                        System Configurations
                         {status === 'saving' && <Loader2 size={16} className="animate-spin text-primary" />}
                         {status === 'saved' && (
                             <span className="text-[10px] bg-primary/20 text-primary px-2 py-1 rounded-lg uppercase tracking-widest animate-in fade-in">

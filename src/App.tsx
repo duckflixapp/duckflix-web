@@ -4,7 +4,7 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import { AdminRoute, ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
 import BrowsePage from './pages/BrowsePage';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/sidebar/Sidebar';
 import UploadPage from './pages/UploadPage';
 import SearchPage from './pages/SearchPage';
 import DetailsPage from './pages/DetailsPage';
@@ -44,27 +44,34 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/verify-email" element={<VerifyEmailPage />} />
+
                     <Route element={<ProtectedRoute />}>
-                        <Route element={<MainLayout />}>
+                        <Route path="/watch/:id" element={<WatchPage />} />
+
+                        <Route element={<Layout />}>
                             <Route path="/browse" element={<BrowsePage />} />
                             <Route path="/library" element={<LibraryPage />} />
                             <Route path="/search" element={<SearchPage />} />
                             <Route path="/details/:id" element={<DetailsPage />} />
 
+                            {/* Contributor Only */}
                             <Route element={<ContributorRoute />}>
                                 <Route path="/upload" element={<UploadPage />} />
                             </Route>
-                            <Route element={<AdminRoute />}>
-                                <Route path="/admin" element={<AdminPage />} />
-                            </Route>
 
-                            {/* catch bad urls with redirect */}
-                            <Route path="/details" element={<Navigate to="/browse" replace />} />
-                            <Route path="/watch" element={<Navigate to="/browse" replace />} />
+                            {/* Auto-redirects */}
+                            {['details', 'watch'].map((path) => (
+                                <Route key={path} path={path} element={<Navigate to="/browse" replace />} />
+                            ))}
                         </Route>
-                        <Route path="/watch/:id" element={<WatchPage />} />
+
+                        <Route path="/admin" element={<AdminRoute />}>
+                            <Route element={<Layout admin={true} />}>
+                                <Route index element={<AdminPage />} />
+                            </Route>
+                        </Route>
                     </Route>
-                    {/* catch page not found */}
+
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </AuthProvider>
@@ -74,13 +81,13 @@ function App() {
 
 export default App;
 
-const MainLayout = () => {
+const Layout = ({ admin }: { admin?: boolean }) => {
     return (
         <div className="relative flex h-screen w-full bg-background text-text font-sans overflow-hidden">
             <div className="absolute top-[-10%] left-[10%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <Sidebar />
+            <Sidebar admin={admin} />
             <div className="relative pl-48 lg:pl-56 flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Navbar />
                 <main className="flex-1 overflow-y-auto custom-scrollbar">

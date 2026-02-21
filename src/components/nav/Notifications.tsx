@@ -30,7 +30,7 @@ export function NotificationBox() {
 
     return (
         <div className="relative" ref={containerRef}>
-            <div
+            <button
                 className={`bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
@@ -40,7 +40,7 @@ export function NotificationBox() {
                         <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary-rgb),0.8)]" />
                     )}
                 </div>
-            </div>
+            </button>
 
             {/* Dropdown Box */}
             {isOpen && (
