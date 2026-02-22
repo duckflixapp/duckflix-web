@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark } from 'lucide-react';
+import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
@@ -8,6 +8,10 @@ import { useMovieSocket } from '../hooks/useMovieSocket';
 import { useNotificationSocket, type NotificationSocketData } from '../hooks/useNotificationSocket';
 import { MovieDownloadProgress } from '../components/movies/MovieDownloading';
 import { MovieProcessing } from '../components/movies/MovieProcessing';
+import { api } from '../lib/api';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
+import { useAuthContext } from '../contexts/AuthContext';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -25,6 +29,7 @@ const getTagFromVersions = (versions: MovieVersionDTO[]) => {
 export default function DetailsPage() {
     const { id } = useParams<{ id: string }>();
 
+    const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
     const { movie, isLoading, refresh } = useMovieDetail(id);
     const navigate = useNavigate();
@@ -38,6 +43,14 @@ export default function DetailsPage() {
         [id, refresh]
     );
     useNotificationSocket(handleNotification);
+
+    const killJob = (verId: string) => {
+        api.delete(`/tasks/movies/${verId}/kill`).catch((err) => {
+            let message;
+            if (err instanceof AxiosError) message = err.response?.data.message;
+            toast('Error, Job kill failed', { description: message });
+        });
+    };
 
     if (isLoading) return <DetailsSkeleton />;
     if (!movie) return null;
@@ -173,7 +186,13 @@ export default function DetailsPage() {
                         <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Available Qualities</h3>
                         <div className="flex flex-wrap gap-2">
                             {availableVersions.map((v) => (
-                                <VersionBadge key={v.id} v={v} activeProgress={progressMap.get(v.id)} />
+                                <VersionBadge
+                                    key={v.id}
+                                    v={v}
+                                    activeProgress={progressMap.get(v.id)}
+                                    canCancel={auth?.hasRole('contributor') ?? false}
+                                    cancelJob={killJob}
+                                />
                             ))}
                         </div>
                     </div>
@@ -183,7 +202,17 @@ export default function DetailsPage() {
     );
 }
 
-function VersionBadge({ v, activeProgress }: { v: MovieVersionDTO; activeProgress?: JobProgress }) {
+function VersionBadge({
+    v,
+    activeProgress,
+    cancelJob,
+    canCancel,
+}: {
+    v: MovieVersionDTO;
+    activeProgress?: JobProgress;
+    canCancel: boolean;
+    cancelJob: (verId: string) => unknown;
+}) {
     const isProcessing = v.status === 'processing';
     const percent = activeProgress?.progress ?? 0;
     const isActivelyUpdating = !!activeProgress;
@@ -207,8 +236,8 @@ function VersionBadge({ v, activeProgress }: { v: MovieVersionDTO; activeProgres
     }
 
     return (
-        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-xl p-4 overflow-hidden group">
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-xl p-4 overflow-hidden group/card">
+            <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover/card:animate-[shimmer_2s_infinite] pointer-events-none" />
 
             <div className="relative z-10 flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -223,8 +252,20 @@ function VersionBadge({ v, activeProgress }: { v: MovieVersionDTO; activeProgres
                     </div>
                 </div>
 
-                <div className="text-right">
-                    <span className="font-bold text-sm text-primary">{isActivelyUpdating ? `${Math.floor(percent)}%` : 'waiting'}</span>
+                <div className="flex items-center gap-1">
+                    <div className="text-right">
+                        <span className="font-bold text-sm text-primary">{isActivelyUpdating ? `${Math.floor(percent)}%` : 'waiting'}</span>
+                    </div>
+
+                    {canCancel && (
+                        <button
+                            onClick={() => cancelJob(v.id)}
+                            className="flex items-center justify-center rounded-lg h-6.5 hover:bg-primary/10 text-white hover:text-white transition-all group-hover/card:w-6.5 w-0 overflow-hidden duration-200 cursor-pointer"
+                            title="Cancel process"
+                        >
+                            <X size={14} strokeWidth={3} />
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -237,6 +278,7 @@ function VersionBadge({ v, activeProgress }: { v: MovieVersionDTO; activeProgres
         </div>
     );
 }
+
 function DetailsSkeleton() {
     return (
         <div className="min-h-screen bg-background animate-pulse">

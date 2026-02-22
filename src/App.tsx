@@ -15,7 +15,8 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './providers/AuthProvider';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
-import AdminPage from './pages/AdminPage';
+import AdminPage from './pages/admin/AdminPage';
+import UsersPage from './pages/admin/RolesPage';
 
 function App() {
     return (
@@ -49,7 +50,7 @@ function App() {
                         <Route path="/watch/:id" element={<WatchPage />} />
 
                         <Route element={<Layout />}>
-                            <Route path="/browse" element={<BrowsePage />} />
+                            <Route index path="/browse" element={<BrowsePage />} />
                             <Route path="/library" element={<LibraryPage />} />
                             <Route path="/search" element={<SearchPage />} />
                             <Route path="/details/:id" element={<DetailsPage />} />
@@ -68,8 +69,11 @@ function App() {
                         <Route path="/admin" element={<AdminRoute />}>
                             <Route element={<Layout admin={true} />}>
                                 <Route index element={<AdminPage />} />
+                                <Route path="roles" element={<UsersPage />} />
                             </Route>
                         </Route>
+
+                        <Route path="/account"></Route>
                     </Route>
 
                     <Route path="*" element={<NotFoundPage />} />
@@ -88,7 +92,7 @@ const Layout = ({ admin }: { admin?: boolean }) => {
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
             <Sidebar admin={admin} />
-            <div className="relative pl-48 lg:pl-56 flex-1 flex flex-col min-w-0 overflow-hidden">
+            <div className="relative pl-56 lg:pl-64 flex-1 flex flex-col min-w-0 overflow-hidden">
                 <Navbar />
                 <main className="flex-1 overflow-y-auto custom-scrollbar">
                     <Outlet />

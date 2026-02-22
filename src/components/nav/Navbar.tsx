@@ -253,7 +253,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
         {
             label: 'Settings',
             icon: Settings,
-            onClick: () => navigate('/settings'),
+            onClick: () => navigate('/account/settings'),
             show: true,
         },
     ];

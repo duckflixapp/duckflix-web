@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Globe, Mail, Cpu, Languages, Loader2, ChevronDown, type LucideIcon } from 'lucide-react';
-import { api } from '../lib/api';
-import { adminConfigSchema } from '../schemas/admin';
+import { Globe, Mail, Cpu, Languages, Loader2, ChevronDown, type LucideIcon, Settings } from 'lucide-react';
+import { api } from '../../lib/api';
+import { adminConfigSchema } from '../../schemas/admin';
 import { useForm, useWatch, type FieldError } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useAdmin } from '../hooks/useAdmin';
+import { useAdmin } from '../../hooks/useAdmin';
 import { toast } from 'sonner';
 import type { SystemSettingsDTO } from '@duckflix/shared';
 import axios from 'axios';
@@ -78,11 +78,12 @@ export default function AdminPage() {
     `;
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 fade-in duration-500">
+        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 transition-all ease-in-out">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                 <div>
                     <h1 className="text-2xl font-bold text-text flex items-center gap-3">
-                        System Configurations
+                        <Settings className="text-primary" size={28} />
+                        System Configuration
                         {status === 'saving' && <Loader2 size={16} className="animate-spin text-primary" />}
                         {status === 'saved' && (
                             <span className="text-[10px] bg-primary/20 text-primary px-2 py-1 rounded-lg uppercase tracking-widest animate-in fade-in">

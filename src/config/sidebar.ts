@@ -1,4 +1,4 @@
-import { Compass, Library, Settings, UploadCloud, Users, type LucideIcon } from 'lucide-react';
+import { Compass, Library, Settings, UploadCloud, UserLock, type LucideIcon } from 'lucide-react';
 
 interface SidebarItem {
     link: string;
@@ -18,7 +18,7 @@ export const adminSidebar: SidebarGroup[] = [
         role: 'admin',
         items: [
             { link: '/admin', icon: Settings, text: 'System' },
-            { link: '/admin/users', icon: Users, text: 'Users' },
+            { link: '/admin/roles', icon: UserLock, text: 'Roles' },
             // { link: '/admin/library', icon: Database, text: 'Content Manager' },
         ],
     },

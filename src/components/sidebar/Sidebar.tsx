@@ -1,16 +1,18 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { adminSidebar, sidebar } from '../../config/sidebar';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 
 export default function Sidebar({ admin = false }: { admin?: boolean }) {
     const auth = useAuthContext();
+    const location = useLocation();
+
     if (!auth) return null;
 
     const items = admin ? adminSidebar : sidebar;
 
     return (
-        <div className="absolute w-48 lg:w-56 h-full px-4 md:px-6 lg:px-8 flex flex-col z-50">
+        <div className="absolute w-56 transition-all ease-in-out lg:w-64 h-full pr-2 pl-4 md:pl-6 lg:pl-7 flex flex-col z-50">
             <div className="h-18 flex items-center gap-6">
                 <Link to="/browse" className="flex items-center gap-2 text-white font-bold text-xl uppercase">
                     Duckflix
@@ -20,13 +22,15 @@ export default function Sidebar({ admin = false }: { admin?: boolean }) {
                 {items.map(
                     (group, idx) =>
                         auth.hasRole(group.role ?? null) && (
-                            <div key={idx} className="flex flex-col gap-2">
+                            <div key={idx} className="flex flex-col gap-2 w-full">
                                 {group.title && (
-                                    <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-medium mb-2">{group.title}</h3>
+                                    <h3 className="text-[10px] pl-3 uppercase tracking-[0.2em] text-white/40 font-medium mb-2">
+                                        {group.title}
+                                    </h3>
                                 )}
-                                <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-0.5">
                                     {group.items.map((item) => (
-                                        <SidebarItem key={item.link} {...item} />
+                                        <SidebarItem key={item.link} {...item} isActive={location.pathname === item.link} />
                                     ))}
                                 </div>
                             </div>
@@ -37,11 +41,17 @@ export default function Sidebar({ admin = false }: { admin?: boolean }) {
     );
 }
 
-function SidebarItem({ link, icon: Icon, text }: { link: string; icon: LucideIcon; text: string }) {
+function SidebarItem({ link, icon: Icon, text, isActive }: { link: string; icon: LucideIcon; text: string; isActive: boolean }) {
     return (
         <Link to={link}>
-            <div title={text} className="flex items-center gap-4 text-sm">
-                <Icon size={19} color="white" />
+            <div
+                title={text}
+                className={`
+                    w-full flex items-center gap-4 px-3 py-2 rounded-2xl transition-all duration-300 group
+                    ${isActive ? 'bg-primary/15 text-primary' : 'text-white/85 hover:text-white hover:bg-white/5'}
+                `}
+            >
+                <Icon size={18} color="currentColor" />
                 <span className="text-sm">{text}</span>
             </div>
         </Link>

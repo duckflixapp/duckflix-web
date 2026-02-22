@@ -1,11 +1,13 @@
 import type { MovieDTO } from '@duckflix/shared';
 import { useMovies } from '../hooks/use-movies';
-import { Play, Info, Star, UploadCloud, Plus } from 'lucide-react';
+import { Play, Info, Star, UploadCloud, Plus, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MovieCard } from '../components/movies/MovieCard';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export default function BrowsePage() {
     const { data, isLoading, isError } = useMovies(1);
+    const auth = useAuthContext();
     const navigate = useNavigate();
 
     const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
@@ -23,35 +25,7 @@ export default function BrowsePage() {
                 style={{ animationDuration: '8s' }}
             />
             <HeroSection loading={isLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
-            {movies.length === 0 && (
-                <section className="px-8 py-12 relative z-10">
-                    <div className="flex flex-col items-center justify-center min-h-100 w-full bg-white/2 border border-dashed border-white/10 rounded-[40px] p-12 text-center animate-in fade-in zoom-in-95 duration-500">
-                        <div className="relative mb-6">
-                            <div className="absolute inset-0 bg-primary/20 blur-[30px] rounded-full" />
-                            <div className="relative w-20 h-20 bg-secondary/20 border border-white/10 rounded-3xl flex items-center justify-center text-primary shadow-2xl">
-                                <UploadCloud size={40} strokeWidth={1.5} />
-                            </div>
-                        </div>
-
-                        {/* Tekstualni deo */}
-                        <div className="max-w-sm space-y-2">
-                            <h3 className="text-xl font-bold text-white tracking-tight">Your library is empty</h3>
-                            <p className="text-sm text-text/40 leading-relaxed">
-                                It looks like you haven't uploaded any movies yet. Start building your collection today!
-                            </p>
-                        </div>
-
-                        {/* Akciono dugme */}
-                        <button
-                            onClick={() => navigate('/upload')}
-                            className="mt-8 flex items-center gap-3 px-8 py-3.5 bg-primary text-background font-bold rounded-2xl transition-all hover:bg-primary/90 cursor-pointer shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                        >
-                            <Plus size={20} strokeWidth={3} />
-                            START UPLOADING
-                        </button>
-                    </div>
-                </section>
-            )}
+            {movies.length === 0 && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
             {movies.length > 0 && (
                 <section className="px-8 py-12 relative z-10">
                     <div className="flex flex-col gap-1 mb-8">
@@ -139,6 +113,51 @@ function HeroSection({
                         </button>
                     </div>
                 </div>
+            </div>
+        </section>
+    );
+}
+
+function EmptyState({ canUpload, onNavigate }: { canUpload: boolean; onNavigate: () => void }) {
+    return (
+        <section className="px-8 py-12 relative z-10">
+            <div className="flex flex-col items-center justify-center min-h-120 w-full bg-white/2 border border-dashed border-white/10 rounded-[40px] p-12 text-center animate-in fade-in zoom-in-95 duration-500">
+                <div className="relative mb-8">
+                    <div className={`absolute inset-0 blur-2xl rounded-full ${canUpload ? 'bg-primary/20' : 'bg-red-500/10'}`} />
+
+                    <div className="relative w-24 h-24 bg-secondary/20 border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl">
+                        {canUpload ? (
+                            <UploadCloud size={48} strokeWidth={1.5} className="text-primary" />
+                        ) : (
+                            <ShieldAlert size={48} strokeWidth={1.5} className="text-red-400" />
+                        )}
+                    </div>
+                </div>
+
+                <div className="max-w-md space-y-3">
+                    <h3 className="text-2xl font-bold text-white tracking-tight">
+                        {canUpload ? 'Your library is empty' : 'Nothing to watch yet'}
+                    </h3>
+                    <p className="text-sm text-text/40 leading-relaxed px-4">
+                        {canUpload
+                            ? "It looks like you haven't uploaded any movies yet. Start building your collection today!"
+                            : "The administrators haven't uploaded any content to the library. Please check back later."}
+                    </p>
+                </div>
+
+                {canUpload ? (
+                    <button
+                        onClick={onNavigate}
+                        className="mt-10 flex items-center gap-2 px-10 py-4 bg-primary text-background font-semibold rounded-2xl transition-all cursor-pointer"
+                    >
+                        <Plus size={18} strokeWidth={3} />
+                        UPLOAD
+                    </button>
+                ) : (
+                    <div className="mt-10 px-6 py-2 rounded-xl bg-white/5 border border-white/5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/20">
+                        Waiting for contributors
+                    </div>
+                )}
             </div>
         </section>
     );
