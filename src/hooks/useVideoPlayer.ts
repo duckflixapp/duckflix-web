@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { playerShortcuts, type PlayerFunc } from '../config/player';
+import { initializeGoogleCast } from '../utils/google.cast';
 
 export function useVideoPlayer(actionCallback: () => unknown) {
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -10,6 +11,7 @@ export function useVideoPlayer(actionCallback: () => unknown) {
     const [isBuffering, setIsBuffering] = useState(false);
     const [fullScreen, setFullScreen] = useState(document.fullscreenElement !== null);
     const [isCastAvailable, setIsCastAvailable] = useState(false);
+    // const [castSession, setCastSession] = useState(null);
 
     // sync video with state
     useEffect(() => {
@@ -95,19 +97,50 @@ export function useVideoPlayer(actionCallback: () => unknown) {
 
     // cast
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const video = videoRef.current as any;
-        if (!video || !video.remote) return;
-
-        const handleAvailabilityChange = (available: boolean) => setIsCastAvailable(available);
-        video.remote.watchAvailability(handleAvailabilityChange).catch(() => setIsCastAvailable(true));
-
-        return () => {
-            if (video.remote.cancelWatchAvailability) video.remote.cancelWatchAvailability();
+        window['__onGCastApiAvailable'] = (available: boolean) => {
+            setIsCastAvailable(available);
+            if (available) initializeGoogleCast();
         };
+        if (!document.body.querySelector('#googleCastSender')) {
+            const script = document.createElement('script');
+            script.setAttribute('id', 'googleCastSender');
+            script.setAttribute('src', 'https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1');
+            document.body.appendChild(script);
+        }
     }, []);
 
-    const handleCast = async () => {};
+    const handleCast = useCallback(
+        async (videoContext: { src: string; contentType: string | null; title: string }) => {
+            if (!videoRef.current) return;
+            const context = cast.framework.CastContext.getInstance();
+
+            try {
+                if (!context.getCurrentSession()) await context.requestSession();
+                const session = context.getCurrentSession();
+                if (!session) return;
+
+                const mediaInfo = new chrome.cast.media.MediaInfo(videoContext.src, videoContext.contentType ?? 'video/mp4');
+                mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
+
+                const metadata = new chrome.cast.media.GenericMediaMetadata();
+                metadata.metadataType = chrome.cast.media.MetadataType.GENERIC;
+                metadata.title = videoContext.title;
+                mediaInfo.metadata = metadata;
+
+                const request = new chrome.cast.media.LoadRequest(mediaInfo);
+                request.autoplay = true;
+                request.currentTime = videoRef.current.currentTime;
+
+                session
+                    .loadMedia(request)
+                    .then(() => console.log('success'))
+                    .catch((e) => console.error(e));
+            } catch (e) {
+                console.log(e);
+            }
+        },
+        [videoRef]
+    );
 
     return {
         videoRef,

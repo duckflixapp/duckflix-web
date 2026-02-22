@@ -8,12 +8,12 @@ import {
     Minimize,
     Settings,
     Subtitles,
-    Cast,
     Volume2,
     VolumeOff,
     Volume1,
     Volume,
     Loader2,
+    Cast,
 } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import { getQualityLabel, srtToVtt } from '../utils/format';
@@ -365,7 +365,19 @@ export default function WatchPage() {
                             )}
                         </div>
                     </div>
-                    {player.isCastAvailable && <Cast className="text-white/70 hover:text-white cursor-pointer" />}
+                    {player.isCastAvailable && (
+                        <button
+                            onClick={() =>
+                                player.cast({
+                                    src: activeVersion.streamUrl,
+                                    contentType: activeVersion.mimeType,
+                                    title: movie.title,
+                                })
+                            }
+                        >
+                            <Cast className="text-white/70 hover:text-white cursor-pointer" />
+                        </button>
+                    )}
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { roleHierarchy, type UserDTO, type UserRole } from '@duckflix/shared';
-import { useEffect } from 'react';
+// import { useEffect } from 'react';
 
 export const useAuth = () => {
     const queryClient = useQueryClient();
@@ -24,13 +24,13 @@ export const useAuth = () => {
         },
     });
 
-    useEffect(() => {
-        if (query.data?.isVerified === true) {
-            api.post('/auth/refresh').catch(() => {
-                console.error('Failed to refresh token after verification');
-            });
-        }
-    }, [query.data?.isVerified]);
+    // useEffect(() => {
+    //     if (query.data?.isVerified === true) {
+    //         api.post('/auth/refresh').catch(() => {
+    //             console.error('Failed to refresh token after verification');
+    //         });
+    //     }
+    // }, [query.data?.isVerified]);
 
     const logout = useMutation({
         mutationFn: () => api.post('/auth/logout'),

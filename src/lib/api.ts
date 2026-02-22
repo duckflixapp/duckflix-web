@@ -42,6 +42,11 @@ api.interceptors.response.use(
     },
     async (error) => {
         const originalRequest = error.config;
+
+        if (error.response?.status !== 401) {
+            return Promise.reject(error);
+        }
+
         const isAuthRequest =
             originalRequest.url.includes('/auth/login') ||
             originalRequest.url.includes('/auth/refresh') ||
@@ -60,6 +65,7 @@ api.interceptors.response.use(
             isRefreshing = true;
 
             try {
+                console.log('refreshing...');
                 await axios.post(`${api.defaults.baseURL}/auth/refresh`, {}, { withCredentials: true });
                 processQueue(null);
 
