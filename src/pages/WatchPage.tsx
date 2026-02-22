@@ -24,6 +24,7 @@ import { ProgressBar } from '../components/player/ProgressBar';
 import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
 import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import Hls from 'hls.js';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -56,7 +57,9 @@ export default function WatchPage() {
     const [manualRes, setManualRes] = useState<number | null>(null);
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const availableVersions =
-        movie?.versions.filter((v) => v.mimeType === 'video/mp4' && v.status === 'ready').sort((a, b) => b.height - a.height) || [];
+        movie?.versions
+            .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
+            .sort((a, b) => b.height - a.height) || [];
     const activeVersion = manualRes
         ? (availableVersions.find((v) => v.height === manualRes) ?? availableVersions[0])
         : availableVersions[0];
@@ -225,9 +228,35 @@ export default function WatchPage() {
 
     useEffect(() => {
         const videoElement = videoRef.current;
-        if (!videoElement) return;
+        if (!videoElement || !activeVersion) return;
+        console.log('trying to play: ', activeVersion, 'on video element:', videoElement);
 
-        videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+        let hls: Hls | null = null;
+
+        if (activeVersion.mimeType === 'application/x-mpegURL') {
+            if (!Hls.isSupported()) {
+                if (videoElement.canPlayType('application/vnd.apple.mpegurl'))
+                    videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+                else {
+                    alert('unsupported');
+                    return;
+                }
+            }
+            hls = new Hls({
+                xhrSetup: (xhr) => {
+                    xhr.withCredentials = true;
+                },
+            });
+            hls.loadSource(activeVersion.streamUrl);
+            hls.attachMedia(videoElement);
+
+            hls.on(Hls.Events.ERROR, (_, data) => {
+                if (data.fatal) {
+                    console.error('Fatal HLS error:', data.type);
+                }
+            });
+        } else videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+
         videoElement.load();
 
         return () => {
