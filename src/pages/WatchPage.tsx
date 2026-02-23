@@ -242,11 +242,7 @@ export default function WatchPage() {
                     return;
                 }
             }
-            hls = new Hls({
-                xhrSetup: (xhr) => {
-                    xhr.withCredentials = true;
-                },
-            });
+            hls = new Hls();
             hls.loadSource(activeVersion.streamUrl);
             hls.attachMedia(videoElement);
 
@@ -351,7 +347,6 @@ export default function WatchPage() {
                 ref={videoRef}
                 playsInline
                 preload="metadata"
-                crossOrigin="use-credentials"
                 className={`w-full h-full max-h-screen object-contain ${showControls && 'subtitles-up'}`}
                 onClick={() => !isScrubbing && player.togglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
