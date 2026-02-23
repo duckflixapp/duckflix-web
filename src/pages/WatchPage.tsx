@@ -25,6 +25,7 @@ import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
 import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import Hls from 'hls.js';
+import { appendSubtitleName } from '../utils/subtitles';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -262,6 +263,23 @@ export default function WatchPage() {
         };
     }, [activeVersion, videoRef]);
 
+    const castVideo = useCallback(() => {
+        if (!activeVersion || !movie) return;
+        const subtitles = appendSubtitleName(movie.subtitles);
+        player.cast({
+            src: activeVersion.streamUrl,
+            contentType: activeVersion.mimeType,
+            title: movie.title,
+            subtitles: subtitles.map((s, idx) => ({
+                id: idx,
+                url: s.subtitleUrl,
+                language: s.language,
+                label: s.name,
+            })),
+            activeSubtitle: subtitles.findIndex((s) => s.id === subtitle?.id),
+        });
+    }, [player, activeVersion, movie, subtitle]);
+
     if (isLoading || !movie)
         return (
             <div className="h-screen bg-black flex items-center justify-center text-primary">
@@ -347,6 +365,7 @@ export default function WatchPage() {
                 ref={videoRef}
                 playsInline
                 preload="metadata"
+                crossOrigin="use-credentials"
                 className={`w-full h-full max-h-screen object-contain ${showControls && 'subtitles-up'}`}
                 onClick={() => !isScrubbing && player.togglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
@@ -390,15 +409,7 @@ export default function WatchPage() {
                         </div>
                     </div>
                     {player.isCastAvailable && (
-                        <button
-                            onClick={() =>
-                                player.cast({
-                                    src: activeVersion.streamUrl,
-                                    contentType: activeVersion.mimeType,
-                                    title: movie.title,
-                                })
-                            }
-                        >
+                        <button onClick={castVideo}>
                             <Cast className="text-white/70 hover:text-white cursor-pointer" />
                         </button>
                     )}

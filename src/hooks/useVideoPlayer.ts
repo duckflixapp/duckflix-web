@@ -110,7 +110,13 @@ export function useVideoPlayer(actionCallback: () => unknown) {
     }, []);
 
     const handleCast = useCallback(
-        async (videoContext: { src: string; contentType: string | null; title: string }) => {
+        async (videoContext: {
+            src: string;
+            contentType: string | null;
+            title: string;
+            subtitles: { url: string; language: string; label: string; id: number }[];
+            activeSubtitle: number;
+        }) => {
             if (!videoRef.current) return;
             const context = cast.framework.CastContext.getInstance();
 
@@ -122,12 +128,32 @@ export function useVideoPlayer(actionCallback: () => unknown) {
                 const mediaInfo = new chrome.cast.media.MediaInfo(videoContext.src, videoContext.contentType ?? 'video/mp4');
                 mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
 
+                if (videoContext.subtitles && videoContext.subtitles.length > 0) {
+                    const tracks = videoContext.subtitles.map((sub) => {
+                        const track = new chrome.cast.media.Track(sub.id, chrome.cast.media.TrackType.TEXT);
+                        track.trackContentId = sub.url;
+                        track.trackContentType = 'text/vtt';
+                        track.subtype = chrome.cast.media.TextTrackType.SUBTITLES;
+                        track.name = sub.label;
+                        track.language = sub.language;
+                        return track;
+                    });
+
+                    mediaInfo.tracks = tracks;
+                }
+
                 const metadata = new chrome.cast.media.GenericMediaMetadata();
                 metadata.metadataType = chrome.cast.media.MetadataType.GENERIC;
                 metadata.title = videoContext.title;
                 mediaInfo.metadata = metadata;
 
                 const request = new chrome.cast.media.LoadRequest(mediaInfo);
+
+                if (videoContext.activeSubtitle !== -1 && videoContext.subtitles.length > 0)
+                    request.activeTrackIds = [videoContext.activeSubtitle];
+
+                console.log(videoContext);
+
                 request.autoplay = true;
                 request.currentTime = videoRef.current.currentTime;
 

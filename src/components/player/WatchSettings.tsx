@@ -1,26 +1,11 @@
 import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatBytes, getLanguageName, getQualityLabel } from '../../utils/format';
+import { formatBytes, getQualityLabel } from '../../utils/format';
 import { useEffect, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, FileUp, Gauge, Layers, Subtitles } from 'lucide-react';
+import { appendSubtitleName } from '../../utils/subtitles';
 
 type MenuState = 'main' | 'quality' | 'speed' | 'subtitles';
-
-const appendSubtitleName = (subs: SubtitleDTO[]) => {
-    const occ = new Map<string, number>();
-    const ver = (code: string) => {
-        if (occ.has(code)) {
-            const v = occ.get(code)! + 1;
-            occ.set(code, v);
-            return ` ${v}`;
-        }
-        occ.set(code, 1);
-        return '';
-    };
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    return subs.map((s) => ({ name: s.name || getLanguageName(s.language) + ver(s.language), ...s }));
-};
 
 export function SettingsBox({
     isOpen,
