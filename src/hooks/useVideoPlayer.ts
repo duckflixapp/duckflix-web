@@ -11,6 +11,7 @@ export function useVideoPlayer(actionCallback: () => unknown) {
     const [isBuffering, setIsBuffering] = useState(false);
     const [fullScreen, setFullScreen] = useState(document.fullscreenElement !== null);
     const [isCastAvailable, setIsCastAvailable] = useState(false);
+    const [videoElement, setVideoElement] = useState<HTMLVideoElement | null>(null);
     // const [castSession, setCastSession] = useState(null);
 
     // sync video with state
@@ -168,8 +169,16 @@ export function useVideoPlayer(actionCallback: () => unknown) {
         [videoRef]
     );
 
+    const videoCallbackRef = useCallback((node: HTMLVideoElement | null) => {
+        if (node == null) return;
+        setVideoElement(node);
+        videoRef.current = node;
+    }, []);
+
     return {
         videoRef,
+        videoElement,
+        videoCallbackRef,
         paused,
         setPaused: setIsPaused,
         volume,

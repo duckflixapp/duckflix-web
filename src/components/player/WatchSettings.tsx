@@ -99,7 +99,11 @@ export function SettingsBox({
                                 <MenuButton
                                     icon={<Layers size={16} />}
                                     label="Quality"
-                                    value={activeVersion ? getQualityLabel(activeVersion.width ?? 0, activeVersion.height) : 'Auto'}
+                                    value={
+                                        activeVersion && activeVersion.height
+                                            ? getQualityLabel(activeVersion.width ?? 0, activeVersion.height)
+                                            : 'Auto'
+                                    }
                                     onClick={() => setStep('quality', 1)}
                                 />
                                 <MenuButton
@@ -134,7 +138,7 @@ export function SettingsBox({
                                                     : 'hover:bg-white/5 text-white/70 border border-transparent'
                                             }`}
                                         >
-                                            <span className="font-bold">{getQualityLabel(v.width ?? 0, v.height)}</span>
+                                            <span className="font-bold">{v.height ? getQualityLabel(v.width ?? 0, v.height) : 'Auto'}</span>
                                             <div className="flex items-center gap-2">
                                                 {activeVersion?.id === v.id && <Check size={14} />}
                                                 {v.fileSize && (
