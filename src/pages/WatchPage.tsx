@@ -248,9 +248,9 @@ export default function WatchPage() {
         if (!videoElement || !activeVersion) return;
         console.log('trying to play: ', activeVersion, 'on video element:', videoElement);
 
-        if (activeVersion.mimeType === 'application/x-mpegURL') {
-            let hls: Hls | null = null;
+        let hls: Hls | null = null;
 
+        if (activeVersion.mimeType === 'application/x-mpegURL') {
             if (!Hls.isSupported()) {
                 if (videoElement.canPlayType('application/vnd.apple.mpegurl'))
                     videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
@@ -259,14 +259,20 @@ export default function WatchPage() {
                     return;
                 }
             }
-            hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+            hls = new Hls({
+                enableWorker: true,
+                lowLatencyMode: false,
+                maxBufferLength: 24,
+                maxMaxBufferLength: 48,
+                startFragPrefetch: true,
+                autoStartLoad: true,
+                capLevelToPlayerSize: true,
+            });
             hls.loadSource(activeVersion.streamUrl);
             hls.attachMedia(videoElement);
 
             hls.on(Hls.Events.ERROR, (_, data) => {
-                if (data.fatal) {
-                    console.error('Fatal HLS error:', data.type);
-                }
+                if (data.fatal) console.error('Fatal HLS error:', data.type);
             });
         } else videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
 
@@ -276,6 +282,7 @@ export default function WatchPage() {
             videoElement.pause();
             videoElement.removeAttribute('src');
             videoElement.load();
+            hls?.destroy();
         };
     }, [activeVersion, videoElement]);
 
