@@ -46,11 +46,10 @@ export default function LibraryPage() {
     const totalItems = libraryMovies.data?.pages[0]?.meta.totalItems ?? 0;
     return (
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-            {/* Header / Breadcrumb */}
             <div className="flex items-center gap-4 mb-10">
                 <button
                     onClick={() => setSelectedLibId(null)}
-                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white transition-all cursor-pointer"
+                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-white transition-all cursor-pointer"
                 >
                     <ArrowLeft size={20} />
                 </button>
@@ -67,20 +66,17 @@ export default function LibraryPage() {
                 </div>
             </div>
 
-            {/* Movie Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                 {movies.map((item) => (
                     <MovieCard key={item.movieId} movie={item.movie} onClick={() => navigate(`/details/${item.movie.id}`)} />
                 ))}
 
-                {/* Skeletons while loading more */}
                 {libraryMovies.isFetchingNextPage &&
                     Array(6)
                         .fill(0)
                         .map((_, i) => <MovieCardSkeleton key={`skeleton-${i}`} />)}
             </div>
 
-            {/* Infinite Scroll Trigger */}
             <div className="mt-12 flex justify-center pb-10">
                 {libraryMovies.hasNextPage ? (
                     <button

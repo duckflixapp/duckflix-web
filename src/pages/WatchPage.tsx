@@ -426,7 +426,9 @@ export default function WatchPage() {
                             <h1 className="text-white font-bold text-lg leading-none">{movie.title}</h1>
                             {activeVersion && (
                                 <p className="text-white/40 text-xs font-bold uppercase mt-1">
-                                    {getQualityLabel(activeVersion.width || 0, activeVersion.height)}
+                                    {activeVersion && activeVersion.height
+                                        ? getQualityLabel(activeVersion.width || 0, activeVersion.height)
+                                        : 'Auto'}
                                 </p>
                             )}
                         </div>
@@ -544,7 +546,7 @@ export default function WatchPage() {
 function Button({ active, children, ...rest }: { active?: boolean } & ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
         <button
-            className={`p-2 rounded-xl hover:bg-white/10 transition-all cursor-pointer ${active ? 'text-primary bg-white/10' : 'text-white/70'}`}
+            className={`p-2.5 rounded-2xl hover:bg-white/10 transition-all cursor-pointer ${active ? 'text-primary bg-white/10' : 'text-white/70'}`}
             {...rest}
         >
             {children}

@@ -78,7 +78,7 @@ export function SettingsBox({
                 transition={{
                     layout: { duration: 0.2, ease: 'easeOut' },
                 }}
-                className="absolute bottom-full right-0 mb-4 w-64 bg-background/40 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-2xl overflow-hidden origin-bottom-right"
+                className="absolute bottom-full right-0 mb-4 w-64 bg-background/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-2 shadow-2xl overflow-hidden origin-bottom-right"
             >
                 <AnimatePresence mode="popLayout" custom={direction} initial={false}>
                     <motion.div
@@ -95,7 +95,7 @@ export function SettingsBox({
                     >
                         {menu === 'main' && (
                             <div className="flex flex-col gap-1">
-                                <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold p-3">Settings</p>
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold p-3 pb-2">Settings</p>
                                 <MenuButton
                                     icon={<Layers size={16} />}
                                     label="Quality"
@@ -132,7 +132,7 @@ export function SettingsBox({
                                                 onChangeResolution(v);
                                                 setStep('main', -1);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-2xl text-[12px] transition-all ${
                                                 activeVersion?.id === v.id
                                                     ? 'bg-primary/10 text-primary border border-primary/20'
                                                     : 'hover:bg-white/5 text-white/70 border border-transparent'
@@ -162,7 +162,7 @@ export function SettingsBox({
                                                 onChangeSpeed(s);
                                                 setStep('main', -1);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-2xl text-[12px] transition-all ${
                                                 playbackSpeed === s
                                                     ? 'bg-primary/10 text-primary border border-primary/20'
                                                     : 'hover:bg-white/5 text-white/70 border border-transparent'
@@ -195,7 +195,7 @@ export function SettingsBox({
                                                 setStep('main', -1);
                                                 setSubtitle(null);
                                             }}
-                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                            className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-2xl text-[12px] transition-all ${
                                                 activeSubtitle === null
                                                     ? 'bg-primary/10 text-primary border border-primary/20'
                                                     : 'hover:bg-white/5 text-white/70 border border-transparent'
@@ -211,7 +211,7 @@ export function SettingsBox({
                                                     setStep('main', -1);
                                                     setSubtitle(subtitle);
                                                 }}
-                                                className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-xl text-[12px] transition-all ${
+                                                className={`w-full flex items-center justify-between px-3 py-2.5 cursor-pointer rounded-2xl text-[12px] transition-all ${
                                                     subtitle.id === activeSubtitle?.id
                                                         ? 'bg-primary/10 text-primary border border-primary/20'
                                                         : 'hover:bg-white/5 text-white/70 border border-transparent'
@@ -236,7 +236,7 @@ function MenuButton({ icon, label, value, onClick }: { icon: React.ReactNode; la
     return (
         <button
             onClick={onClick}
-            className="w-full flex items-center justify-between px-3 py-3 cursor-pointer rounded-xl hover:bg-white/5 text-white/80 transition-all group/settings"
+            className="w-full flex items-center justify-between px-3 py-3 cursor-pointer rounded-2xl hover:bg-white/5 text-white/80 transition-all group/settings"
         >
             <div className="flex items-center gap-3">
                 <span className="text-white/40 group-hover/settings:text-primary transition-colors">{icon}</span>
