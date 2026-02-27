@@ -263,7 +263,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
     return (
         <div className="relative" ref={containerRef}>
             <button
-                className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
+                className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="rounded-lg">
@@ -273,9 +273,9 @@ function UserBox({ logout }: { logout: () => unknown }) {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-4 w-56 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="absolute top-full right-0 mt-4 w-56 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="p-2 flex flex-col gap-1">
-                        <div className="p-3 pt-2 mb-1 border-b border-white/5">
+                        <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
                             <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>
                             <p className="text-xs text-text/40 truncate line-clamp-1">{auth.user?.email}</p>
                         </div>
@@ -289,7 +289,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                                         item.onClick();
                                         setIsOpen(false);
                                     }}
-                                    className="flex items-center gap-3 w-full p-2.5 text-left text-[13px] cursor-pointer font-medium text-text/70 hover:bg-white/5 hover:text-primary rounded-xl transition-all group"
+                                    className="flex items-center gap-3 w-full py-2.5 px-3.5 text-left text-[13px] cursor-pointer font-medium text-text/80 hover:bg-white/5 hover:text-primary rounded-2xl transition-all group"
                                 >
                                     <item.icon size={16} className="group-hover:scale-110 transition-transform" />
                                     {item.label}
@@ -303,7 +303,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                                 logout();
                                 setIsOpen(false);
                             }}
-                            className="flex items-center gap-3 w-full p-2.5 text-left text-[13px] cursor-pointer font-medium text-red-400 hover:bg-red-500/10 rounded-xl transition-all group"
+                            className="flex items-center gap-3 w-full py-2.5 px-3.5 text-left text-[13px] cursor-pointer font-medium text-red-400 hover:bg-red-500/10 rounded-2xl transition-all group"
                         >
                             <LogOut size={16} className="group-hover:scale-110 transition-transform" />
                             Logout

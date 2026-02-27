@@ -1,6 +1,6 @@
-import type { MovieDTO } from '@duckflix/shared';
+import type { MovieMinDTO } from '@duckflix/shared';
 
-export function MovieCard({ movie, onClick: handleClick }: { movie: MovieDTO; onClick?: () => unknown }) {
+export function MovieCard({ movie, onClick: handleClick }: { movie: MovieMinDTO; onClick?: () => unknown }) {
     return (
         <div className="group cursor-pointer" onClick={handleClick}>
             <div className="relative aspect-2/3 rounded-2xl overflow-hidden mb-4 border border-white/5 shadow-xl transition-all duration-500 group-hover:border-primary/50 group-hover:-translate-y-2">

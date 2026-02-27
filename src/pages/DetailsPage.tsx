@@ -12,6 +12,7 @@ import { api } from '../lib/api';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../contexts/AuthContext';
+import { useLibrary } from '../hooks/useLibrary';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -34,6 +35,7 @@ export default function DetailsPage() {
     const { movie, isLoading, refresh } = useMovieDetail(id);
     const navigate = useNavigate();
     const { downloadProgress, progressMap } = useMovieSocket(id);
+    const { addMovie, removeMovie } = useLibrary();
 
     const handleNotification = useCallback(
         (notification: NotificationSocketData) => {
@@ -64,6 +66,11 @@ export default function DetailsPage() {
             return b.height - a.height;
         });
 
+    const handleToLibrary = () => {
+        if (movie.inUserLibrary) removeMovie({ libId: 'library', movieId: movie.id });
+        else addMovie({ libId: 'library', movieId: movie.id });
+    };
+
     if (movie.status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
 
     if (movie.status === 'processing') return <MovieProcessing movie={movie} />;
@@ -93,8 +100,8 @@ export default function DetailsPage() {
                     <div className="max-w-4xl space-y-6">
                         <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
                             {movie.rating && (
-                                <div className="flex items-center gap-1.5 text-yellow-500  bg-yellow-500/10 px-3 py-1 rounded-lg border border-yellow-500/20">
-                                    <Star size={16} fill="currentColor" />
+                                <div className="flex items-center gap-1.5 text-yellow-500  bg-yellow-500/10 px-3 py-1 rounded-xl border border-yellow-500/20">
+                                    <Star size={15} fill="currentColor" />
                                     <span>{movie.rating}</span>
                                 </div>
                             )}
@@ -126,14 +133,17 @@ export default function DetailsPage() {
                         <div className="flex flex-wrap gap-4 pt-4">
                             <button
                                 onClick={() => navigate(`/watch/${movie.id}`)}
-                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-2xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
+                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-4xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
                             >
                                 <Play size={20} fill="currentColor" />
                                 PLAY NOW
                             </button>
 
-                            <button className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-2xl transition-all">
-                                <Bookmark size={20} />
+                            <button
+                                onClick={handleToLibrary}
+                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
+                            >
+                                <Bookmark size={20} fill={movie.inUserLibrary ? 'white' : 'transparent'} />
                                 Add to My List
                             </button>
                         </div>
@@ -163,7 +173,7 @@ export default function DetailsPage() {
                                 movie.genres.map((genre) => (
                                     <span
                                         key={genre.id}
-                                        className="group relative px-5 py-2 bg-white/3 border border-white/10 rounded-xl text-sm font-medium text-text/70 transition-all duration-300 hover:border-primary/50 hover:text-primary cursor-pointer overflow-hidden"
+                                        className="group relative px-5 py-2 bg-white/3 border border-white/10 rounded-3xl text-sm font-medium text-text/70 transition-all duration-300 hover:border-primary/50 hover:text-primary cursor-pointer overflow-hidden"
                                     >
                                         <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                         <span className="relative z-10 uppercase tracking-wider text-[12px]">{genre.name}</span>
@@ -185,7 +195,7 @@ export default function DetailsPage() {
                                 <p className="text-white font-medium">{movie.uploader.name}</p>
 
                                 <span
-                                    className={`text-[9px] px-2 py-0.5 rounded-md uppercase font-bold tracking-wider ${
+                                    className={`text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider ${
                                         movie.uploader.role === 'admin'
                                             ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                                             : movie.uploader.role === 'contributor'
@@ -238,7 +248,7 @@ function VersionBadge({
 
     if (!isProcessing) {
         return (
-            <div className="flex items-center gap-2 bg-white/3 border border-white/5 rounded-lg px-2.5 py-1.5 hover:border-white/10 transition-all group">
+            <div className="flex items-center gap-2 bg-white/3 border border-white/5 rounded-2xl px-3 py-2 hover:border-white/10 transition-all group">
                 <span className="text-[11px] font-bold text-text/60 group-hover:text-text/90">
                     {getQualityLabel(v.width ?? 0, v.height)}
                 </span>
@@ -252,12 +262,12 @@ function VersionBadge({
     }
 
     return (
-        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-xl p-4 overflow-hidden group/card">
+        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-3xl p-4 overflow-hidden group/card">
             <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover/card:animate-[shimmer_2s_infinite] pointer-events-none" />
 
             <div className="relative z-10 flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center bg-primary/10 rounded-lg w-10 aspect-square">
+                    <div className="flex items-center justify-center bg-primary/10 rounded-xl w-10 aspect-square">
                         <span className="text-xs font-black text-primary uppercase">{getQualityLabel(v.width ?? 0, v.height, true)}</span>
                     </div>
                     <div className="flex flex-col min-w-0 flex-1">
@@ -276,7 +286,7 @@ function VersionBadge({
                     {canCancel && (
                         <button
                             onClick={() => cancelJob(v.id)}
-                            className="flex items-center justify-center rounded-lg h-6.5 hover:bg-primary/10 text-white hover:text-white transition-all group-hover/card:w-6.5 w-0 overflow-hidden duration-200 cursor-pointer"
+                            className="flex items-center justify-center rounded-lg h-6.5 hover:bg-primary/10 text-white transition-all group-hover/card:w-6.5 w-0 overflow-hidden duration-200 cursor-pointer"
                             title="Cancel process"
                         >
                             <X size={14} strokeWidth={3} />

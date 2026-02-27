@@ -14,9 +14,16 @@ export default function Sidebar({ admin = false }: { admin?: boolean }) {
     return (
         <div className="absolute w-56 transition-all ease-in-out lg:w-64 h-full pr-2 pl-4 md:pl-6 lg:pl-7 flex flex-col z-50">
             <div className="h-18 flex items-center gap-6">
-                <Link to="/browse" className="flex items-center gap-2 text-white font-bold text-xl uppercase">
-                    Duckflix
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Link to="/browse" className="group flex items-center gap-2">
+                        <span className="text-white font-black text-2xl uppercase tracking-tighter transition-colors">Duckflix</span>
+                    </Link>
+                    {admin && (
+                        <div className="flex items-center self-center px-3 py-1.5 rounded-xl bg-primary/20 border border-none backdrop-blur-md select-none">
+                            <p className="font-black uppercase text-[10px] tracking-[0.15em] text-primary leading-none">Admin</p>
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="flex flex-col items-start gap-12 mt-4">
                 {items.map(

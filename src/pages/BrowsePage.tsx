@@ -59,7 +59,7 @@ function MovieListSection({
     return movies.map((movie) => <MovieCard movie={movie} key={movie.id} onClick={() => openDetails(movie)} />);
 }
 
-function HeroSection({
+export function HeroSection({
     loading: isLoading,
     movie,
     onOpenDetails: openDetails,
@@ -83,7 +83,7 @@ function HeroSection({
                     </h1>
                     <div className="flex gap-2 mb-6">
                         {movie.rating && (
-                            <span className="px-3 py-1.5 rounded-lg bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
+                            <span className="px-3 py-1.5 rounded-xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
                                 <Star size={12} fill="currentColor" /> {movie.rating}
                             </span>
                         )}
@@ -91,7 +91,7 @@ function HeroSection({
                             <span
                                 key={genre.id}
                                 title={genre.id}
-                                className="px-3 py-1.5 rounded-lg bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
+                                className="px-3 py-1.5 rounded-xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
                             >
                                 {genre.name}
                             </span>
@@ -101,17 +101,44 @@ function HeroSection({
                     <div className="flex gap-4">
                         <button
                             onClick={() => openWatch(movie)}
-                            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-2xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
+                            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-3xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
                         >
                             <Play size={20} fill="currentColor" /> Play Now
                         </button>
                         <button
                             onClick={() => openDetails(movie)}
-                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-2xl font-medium transition-all cursor-pointer"
+                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-3xl font-medium transition-all cursor-pointer"
                         >
                             <Info size={20} /> Details
                         </button>
                     </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+export function MovieSkeleton() {
+    return (
+        <div className="flex flex-col gap-4 animate-pulse">
+            <div className="aspect-2/3 w-full bg-secondary/10 rounded-2xl border border-white/5" />
+            <div className="space-y-2 px-1">
+                <div className="h-4 w-3/4 bg-secondary/20 rounded-md" />
+                <div className="h-3 w-1/2 bg-secondary/10 rounded-md" />
+            </div>
+        </div>
+    );
+}
+
+export function HeroSkeleton() {
+    return (
+        <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10 animate-pulse">
+            <div className="w-full h-full rounded-4xl bg-secondary/10 border border-white/5 flex flex-col justify-end p-12 space-y-6">
+                <div className="h-14 w-1/2 bg-secondary/20 rounded-xl" />
+                <div className="h-10 w-1/3 bg-secondary/10 rounded-xl" />
+                <div className="flex gap-4">
+                    <div className="h-12 w-40 bg-secondary/20 rounded-2xl" />
+                    <div className="h-12 w-40 bg-secondary/10 rounded-2xl" />
                 </div>
             </div>
         </section>
@@ -158,33 +185,6 @@ function EmptyState({ canUpload, onNavigate }: { canUpload: boolean; onNavigate:
                         Waiting for contributors
                     </div>
                 )}
-            </div>
-        </section>
-    );
-}
-
-function MovieSkeleton() {
-    return (
-        <div className="flex flex-col gap-4 animate-pulse">
-            <div className="aspect-2/3 w-full bg-secondary/10 rounded-2xl border border-white/5" />
-            <div className="space-y-2 px-1">
-                <div className="h-4 w-3/4 bg-secondary/20 rounded-md" />
-                <div className="h-3 w-1/2 bg-secondary/10 rounded-md" />
-            </div>
-        </div>
-    );
-}
-
-function HeroSkeleton() {
-    return (
-        <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10 animate-pulse">
-            <div className="w-full h-full rounded-4xl bg-secondary/10 border border-white/5 flex flex-col justify-end p-12 space-y-6">
-                <div className="h-14 w-1/2 bg-secondary/20 rounded-xl" />
-                <div className="h-10 w-1/3 bg-secondary/10 rounded-xl" />
-                <div className="flex gap-4">
-                    <div className="h-12 w-40 bg-secondary/20 rounded-2xl" />
-                    <div className="h-12 w-40 bg-secondary/10 rounded-2xl" />
-                </div>
             </div>
         </section>
     );

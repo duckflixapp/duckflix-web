@@ -31,7 +31,7 @@ export function NotificationBox() {
     return (
         <div className="relative" ref={containerRef}>
             <button
-                className={`bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-2xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
+                className={`bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="flex items-center justify-center p-3 relative">

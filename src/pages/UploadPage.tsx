@@ -193,7 +193,7 @@ export default function UploadPage() {
                 <div className="mt-6 lg:mt-10 pt-4 flex justify-end">
                     <button
                         type="submit"
-                        className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-2xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
+                        className="w-full md:w-auto px-12 py-4 cursor-pointer bg-primary text-black font-black rounded-3xl transition-all uppercase tracking-[0.2em] text-xs shadow-lg shadow-primary/10"
                     >
                         Upload
                     </button>

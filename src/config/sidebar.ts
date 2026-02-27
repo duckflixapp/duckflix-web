@@ -29,7 +29,7 @@ export const sidebar: SidebarGroup[] = [
         title: 'Menu',
         items: [
             { link: '/browse', icon: Compass, text: 'Browse' },
-            { link: '/library', icon: Library, text: 'My Library' },
+            { link: '/library', icon: Library, text: 'My Collections' },
         ],
     },
     // {
