@@ -178,10 +178,26 @@ export default function DetailsPage() {
                 </div>
 
                 <div className="space-y-8 h-fit">
-                    <div>
-                        <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
-                        <p className="text-white font-medium">{movie.user.name}</p>
-                    </div>
+                    {movie.uploader && (
+                        <div>
+                            <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
+                            <div className="flex items-center gap-3">
+                                <p className="text-white font-medium">{movie.uploader.name}</p>
+
+                                <span
+                                    className={`text-[9px] px-2 py-0.5 rounded-md uppercase font-bold tracking-wider ${
+                                        movie.uploader.role === 'admin'
+                                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                                            : movie.uploader.role === 'contributor'
+                                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                              : 'bg-white/5 text-white/40 border border-white/10'
+                                    }`}
+                                >
+                                    {movie.uploader.role}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                     <div>
                         <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Available Qualities</h3>
                         <div className="flex flex-wrap gap-2">
