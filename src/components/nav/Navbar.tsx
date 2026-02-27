@@ -273,7 +273,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-4 w-56 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="absolute top-full right-0 mt-4 w-64 max-w-screen bg-background/40 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
                     <div className="p-2 flex flex-col gap-1">
                         <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
                             <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>

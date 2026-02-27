@@ -1,22 +1,20 @@
 import type { MovieDTO } from '@duckflix/shared';
-import { useMovies } from '../hooks/use-movies';
+import { useBestRatedMovies, useRecentMovies } from '../hooks/useMovies';
 import { Play, Info, Star, UploadCloud, Plus, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
 
 export default function BrowsePage() {
-    const { data, isLoading, isError } = useMovies(1);
+    const { data: recentMovies, isLoading: recentLoading } = useRecentMovies({ page: 1, limit: 12 });
+    const { data: bestRatedMovies, isLoading: bestRatedLoading } = useBestRatedMovies({ page: 1, limit: 12 });
     const auth = useAuthContext();
     const navigate = useNavigate();
 
     const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
     const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.id}`);
 
-    if (isError) return <div className="p-10 text-center text-red-500">Error while loading</div>;
-
-    const movies = isLoading ? Array(12).fill(null) : (data?.data as MovieDTO[]);
-    const heroMovie: MovieDTO | null = movies.length > 0 ? movies[0] : null;
+    const heroMovie: MovieDTO | null = recentMovies?.length ? recentMovies[0] : null;
 
     return (
         <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full">
@@ -24,25 +22,51 @@ export default function BrowsePage() {
                 className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
                 style={{ animationDuration: '8s' }}
             />
-            <HeroSection loading={isLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
-            {movies.length === 0 && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
-            {movies.length > 0 && (
-                <section className="px-8 py-12 relative z-10">
-                    <div className="flex flex-col gap-1 mb-8">
-                        <h2 className="text-2xl font-bold font-poppins tracking-tight text-text">Recently Added</h2>
-                        <div className="h-1 w-12 bg-primary rounded-full" />
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                        <MovieListSection loading={isLoading} movies={movies} onOpenDetails={openDetails} />
-                    </div>
-                </section>
-            )}
+            {!recentMovies && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
+            <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
+            <div className="flex flex-col px-8 py-12 gap-8">
+                {recentMovies && (
+                    <MovieListSection title="Recently Added" movies={recentMovies} loading={recentLoading} onOpenDetails={openDetails} />
+                )}
+                {bestRatedMovies && (
+                    <MovieListSection title="Best Rated" movies={bestRatedMovies} loading={bestRatedLoading} onOpenDetails={openDetails} />
+                )}
+            </div>
         </div>
     );
 }
 
 function MovieListSection({
+    title,
+    movies,
+    loading: isLoading,
+    onOpenDetails: openDetails,
+}: {
+    title: string;
+    movies: MovieDTO[];
+
+    loading: boolean;
+    onOpenDetails: (movie: MovieDTO) => void;
+}) {
+    return (
+        <section className="relative z-10">
+            <div className="flex flex-col gap-1 mb-8">
+                <h2 className="text-xl md:text-2xl font-bold font-poppins tracking-tight text-text">{title}</h2>
+                <div className="h-1 w-12 bg-primary rounded-full" />
+            </div>
+
+            <div className="relative">
+                <div className="flex gap-4 overflow-x-auto pb-6 pt-2 px-2 custom-scrollbar snap-x snap-mandatory scroll-smooth">
+                    <MovieList loading={isLoading} movies={movies} onOpenDetails={openDetails} />
+                </div>
+
+                <div className="absolute -right-8 top-0 bottom-6 w-16 bg-linear-to-r from-transparent to-background pointer-events-none z-20" />
+            </div>
+        </section>
+    );
+}
+
+function MovieList({
     loading: isLoading,
     movies,
     onOpenDetails: openDetails,
@@ -56,7 +80,11 @@ function MovieListSection({
             .fill(0)
             .map((_, i) => <MovieSkeleton key={i} />);
 
-    return movies.map((movie) => <MovieCard movie={movie} key={movie.id} onClick={() => openDetails(movie)} />);
+    return movies.map((movie) => (
+        <div key={movie.id} className="flex-none w-35 md:w-50 snap-start transition-all py-4">
+            <MovieCard movie={movie} onClick={() => openDetails(movie)} />
+        </div>
+    ));
 }
 
 export function HeroSection({
@@ -73,7 +101,7 @@ export function HeroSection({
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
     return (
-        <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10">
+        <section className="relative w-full aspect-21/9 min-h-120 max-h-screen px-8 pt-6 z-10">
             <div className="relative w-full h-full rounded-4xl overflow-hidden shadow-2xl border border-white/5">
                 <img src={movie.bannerUrl ?? ''} className="w-full h-full object-cover brightness-[0.65]" alt="Hero" />
 
@@ -81,7 +109,7 @@ export function HeroSection({
                     <h1 className="text-6xl font-black mb-4 max-w-3xl font-poppins tracking-tighter text-text leading-[1.1]">
                         {movie.title}
                     </h1>
-                    <div className="flex gap-2 mb-6">
+                    <div className="flex flex-wrap gap-2 mb-6">
                         {movie.rating && (
                             <span className="px-3 py-1.5 rounded-xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
                                 <Star size={12} fill="currentColor" /> {movie.rating}
@@ -98,12 +126,12 @@ export function HeroSection({
                         ))}
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex flex-wrap gap-4">
                         <button
                             onClick={() => openWatch(movie)}
                             className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-3xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
                         >
-                            <Play size={20} fill="currentColor" /> Play Now
+                            <Play size={20} fill="currentColor" /> <span>Play Now</span>
                         </button>
                         <button
                             onClick={() => openDetails(movie)}

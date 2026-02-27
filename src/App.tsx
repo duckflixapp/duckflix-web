@@ -17,6 +17,7 @@ import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
 import AdminPage from './pages/admin/AdminPage';
 import UsersPage from './pages/admin/RolesPage';
+import { useState } from 'react';
 
 function App() {
     return (
@@ -86,13 +87,20 @@ function App() {
 export default App;
 
 const Layout = ({ admin }: { admin?: boolean }) => {
+    const [isCollapsed, setIsCollapsed] = useState(false);
     return (
         <div className="relative flex h-screen w-full bg-background text-text font-sans overflow-hidden">
             <div className="absolute top-[-10%] left-[10%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
 
-            <Sidebar admin={admin} />
-            <div className="relative pl-56 lg:pl-64 flex-1 flex flex-col min-w-0 overflow-hidden">
+            <Sidebar admin={admin} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+            <div
+                className={`
+                    relative flex-1 flex flex-col min-w-0 overflow-hidden 
+                    transition-all duration-300 ease-in-out
+                    ${isCollapsed ? 'pl-20' : 'pl-56 lg:pl-64'}
+                `}
+            >
                 <Navbar />
                 <main className="flex-1 overflow-y-auto custom-scrollbar">
                     <Outlet />
