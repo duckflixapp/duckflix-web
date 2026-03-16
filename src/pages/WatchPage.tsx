@@ -16,7 +16,7 @@ import {
     Cast,
 } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
-import { getQualityLabel, srtToVtt } from '../utils/format';
+import { srtToVtt } from '../utils/format';
 import { SettingsBox } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';
 import { PlayerOverlay } from '../components/player/PlayerOverlay';
@@ -55,11 +55,17 @@ export default function WatchPage() {
     const lastActiveSubtitleIdRef = useRef<string>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [manualRes, setManualRes] = useState<number | null>(null);
+    const hlsRef = useRef<Hls | null>(null);
+    const [hlsLevels, setHlsLevels] = useState<Hls['levels']>([]);
+    const [currentHlsLevel, setCurrentHlsLevel] = useState<number>(-1);
+    const [manualVersion, setManualVersion] = useState<MovieVersionDTO | null>(null);
+    const [sessionizedVersions, setSessionizedVersions] = useState<MovieVersionDTO[]>([]);
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
+    const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
+
     const availableVersions = useMemo(() => {
         if (!movie) return [];
-        return movie.versions
+        return [...movie.versions, ...(movie.generatedVersions ?? [])]
             .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
             .sort((a, b) => b.height - a.height);
     }, [movie]);
@@ -78,11 +84,28 @@ export default function WatchPage() {
         [id]
     );
 
-    const allVersions = useMemo(() => [autoVersion, ...availableVersions], [autoVersion, availableVersions]);
-    const activeVersion = useMemo(() => {
-        if (manualRes) return allVersions.find((v) => v.height === manualRes) ?? autoVersion;
+    const allVersions = useMemo(() => [...availableVersions, autoVersion], [autoVersion, availableVersions]);
+    const versionsForSettings = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
+    const activeVersion = useMemo(() => manualVersion ?? autoVersion, [manualVersion, autoVersion]);
+
+    const actualVersionForTopBar = useMemo(() => {
+        if (hlsLevels.length > 0 && currentHlsLevel >= 0) {
+            const level = hlsLevels[currentHlsLevel];
+            const versions = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
+            return versions.find((v) => v.height === level?.height) ?? autoVersion;
+        }
         return autoVersion;
-    }, [manualRes, allVersions, autoVersion]);
+    }, [currentHlsLevel, hlsLevels, sessionizedVersions, allVersions, autoVersion]);
+
+    const activeVersionForDisplay = useMemo(() => {
+        if (hlsLevels.length > 0) {
+            if (requestedHlsLevel === 'auto') return autoVersion;
+            const level = hlsLevels[requestedHlsLevel];
+            const versions = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
+            return versions.find((v) => v.height === level?.height) ?? autoVersion;
+        }
+        return activeVersion;
+    }, [requestedHlsLevel, hlsLevels, sessionizedVersions, allVersions, activeVersion, autoVersion]);
 
     const actionCallback = () => {
         lastActionTimeRef.current = Date.now();
@@ -264,27 +287,54 @@ export default function WatchPage() {
                 lowLatencyMode: false,
                 maxBufferLength: 24,
                 maxMaxBufferLength: 48,
-                startFragPrefetch: true,
+                startFragPrefetch: false,
                 autoStartLoad: true,
                 capLevelToPlayerSize: true,
+                startLevel: -1,
+                abrEwmaDefaultEstimate: 5000000,
             });
+            hlsRef.current = hls;
+
             hls.loadSource(activeVersion.streamUrl);
             hls.attachMedia(videoElement);
+
+            hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
+                setCurrentHlsLevel(data.level);
+            });
 
             hls.on(Hls.Events.ERROR, (_, data) => {
                 if (data.fatal) console.error('Fatal HLS error:', data.type);
             });
-        } else videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+            hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+                setRequestedHlsLevel('auto');
+                setHlsLevels(data.levels);
+                const firstUrl = data.levels[0]?.url[0] ?? '';
+                const session = new URL(firstUrl, window.location.origin).searchParams.get('session');
+
+                if (!session) return;
+
+                setSessionizedVersions(
+                    allVersions.map((v) => (v.id.startsWith('live-') ? { ...v, streamUrl: `${v.streamUrl}?session=${session}` } : v))
+                );
+            });
+        } else {
+            hlsRef.current = null;
+            setCurrentHlsLevel(-1);
+            videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+        }
 
         videoElement.load();
 
         return () => {
+            hlsRef.current = null;
+            setCurrentHlsLevel(-1);
+            setHlsLevels([]);
             videoElement.pause();
             videoElement.removeAttribute('src');
             videoElement.load();
             hls?.destroy();
         };
-    }, [activeVersion, videoElement]);
+    }, [activeVersion, allVersions, videoElement]);
 
     const castVideo = useCallback(() => {
         if (!activeVersion || !movie) return;
@@ -314,20 +364,41 @@ export default function WatchPage() {
         const video = videoElement;
         if (!video) return;
 
+        const isAuto = v.id === 'auto' || v.height === 0;
+        const isHlsVersion = v.mimeType === 'application/x-mpegURL';
+
+        if (hlsRef.current && (isAuto || isHlsVersion)) {
+            if (isAuto) {
+                hlsRef.current.currentLevel = -1;
+                setRequestedHlsLevel('auto');
+            } else {
+                const idx = hlsLevels.findIndex((l) => l.height === v.height);
+                if (idx !== -1) {
+                    hlsRef.current.currentLevel = idx;
+                    setRequestedHlsLevel(idx);
+                }
+            }
+            return;
+        }
+
+        if (isAuto) {
+            setManualVersion(null);
+            return;
+        }
+
         const t = video.currentTime;
         const wasPlaying = !video.paused;
 
-        const handleSeekAfterChange = () => {
+        const onLoaded = () => {
             video.currentTime = t;
             if (wasPlaying) {
                 video.play().catch((e) => console.error('Auto-play failed:', e));
             }
-            video.removeEventListener('loadedmetadata', handleSeekAfterChange);
+            video.removeEventListener('loadedmetadata', onLoaded);
         };
 
-        video.addEventListener('loadedmetadata', handleSeekAfterChange);
-
-        setManualRes(v.height);
+        video.addEventListener('loadedmetadata', onLoaded);
+        setManualVersion(v);
     };
 
     const handleLocalSubtitleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -424,13 +495,9 @@ export default function WatchPage() {
                         </button>
                         <div>
                             <h1 className="text-white font-bold text-lg leading-none">{movie.title}</h1>
-                            {activeVersion && (
-                                <p className="text-white/40 text-xs font-bold uppercase mt-1">
-                                    {activeVersion && activeVersion.height
-                                        ? getQualityLabel(activeVersion.width || 0, activeVersion.height)
-                                        : 'Auto'}
-                                </p>
-                            )}
+                            {actualVersionForTopBar && actualVersionForTopBar.height ? (
+                                <p className="text-white/40 text-xs font-bold uppercase mt-1">{actualVersionForTopBar.height}p</p>
+                            ) : null}
                         </div>
                     </div>
                     {player.isCastAvailable && (
@@ -513,8 +580,8 @@ export default function WatchPage() {
                             <SettingsBox
                                 isOpen={isSettingsOpen}
                                 onClose={() => setIsSettingsOpen(false)}
-                                versions={allVersions}
-                                activeVersion={activeVersion ?? null}
+                                versions={versionsForSettings}
+                                activeVersion={activeVersionForDisplay}
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
