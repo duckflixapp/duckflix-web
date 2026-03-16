@@ -6,10 +6,12 @@ import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useInView } from 'react-intersection-observer';
 import { useEffect, useRef } from 'react';
+import { useFeaturedMovie } from '../hooks/use-movie-detailed';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;
 
 export default function BrowsePage() {
+    const { movie: heroMovie } = useFeaturedMovie();
     const { data: recentMovies, isLoading: recentLoading } = useRecentMovies({ page: 1, limit: 12 });
     const { data: bestRatedMovies, isLoading: bestRatedLoading } = useBestRatedMovies({ page: 1, limit: 12 });
     const { data: infiniteData, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteMovies({ limit: 20, orderBy: 'title' });
@@ -20,8 +22,6 @@ export default function BrowsePage() {
 
     const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
     const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.id}`);
-
-    const heroMovie: MovieDTO | null = recentMovies?.length ? recentMovies[0] : null;
 
     useEffect(() => {
         if (inView && hasNextPage) {

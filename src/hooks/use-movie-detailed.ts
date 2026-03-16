@@ -21,3 +21,21 @@ export const useMovieDetail = (id: string | undefined) => {
         refresh: query.refetch,
     };
 };
+
+export const useFeaturedMovie = () => {
+    const query = useQuery({
+        queryKey: ['movie', 'featured'],
+        queryFn: async () => {
+            const { movie } = await api.get<{ movie: MovieDetailedDTO | null }>(`/movies/featured`);
+            return movie;
+        },
+        retry: false,
+        staleTime: 100,
+    });
+
+    return {
+        movie: query.data ?? null,
+        isLoading: query.isLoading,
+        refresh: query.refetch,
+    };
+};
