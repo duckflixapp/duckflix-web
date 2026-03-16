@@ -5,16 +5,24 @@ import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
 import type { MovieDTO } from '@duckflix/shared';
 import { useInfiniteMovies } from '../hooks/useMovies';
 import { useInView } from 'react-intersection-observer';
+import { useGenres } from '../hooks/use-genres';
 
 type OrderType = 'newest' | 'oldest' | 'title' | 'rating';
 
-export default function SearchPage() {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const query = searchParams.get('query') || '';
+const countFilters = (...args: (unknown | undefined | null)[]): number => {
+    return args.reduce<number>((p, val) => p + (val != null && val != undefined ? 1 : 0), 0);
+};
 
-    const [sortBy, setSortBy] = useState<OrderType>('newest');
-    const [showFilters, setShowFilters] = useState(false);
+export default function SearchPage() {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [showFilters, setShowFilters] = useState<boolean>();
+    const navigate = useNavigate();
+
+    const query = searchParams.get('query') || '';
+    const sortBy = (searchParams.get('sort') as OrderType) || 'newest';
+    const selectedGenre = searchParams.get('genre') || null;
+
+    const filtersCount = countFilters(selectedGenre);
 
     const {
         data: infiniteData,
@@ -22,7 +30,7 @@ export default function SearchPage() {
         hasNextPage,
         isFetchingNextPage,
         isLoading,
-    } = useInfiniteMovies({ limit: 12, search: query, orderBy: sortBy });
+    } = useInfiniteMovies({ limit: 12, search: query, orderBy: sortBy, genreId: selectedGenre ?? undefined });
 
     const { ref, inView } = useInView();
 
@@ -32,8 +40,21 @@ export default function SearchPage() {
         }
     }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+    const updateParams = (updates: Record<string, string | null>) => {
+        const newParams = new URLSearchParams(searchParams);
+        Object.entries(updates).forEach(([key, value]) => {
+            if (value === null) {
+                newParams.delete(key);
+            } else {
+                newParams.set(key, value);
+            }
+        });
+        setSearchParams(newParams);
+    };
+
+    const changeSort = (option: OrderType) => updateParams({ sort: option });
+    const changeGenre = (id: string | null) => updateParams({ genre: id });
     const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
-    const changeSort = (option: OrderType) => setSortBy(option);
 
     const results = infiniteData?.pages.flatMap((page) => page.data) ?? [];
     const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
@@ -50,21 +71,28 @@ export default function SearchPage() {
                             <p className="text-text/40 text-sm mb-6">Find movies, collections, and more in your database.</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="text-right hidden md:flex items-end gap-2">
-                                <div className="text-2xl font-bold text-text">{totalResults}</div>
-                                <div className="text-xs text-text/40 uppercase tracking-widest font-bold">Results Found</div>
+                            <div className="hidden md:flex items-center gap-2 mr-4 border-r border-white/10 pr-4">
+                                <span className="text-xl font-bold text-text">{totalResults}</span>
+                                <span className="text-[10px] text-text/40 uppercase tracking-widest font-bold">Results</span>
                             </div>
 
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center gap-2 px-5 py-3 rounded-xl border cursor-pointer transition-all ${showFilters ? 'bg-primary text-background border-primary' : 'bg-secondary/10 border-white/10 text-text hover:bg-secondary/20'}`}
+                                className={`flex items-center gap-2 px-5 py-3 rounded-3xl border cursor-pointer transition-all ${showFilters ? 'bg-primary text-background border-primary' : 'bg-secondary/10 border-white/10 text-text hover:bg-secondary/20'}`}
                             >
                                 <SlidersHorizontal size={18} />
                                 <span className="font-bold text-sm">Filters</span>
+                                {filtersCount > 0 && <span>{filtersCount}</span>}
                             </button>
                         </div>
                     </div>
-                    <Filters hidden={!showFilters} sortBy={sortBy} changeSort={changeSort} />
+                    <Filters
+                        hidden={!showFilters}
+                        sortBy={sortBy}
+                        changeSort={changeSort}
+                        selectedGenre={selectedGenre}
+                        setSelectedGenre={changeGenre}
+                    />
                 </div>
                 {isLoading && results.length === 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -96,33 +124,66 @@ export default function SearchPage() {
     );
 }
 
-function Filters({ hidden, sortBy, changeSort }: { hidden: boolean; sortBy: OrderType; changeSort: (val: OrderType) => void }) {
+function Filters({
+    hidden,
+    sortBy,
+    changeSort,
+    selectedGenre,
+    setSelectedGenre,
+}: {
+    hidden: boolean;
+    sortBy: OrderType;
+    changeSort: (val: OrderType) => void;
+    selectedGenre: string | null;
+    setSelectedGenre: (val: string | null) => void;
+}) {
+    const { genres } = useGenres();
+
     if (hidden) return null;
 
     const sortOptions = [
         { id: 'newest', label: 'Latest Added', icon: Clock },
         { id: 'oldest', label: 'Oldest Added', icon: CalendarDays },
         { id: 'title', label: 'Alphabetical', icon: ArrowDownAz },
-        { id: 'rating', label: 'Top Rated', icon: Star },
+        { id: 'rating', label: 'Best Rated', icon: Star },
     ] as const;
 
     return (
-        <div className="p-6 bg-white/2 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2">
-            <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 p-6 bg-white/2 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-col gap-2">
                 <span className="text-xs font-bold text-text/40 uppercase tracking-widest">Sort By</span>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar no-scrollbar-buttons snap-x">
                     {sortOptions.map(({ id, label, icon: Icon }) => (
                         <button
                             key={id}
                             onClick={() => changeSort(id)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                            className={`flex items-center flex-nowrap gap-2 px-4 py-2 rounded-full text-xs transition-all border snap-start ${
                                 sortBy === id
-                                    ? 'bg-primary/20 text-primary border border-primary/30'
-                                    : 'bg-secondary/10 text-text/70 border border-white/5 hover:bg-secondary/20 hover:text-text'
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-secondary/10 text-text/60 border-white/5 hover:bg-secondary/20'
                             }`}
                         >
                             <Icon size={16} />
-                            {label}
+                            <span className="text-nowrap">{label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-text/40 uppercase tracking-widest">Genres</span>
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar no-scrollbar-buttons snap-x">
+                    {genres?.map((genre) => (
+                        <button
+                            key={genre.id}
+                            onClick={() => setSelectedGenre(selectedGenre === genre.id ? null : genre.id)}
+                            className={`flex-none px-4 py-2 rounded-full text-xs transition-all border snap-start ${
+                                selectedGenre === genre.id
+                                    ? 'bg-primary text-background border-primary'
+                                    : 'bg-secondary/10 text-text/60 border-white/5 hover:bg-secondary/20'
+                            }`}
+                        >
+                            <span className="text-nowrap">{genre.name}</span>
                         </button>
                     ))}
                 </div>

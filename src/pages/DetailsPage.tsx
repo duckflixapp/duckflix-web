@@ -172,6 +172,7 @@ export default function DetailsPage() {
                             {movie.genres &&
                                 movie.genres.map((genre) => (
                                     <span
+                                        onClick={() => navigate('/search?genre=' + encodeURIComponent(genre.id))}
                                         key={genre.id}
                                         className="group relative px-5 py-2 bg-white/3 border border-white/10 rounded-3xl text-sm font-medium text-text/70 transition-all duration-300 hover:border-primary/50 hover:text-primary cursor-pointer overflow-hidden"
                                     >
