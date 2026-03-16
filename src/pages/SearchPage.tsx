@@ -1,66 +1,42 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Loader2, SlidersHorizontal, Film, Search } from 'lucide-react';
-import { api } from '../lib/api';
+import { SlidersHorizontal, Film, Clock, CalendarDays, ArrowDownAz, Star } from 'lucide-react';
 import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
-import type { MovieDTO, PaginatedResponse } from '@duckflix/shared';
+import type { MovieDTO } from '@duckflix/shared';
+import { useInfiniteMovies } from '../hooks/useMovies';
+import { useInView } from 'react-intersection-observer';
 
-type SortCriteria = 'latest' | 'oldest' | 'alphabetical' | 'rating';
+type OrderType = 'newest' | 'oldest' | 'title' | 'rating';
 
 export default function SearchPage() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const query = searchParams.get('query') || '';
 
-    const [results, setResults] = useState<MovieDTO[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [totalResults, setTotalResults] = useState(0);
-    const [hasMore, setHasMore] = useState(false);
-    const [page, setPage] = useState(1);
-
-    const [sortBy, setSortBy] = useState<SortCriteria>('latest');
+    const [sortBy, setSortBy] = useState<OrderType>('newest');
     const [showFilters, setShowFilters] = useState(false);
 
-    const fetchMovies = useCallback(
-        async (loadMore = false) => {
-            setLoading(true);
-            try {
-                const currentPage = loadMore ? page + 1 : 1;
+    const {
+        data: infiniteData,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+    } = useInfiniteMovies({ limit: 12, search: query, orderBy: sortBy });
 
-                const response = await api.get<PaginatedResponse<MovieDTO>>('/movies/', {
-                    params: {
-                        limit: 12,
-                        page: currentPage,
-                        search: query,
-                        sort: sortBy,
-                    },
-                });
-
-                if (loadMore) {
-                    setResults((prev) => [...prev, ...response.data]);
-                    setPage(currentPage);
-                } else {
-                    setResults(response.data);
-                    setPage(1);
-                }
-
-                setTotalResults(response.meta.totalItems);
-                setHasMore(response.meta.currentPage < response.meta.totalPages);
-            } catch (error) {
-                console.error('Search failed:', error);
-            } finally {
-                setLoading(false);
-            }
-        },
-        [query, sortBy, page]
-    );
+    const { ref, inView } = useInView();
 
     useEffect(() => {
-        fetchMovies(false);
-    }, [fetchMovies]);
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
     const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
-    const changeSort = (option: SortCriteria) => setSortBy(option);
+    const changeSort = (option: OrderType) => setSortBy(option);
+
+    const results = infiniteData?.pages.flatMap((page) => page.data) ?? [];
+    const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
 
     return (
         <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full min-h-screen">
@@ -81,7 +57,7 @@ export default function SearchPage() {
 
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
-                                className={`flex items-center gap-2 px-5 py-3 rounded-xl border transition-all ${showFilters ? 'bg-primary text-background border-primary' : 'bg-secondary/10 border-white/10 text-text hover:bg-secondary/20'}`}
+                                className={`flex items-center gap-2 px-5 py-3 rounded-xl border cursor-pointer transition-all ${showFilters ? 'bg-primary text-background border-primary' : 'bg-secondary/10 border-white/10 text-text hover:bg-secondary/20'}`}
                             >
                                 <SlidersHorizontal size={18} />
                                 <span className="font-bold text-sm">Filters</span>
@@ -90,7 +66,7 @@ export default function SearchPage() {
                     </div>
                     <Filters hidden={!showFilters} sortBy={sortBy} changeSort={changeSort} />
                 </div>
-                {loading && results.length === 0 ? (
+                {isLoading && results.length === 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {Array(10)
                             .fill(0)
@@ -104,26 +80,52 @@ export default function SearchPage() {
                             {results.map((movie) => (
                                 <MovieCard key={movie.id} movie={movie} onClick={() => openDetails(movie)} />
                             ))}
-                        </div>
 
-                        {hasMore && (
-                            <div className="flex justify-center pt-8">
-                                <button
-                                    onClick={() => fetchMovies(true)}
-                                    disabled={loading}
-                                    className="group cursor-pointer relative px-8 py-3 bg-secondary/20 hover:bg-primary hover:text-background border border-white/10 rounded-2xl transition-all duration-300 disabled:opacity-50"
-                                >
-                                    <div className="flex items-center gap-3 font-bold text-sm tracking-wide">
-                                        {loading ? <Loader2 className="animate-spin" size={18} /> : <Search size={18} />}
-                                        LOAD MORE MOVIES
-                                    </div>
-                                </button>
-                            </div>
-                        )}
+                            {isFetchingNextPage &&
+                                Array(6)
+                                    .fill(0)
+                                    .map((_, i) => <MovieCardSkeleton key={`loading-${i}`} />)}
+                        </div>
+                        <div ref={ref} className="h-20 w-full" />
                     </div>
                 ) : (
-                    query && !loading && <NoResults query={query} />
+                    query && !isLoading && <NoResults query={query} />
                 )}
+            </div>
+        </div>
+    );
+}
+
+function Filters({ hidden, sortBy, changeSort }: { hidden: boolean; sortBy: OrderType; changeSort: (val: OrderType) => void }) {
+    if (hidden) return null;
+
+    const sortOptions = [
+        { id: 'newest', label: 'Latest Added', icon: Clock },
+        { id: 'oldest', label: 'Oldest Added', icon: CalendarDays },
+        { id: 'title', label: 'Alphabetical', icon: ArrowDownAz },
+        { id: 'rating', label: 'Top Rated', icon: Star },
+    ] as const;
+
+    return (
+        <div className="p-6 bg-white/2 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2">
+            <div className="flex flex-col gap-4">
+                <span className="text-xs font-bold text-text/40 uppercase tracking-widest">Sort By</span>
+                <div className="flex flex-wrap gap-3">
+                    {sortOptions.map(({ id, label, icon: Icon }) => (
+                        <button
+                            key={id}
+                            onClick={() => changeSort(id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${
+                                sortBy === id
+                                    ? 'bg-primary/20 text-primary border border-primary/30'
+                                    : 'bg-secondary/10 text-text/70 border border-white/5 hover:bg-secondary/20 hover:text-text'
+                            }`}
+                        >
+                            <Icon size={16} />
+                            {label}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -144,12 +146,5 @@ function NoResults({ query }: { query: string }) {
                 Try adjusting your filters or search for something else.
             </p>
         </div>
-    );
-}
-
-function Filters({ hidden }: { hidden: boolean; sortBy: string; changeSort: (criteria: SortCriteria) => unknown }) {
-    if (hidden) return null;
-    return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-white/2 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2"></div>
     );
 }

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { MovieDTO, PaginatedResponse } from '@duckflix/shared';
 
@@ -11,6 +11,19 @@ interface MovieOptions {
 }
 
 const fetchMovies = (options: MovieOptions) => api.get<PaginatedResponse<MovieDTO>>(`/movies`, { params: options });
+
+export const useInfiniteMovies = (options: Omit<MovieOptions, 'page'>) => {
+    return useInfiniteQuery({
+        queryKey: ['movies', 'infinite', options.orderBy, options.search],
+        queryFn: ({ pageParam = 1 }) => fetchMovies({ ...options, page: pageParam }),
+        initialPageParam: 1,
+        getNextPageParam: (lastPage) => {
+            const meta = lastPage.meta;
+            // Ako trenutna strana nije poslednja, vrati sledeći broj
+            return meta.currentPage < meta.totalPages ? meta.currentPage + 1 : undefined;
+        },
+    });
+};
 
 const useMoviesBase = (options: MovieOptions, subKey: string) => {
     const query = useQuery({
