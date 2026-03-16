@@ -51,7 +51,10 @@ export function useVideoPlayer(actionCallback: () => unknown) {
 
     const seek = useCallback(
         (seconds: number) => {
-            if (videoRef.current) videoRef.current.currentTime += seconds;
+            if (!videoRef.current) return;
+
+            videoRef.current.currentTime = Math.max(0, Math.min(videoRef.current.duration, videoRef.current.currentTime + seconds));
+
             actionCallback();
         },
         [actionCallback]
@@ -86,6 +89,10 @@ export function useVideoPlayer(actionCallback: () => unknown) {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
             const keyPressed = e.key === ' ' ? 'space' : e.key.toLowerCase();
+            const isShortcut = playerShortcuts.some((s) => s.keys.includes(keyPressed));
+            if (!isShortcut) return;
+
+            e.preventDefault();
             playerShortcuts.forEach((shortcut) => {
                 if (!shortcut.keys.includes(keyPressed)) return;
                 executeAction(shortcut.func);
