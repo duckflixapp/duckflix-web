@@ -66,9 +66,9 @@ export default function DetailsPage() {
             return b.height - a.height;
         });
 
-    const handleToLibrary = () => {
-        if (movie.inUserLibrary) removeMovie({ libId: 'library', movieId: movie.id });
-        else addMovie({ libId: 'library', movieId: movie.id });
+    const handleToWatchlist = () => {
+        if (movie.inUserLibrary) removeMovie({ libId: 'watchlist', movieId: movie.id });
+        else addMovie({ libId: 'watchlist', movieId: movie.id });
     };
 
     if (movie.status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
@@ -140,11 +140,11 @@ export default function DetailsPage() {
                             </button>
 
                             <button
-                                onClick={handleToLibrary}
+                                onClick={handleToWatchlist}
                                 className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
                             >
                                 <Bookmark size={20} fill={movie.inUserLibrary ? 'white' : 'transparent'} />
-                                Add to My List
+                                Watchlist
                             </button>
                         </div>
                     </div>

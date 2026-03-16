@@ -26,6 +26,7 @@ import { ResumeNotification } from '../components/player/ResumeNotification';
 import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import Hls from 'hls.js';
 import { appendSubtitleName } from '../utils/subtitles';
+import { api } from '../lib/api';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -324,6 +325,7 @@ export default function WatchPage() {
         }
 
         videoElement.load();
+        api.post(`/movies/${id}/watch`).catch(() => {});
 
         return () => {
             hlsRef.current = null;
@@ -334,7 +336,7 @@ export default function WatchPage() {
             videoElement.load();
             hls?.destroy();
         };
-    }, [activeVersion, allVersions, videoElement]);
+    }, [activeVersion, allVersions, id, videoElement]);
 
     const castVideo = useCallback(() => {
         if (!activeVersion || !movie) return;
