@@ -1,55 +1,23 @@
-import { useState, useEffect } from 'react';
-import { UserPlus, Shield, Mail, Loader2, Edit2, type LucideIcon, UserLock } from 'lucide-react';
-import { api } from '../../lib/api';
-import { toast } from 'sonner';
-import { AxiosError } from 'axios';
+import { useState } from 'react';
+import { UserPlus, Shield, Mail, Loader2, Edit2, type LucideIcon, UserLock, Trash2 } from 'lucide-react';
 import type { UserRole } from '@duckflix/shared';
-
-interface UserDTO {
-    id: string;
-    email: string;
-    role: 'watcher' | 'contributor' | 'admin';
-}
+import { useAdminUsers } from '../../hooks/useAdminUser';
 
 export default function UsersPage() {
-    const [users, setUsers] = useState<UserDTO[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isUpdating, setIsUpdating] = useState(false);
+    const { users, loading, updateRole, isUpdating, deleteUser } = useAdminUsers();
 
     // Form state
     const [email, setEmail] = useState('');
     const [role, setRole] = useState<'watcher' | 'contributor' | 'admin'>('watcher');
 
-    const fetchUsers = async () => {
-        try {
-            const { users } = await api.get<{ users: UserDTO[] }>('/admin/users');
-            setUsers(users);
-        } catch {
-            toast.error('Failed to fetch users');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
-
     const handleUpdateRole = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsUpdating(true);
-        try {
-            await api.patch('/admin/users', { email, role });
-            toast.success(`Role updated for ${email}`);
-            setEmail('');
-            fetchUsers();
-        } catch (err) {
-            let message;
-            if (err instanceof AxiosError) message = err.response?.data.message;
-            toast.error('Error updating role.', { description: message });
-        } finally {
-            setIsUpdating(false);
-        }
+        updateRole({ email, role });
+    };
+
+    const handleDeleteUser = async (userEmail: string) => {
+        if (!confirm(`Are you sure you want to delete ${userEmail}?`)) return;
+        deleteUser({ email: userEmail });
     };
 
     if (loading)
@@ -164,6 +132,12 @@ export default function UsersPage() {
                                                 className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/20 hover:text-primary"
                                             >
                                                 <Edit2 size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user.email)}
+                                                className="p-2 hover:bg-white/10 rounded-xl transition-all text-white/20 hover:text-red-400"
+                                            >
+                                                <Trash2 size={16} />
                                             </button>
                                         </td>
                                     </tr>

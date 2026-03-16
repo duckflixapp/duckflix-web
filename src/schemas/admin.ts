@@ -4,7 +4,10 @@ export const adminConfigSchema = z.object({
     features: z.object({
         autoTranscoding: z.enum(['off', 'compatibility', 'smart']),
         concurrentProcessing: z.number('Must be a number').int().min(1, 'Min 1').max(10, 'Max 10 simultaneous processes'),
-        trustEmails: z.boolean(),
+        registration: z.object({
+            enabled: z.boolean(),
+            trustEmails: z.boolean(),
+        }),
     }),
     preferences: z.object({
         subtitles: z.array(

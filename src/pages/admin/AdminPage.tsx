@@ -130,12 +130,27 @@ export default function AdminPage() {
 
                         <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
                             <div>
+                                <p className="text-sm font-bold text-text/80">Enable Registration</p>
+                                <p className="text-[11px] text-text/40">Enable users to create their accounts</p>
+                            </div>
+                            <Toggle
+                                enabled={!!formData.features?.registration?.enabled}
+                                onChange={(val) =>
+                                    setValue('features.registration.enabled', val, { shouldValidate: true, shouldDirty: true })
+                                }
+                            />
+                        </div>
+
+                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                            <div>
                                 <p className="text-sm font-bold text-text/80">Trust Emails</p>
                                 <p className="text-[11px] text-text/40">Verify users automatically</p>
                             </div>
                             <Toggle
-                                enabled={!!formData.features?.trustEmails}
-                                onChange={(val) => setValue('features.trustEmails', val, { shouldValidate: true, shouldDirty: true })}
+                                enabled={!!formData.features?.registration?.trustEmails}
+                                onChange={(val) =>
+                                    setValue('features.registration.trustEmails', val, { shouldValidate: true, shouldDirty: true })
+                                }
                             />
                         </div>
                     </div>
