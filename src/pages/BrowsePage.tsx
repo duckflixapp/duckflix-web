@@ -174,6 +174,7 @@ export function HeroSection({
 }) {
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
+    const canPlay = movie.duration && movie.status == 'ready';
     return (
         <section className="relative w-full aspect-21/9 min-h-120 max-h-screen px-8 pt-6 z-10">
             <div className="relative w-full h-full rounded-4xl overflow-hidden shadow-2xl border border-white/5">
@@ -201,12 +202,14 @@ export function HeroSection({
                     </div>
 
                     <div className="flex flex-wrap gap-4">
-                        <button
-                            onClick={() => openWatch(movie)}
-                            className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-3xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
-                        >
-                            <Play size={20} fill="currentColor" /> <span>Play Now</span>
-                        </button>
+                        {canPlay && (
+                            <button
+                                onClick={() => openWatch(movie)}
+                                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-3xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
+                            >
+                                <Play size={20} fill="currentColor" /> <span>Play Now</span>
+                            </button>
+                        )}
                         <button
                             onClick={() => openDetails(movie)}
                             className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-3xl font-medium transition-all cursor-pointer"

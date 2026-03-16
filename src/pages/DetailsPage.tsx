@@ -77,6 +77,8 @@ export default function DetailsPage() {
 
     if (movie.status !== 'ready') return <p>{JSON.stringify(movie)}</p>;
 
+    const canPlay = movie.versions.length > 0;
+
     return (
         <div className="min-h-screen pb-20">
             <div className="relative w-full aspect-21/9 min-h-140 overflow-hidden">
@@ -131,13 +133,15 @@ export default function DetailsPage() {
                         </h1>
 
                         <div className="flex flex-wrap gap-4 pt-4">
-                            <button
-                                onClick={() => navigate(`/watch/${movie.id}`)}
-                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-4xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
-                            >
-                                <Play size={20} fill="currentColor" />
-                                PLAY NOW
-                            </button>
+                            {canPlay && (
+                                <button
+                                    onClick={() => navigate(`/watch/${movie.id}`)}
+                                    className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-4xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
+                                >
+                                    <Play size={20} fill="currentColor" />
+                                    PLAY NOW
+                                </button>
+                            )}
 
                             <button
                                 onClick={handleToWatchlist}
