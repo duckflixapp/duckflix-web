@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { adminSidebar, sidebar } from '../../config/sidebar';
-import { Menu } from 'lucide-react'; // Dodajemo Menu (hamburger) ikonu
+import { Menu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 

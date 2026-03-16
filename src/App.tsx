@@ -17,7 +17,7 @@ import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
 import AdminPage from './pages/admin/AdminPage';
 import UsersPage from './pages/admin/RolesPage';
-import { useState } from 'react';
+import { useLocalStorage } from './hooks/useLocalStorage';
 
 function App() {
     return (
@@ -87,7 +87,8 @@ function App() {
 export default App;
 
 const Layout = ({ admin }: { admin?: boolean }) => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useLocalStorage<boolean>('sidebar-collapsed', false);
+
     return (
         <div className="relative flex h-screen w-full bg-background text-text font-sans overflow-hidden">
             <div className="absolute top-[-10%] left-[10%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
