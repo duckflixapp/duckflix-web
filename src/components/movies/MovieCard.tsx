@@ -1,13 +1,25 @@
 import type { MovieMinDTO } from '@duckflix/shared';
+import { useState } from 'react';
 
 export function MovieCard({ movie, onClick: handleClick }: { movie: MovieMinDTO; onClick?: () => unknown }) {
+    const [imgError, setImgError] = useState(false);
+
+    const showPlaceholder = !movie.posterUrl || imgError;
+
     return (
         <div className="group/movie-card cursor-pointer relative transition-all duration-300" onClick={handleClick}>
-            <div className="relative aspect-2/3 rounded-2xl overflow-hidden mb-3 border border-white/5 shadow-2xl transition-all duration-500 group-hover/movie-card:border-primary/50 group-hover/movie-card:shadow-primary/20 group-hover/movie-card:shadow-2xl">
-                {movie.posterUrl ? (
+            <div
+                className="relative aspect-2/3 rounded-2xl overflow-hidden mb-3 border border-white/5  transition-all duration-500 
+            shadow-[0_8px_30px_rgb(255,255,255,0.04)] group-hover/movie-card:border-primary/50 group-hover/movie-card:shadow-primary/20 group-hover/movie-card:shadow-2xl
+            "
+            >
+                {!showPlaceholder ? (
                     <img
-                        src={movie.posterUrl}
+                        src={movie.posterUrl!}
                         alt={movie.title}
+                        loading="lazy"
+                        decoding="async"
+                        onError={() => setImgError(true)}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover/movie-card:scale-110"
                     />
                 ) : (

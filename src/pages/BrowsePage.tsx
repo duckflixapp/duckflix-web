@@ -30,6 +30,7 @@ export default function BrowsePage() {
     }, [inView, fetchNextPage, hasNextPage]);
 
     const allMovies = infiniteData?.pages.flatMap((page) => page.data) ?? [];
+    const hasMovies = allMovies.length > 0;
 
     return (
         <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full">
@@ -37,35 +38,47 @@ export default function BrowsePage() {
                 className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
                 style={{ animationDuration: '8s' }}
             />
-            {!recentMovies && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
+            {!hasMovies && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
             <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
-            <div className="flex flex-col px-8 py-12 gap-8">
-                {recentMovies && (
-                    <MovieListSection title="Recently Added" movies={recentMovies} loading={recentLoading} onOpenDetails={openDetails} />
-                )}
-                {(bestRatedLoading || (bestRatedMovies && bestRatedMovies.length >= SHOW_BEST_RATED_THRESHOLD)) && (
-                    <MovieListSection title="Best Rated" movies={bestRatedMovies} loading={bestRatedLoading} onOpenDetails={openDetails} />
-                )}
-                <section className="relative z-10">
-                    <div className="flex flex-col gap-1 mb-8">
-                        <h2 className="text-xl md:text-2xl font-bold font-poppins tracking-tight text-text">Library (A-Z)</h2>
-                        <div className="h-1 w-12 bg-primary rounded-full" />
-                    </div>
+            {hasMovies && (
+                <div className="flex flex-col px-8 py-12 gap-8">
+                    {recentMovies && recentMovies.length > 0 && (
+                        <MovieListSection
+                            title="Recently Added"
+                            movies={recentMovies}
+                            loading={recentLoading}
+                            onOpenDetails={openDetails}
+                        />
+                    )}
+                    {(bestRatedLoading || (bestRatedMovies && bestRatedMovies.length >= SHOW_BEST_RATED_THRESHOLD)) && (
+                        <MovieListSection
+                            title="Best Rated"
+                            movies={bestRatedMovies}
+                            loading={bestRatedLoading}
+                            onOpenDetails={openDetails}
+                        />
+                    )}
+                    <section className="relative z-10">
+                        <div className="flex flex-col gap-1 mb-8">
+                            <h2 className="text-xl md:text-2xl font-bold font-poppins tracking-tight text-text">Library (A-Z)</h2>
+                            <div className="h-1 w-12 bg-primary rounded-full" />
+                        </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                        {allMovies.map((movie) => (
-                            <MovieCard key={movie.id} movie={movie} onClick={() => openDetails(movie)} />
-                        ))}
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+                            {allMovies.map((movie) => (
+                                <MovieCard key={movie.id} movie={movie} onClick={() => openDetails(movie)} />
+                            ))}
 
-                        {isFetchingNextPage &&
-                            Array(6)
-                                .fill(0)
-                                .map((_, i) => <MovieSkeleton key={i} />)}
-                    </div>
+                            {isFetchingNextPage &&
+                                Array(6)
+                                    .fill(0)
+                                    .map((_, i) => <MovieSkeleton key={i} />)}
+                        </div>
 
-                    <div ref={ref} className="h-20 w-full" />
-                </section>
-            </div>
+                        <div ref={ref} className="h-20 w-full" />
+                    </section>
+                </div>
+            )}
         </div>
     );
 }
@@ -121,7 +134,7 @@ function MovieListSection({
                     <ChevronRight size={24} />
                 </button>
 
-                {/* <div className="absolute -right-8 top-0 bottom-6 w-16 bg-linear-to-r from-transparent to-background pointer-events-none z-20" /> */}
+                <div className="absolute -right-8 top-0 bottom-6 w-16 bg-linear-to-r from-transparent to-background pointer-events-none z-20" />
             </div>
         </section>
     );
@@ -142,7 +155,7 @@ function MovieList({
             .map((_, i) => <MovieSkeleton key={i} />);
 
     return movies.map((movie) => (
-        <div key={movie.id} className="flex-none w-35 md:w-50 snap-start transition-all py-4">
+        <div key={movie.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
             <MovieCard movie={movie} onClick={() => openDetails(movie)} />
         </div>
     ));
