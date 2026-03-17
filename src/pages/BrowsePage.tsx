@@ -14,7 +14,13 @@ export default function BrowsePage() {
     const { movie: heroMovie } = useFeaturedMovie();
     const { data: recentMovies, isLoading: recentLoading } = useRecentMovies({ page: 1, limit: 12 });
     const { data: bestRatedMovies, isLoading: bestRatedLoading } = useBestRatedMovies({ page: 1, limit: 12 });
-    const { data: infiniteData, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteMovies({ limit: 20, orderBy: 'title' });
+    const {
+        data: infiniteData,
+        isLoading: allLoading,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+    } = useInfiniteMovies({ limit: 20, orderBy: 'title' });
     const auth = useAuthContext();
     const navigate = useNavigate();
 
@@ -29,6 +35,7 @@ export default function BrowsePage() {
         }
     }, [inView, fetchNextPage, hasNextPage]);
 
+    const moviesLoading = allLoading || recentLoading || bestRatedLoading;
     const allMovies = infiniteData?.pages.flatMap((page) => page.data) ?? [];
     const hasMovies = allMovies.length > 0;
 
@@ -38,7 +45,9 @@ export default function BrowsePage() {
                 className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
                 style={{ animationDuration: '8s' }}
             />
-            {!hasMovies && <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />}
+            {!hasMovies && !moviesLoading && (
+                <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />
+            )}
             <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
             {hasMovies && (
                 <div className="flex flex-col px-8 py-12 gap-8">
