@@ -44,7 +44,6 @@ export const useMovieVersions = (movieId: string | undefined) => {
             await api.post(`/movies/${movieId}/versions`, { height });
         },
         onSuccess: () => {
-            toast.success('Transcoding started');
             invalidate();
             queryClient.invalidateQueries({ queryKey: ['movie-versions', movieId] });
         },
@@ -59,7 +58,7 @@ export const useMovieVersions = (movieId: string | undefined) => {
             await api.delete(`/movies/${movieId}/versions/${versionId}`);
         },
         onSuccess: () => {
-            toast.success('Version deleted');
+            toast.success('Movie version deleted');
             invalidate();
             queryClient.invalidateQueries({ queryKey: ['movie-versions', movieId] });
         },

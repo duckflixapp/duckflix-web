@@ -154,7 +154,7 @@ export default function UploadPage() {
                                         )}
                                     </div>
 
-                                    <div className="flex flex-wrap gap-3">
+                                    <div className="flex overflow-scroll gap-3">
                                         {genres &&
                                             genres.map((genre) => {
                                                 const isSelected = selectedGenreIds?.includes(genre.id);
@@ -169,7 +169,7 @@ export default function UploadPage() {
 
                                                             setValue('genreIds', nextValue, { shouldValidate: true });
                                                         }}
-                                                        className={`px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border
+                                                        className={`px-5 py-2.5 my-auto rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border
                                                     ${
                                                         isSelected
                                                             ? 'bg-primary border-primary text-black shadow-[0_0_15px_rgba(var(--primary-rgb),0.2)]'

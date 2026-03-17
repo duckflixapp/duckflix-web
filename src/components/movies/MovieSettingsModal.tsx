@@ -31,8 +31,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-    const { versions, isLoadingVersions, addVersion, isAdding, deleteVersion, isDeletingVersion, deleteMovie, isDeletingMovie } =
-        useMovieVersions(movie.id);
+    const { versions, isLoadingVersions, addVersion, deleteVersion, deleteMovie, isDeletingMovie } = useMovieVersions(movie.id);
 
     const existingHeights = new Set(
         versions
@@ -80,7 +79,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                     exit={{ opacity: 0, scale: 0.96, y: 10 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="relative w-full max-w-5xl max-h-[70vh] h-full bg-background/90 backdrop-blur-2xl border border-white/10 rounded-4xl overflow-hidden flex shadow-2xl"
+                    className="relative w-full max-w-5xl max-h-[70vh] h-full bg-background/55 backdrop-blur-3xl border border-white/10 rounded-4xl overflow-hidden flex shadow-2xl"
                 >
                     {/* sidebar */}
                     <div className="w-56 shrink-0 border-r border-white/5 p-4 flex flex-col gap-1">
@@ -93,7 +92,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                             <button
                                 key={id}
                                 onClick={() => setTab(id)}
-                                className={`flex items-center gap-3 px-3 py-1.5 rounded-3xl text-sm transition-all cursor-pointer text-left border border-transparent ${
+                                className={`flex items-center gap-3 px-3 py-2 rounded-3xl text-sm transition-all cursor-pointer text-left border border-transparent ${
                                     tab === id
                                         ? 'bg-primary/10 text-primary border border-primary/20'
                                         : 'text-white/50 hover:text-white/80 hover:bg-white/5'
@@ -109,7 +108,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                                 ref={deleteButtonRef}
                                 onClick={handleDeleteMovie}
                                 disabled={isDeletingMovie}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all cursor-pointer ${
+                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-3xl text-sm transition-all cursor-pointer ${
                                     confirmDelete
                                         ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                                         : 'text-red-400/60 hover:text-red-400 hover:bg-red-500/10'
@@ -143,8 +142,6 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                                         versions={versions}
                                         isLoading={isLoadingVersions}
                                         availablePresets={availablePresets}
-                                        isAdding={isAdding}
-                                        isDeletingVersion={isDeletingVersion}
                                         onAdd={addVersion}
                                         onDelete={deleteVersion}
                                     />
@@ -165,19 +162,32 @@ function VersionsTab({
     versions,
     isLoading,
     availablePresets,
-    isAdding,
-    isDeletingVersion,
     onAdd,
     onDelete,
 }: {
     versions: MovieVersionDTO[];
     isLoading: boolean;
     availablePresets: number[];
-    isAdding: boolean;
-    isDeletingVersion: boolean;
-    onAdd: (height: number) => void;
-    onDelete: (versionId: string) => void;
+    onAdd: (height: number, config: { onSettled: () => void }) => void;
+    onDelete: (versionId: string, config: { onSettled: () => void }) => void;
 }) {
+    const [addingHeight, setAddingHeight] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    const handleAdd = (h: number) => {
+        setAddingHeight(h);
+        onAdd(h, {
+            onSettled: () => setAddingHeight(null),
+        });
+    };
+
+    const handleDelete = (id: string) => {
+        setDeletingId(id);
+        onDelete(id, {
+            onSettled: () => setDeletingId(null),
+        });
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -198,12 +208,12 @@ function VersionsTab({
                     versions.map((v) => (
                         <div
                             key={v.id}
-                            className="flex items-center justify-between px-4 py-3 bg-white/3 border border-white/5 rounded-2xl group hover:border-white/10 transition-all"
+                            className="flex items-center justify-between h-11 px-5 py-2 bg-white/3 border border-white/6 rounded-3xl group hover:border-white/10 transition-all"
                         >
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-bold text-white/70">{v.height}p</span>
+                                <span className="text-xs font-bold text-white/70">{v.height}p</span>
                                 <span
-                                    className={`text-[9px] px-2 py-0.5 rounded-lg uppercase font-bold tracking-wider ${
+                                    className={`text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider ${
                                         v.status === 'ready'
                                             ? 'bg-green-500/10 text-green-400 border border-green-500/20'
                                             : v.status === 'processing'
@@ -214,7 +224,7 @@ function VersionsTab({
                                     {v.status}
                                 </span>
                                 {v.isOriginal && (
-                                    <span className="text-[9px] px-2 py-0.5 rounded-lg uppercase font-bold tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                    <span className="text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
                                         Original
                                     </span>
                                 )}
@@ -224,11 +234,11 @@ function VersionsTab({
                                 <span className="text-[10px] text-white/20">{v.fileSize ? formatBytes(v.fileSize, 0) : '—'}</span>
                                 {!v.isOriginal && (
                                     <button
-                                        onClick={() => onDelete(v.id)}
-                                        disabled={isDeletingVersion}
-                                        className="p-1.5 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all cursor-pointer opacity-0 group-hover:opacity-100 -mr-9.5 group-hover:mr-0"
+                                        onClick={() => handleDelete(v.id)}
+                                        disabled={deletingId === v.id}
+                                        className="p-2 rounded-full hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all cursor-pointer opacity-0 group-hover:opacity-100 -mr-9.5 group-hover:mr-0"
                                     >
-                                        {isDeletingVersion ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                        {deletingId === v.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                     </button>
                                 )}
                             </div>
@@ -245,11 +255,11 @@ function VersionsTab({
                         {availablePresets.map((h) => (
                             <button
                                 key={h}
-                                onClick={() => onAdd(h)}
-                                disabled={isAdding}
-                                className="flex items-center gap-2 px-4 py-2 bg-white/3 border border-white/10 rounded-2xl text-sm font-medium text-white/60 hover:text-white hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer disabled:opacity-50"
+                                onClick={() => handleAdd(h)}
+                                disabled={addingHeight === h}
+                                className="flex items-center gap-1 px-4 py-2 bg-white/3 border border-white/7 rounded-4xl text-xs font-bold text-white/60 hover:text-white hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer disabled:opacity-50"
                             >
-                                {isAdding ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
+                                {addingHeight === h ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />}
                                 {h}p
                             </button>
                         ))}
@@ -295,7 +305,7 @@ function DetailsTab({
     };
 
     const inputClass =
-        'w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white outline-none transition-all focus:border-primary/50 placeholder:text-white/20';
+        'w-full bg-white/3 border border-white/6 rounded-3xl px-4 py-3 text-xs text-text/75 outline-none transition-all focus:border-primary/50 placeholder:text-white/20';
 
     return (
         <div className="space-y-6">
@@ -307,7 +317,7 @@ function DetailsTab({
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[11px] uppercase tracking-[0.15em] text-white/30 font-bold">Title</label>
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Title</label>
                         <input
                             className={inputClass}
                             value={form.title}
@@ -317,7 +327,7 @@ function DetailsTab({
                     </div>
 
                     <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[11px] uppercase tracking-[0.15em] text-white/30 font-bold">Overview</label>
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Overview</label>
                         <textarea
                             className={`${inputClass} resize-none h-24`}
                             value={form.overview}
@@ -327,7 +337,7 @@ function DetailsTab({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] uppercase tracking-[0.15em] text-white/30 font-bold">Release Year</label>
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Release Year</label>
                         <input
                             className={inputClass}
                             type="number"
@@ -338,7 +348,7 @@ function DetailsTab({
                     </div>
 
                     <div className="flex flex-col gap-1.5">
-                        <label className="text-[11px] uppercase tracking-[0.15em] text-white/30 font-bold">Banner URL</label>
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Banner URL</label>
                         <input
                             className={inputClass}
                             value={form.bannerUrl}
@@ -348,7 +358,7 @@ function DetailsTab({
                     </div>
 
                     <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[11px] uppercase tracking-[0.15em] text-white/30 font-bold">Poster URL</label>
+                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Poster URL</label>
                         <input
                             className={inputClass}
                             value={form.posterUrl}
