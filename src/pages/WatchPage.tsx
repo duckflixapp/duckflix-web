@@ -498,7 +498,12 @@ export default function WatchPage() {
                         <div>
                             <h1 className="text-white font-bold text-lg leading-none">{movie.title}</h1>
                             {actualVersionForTopBar && actualVersionForTopBar.height ? (
-                                <p className="text-white/40 text-xs font-bold uppercase mt-1">{actualVersionForTopBar.height}p</p>
+                                <div className="flex items-center gap-2">
+                                    <p className="text-white/40 text-xs font-bold uppercase mt-1">{actualVersionForTopBar.height}p</p>
+                                    {actualVersionForTopBar.streamUrl.includes('/live/') ? (
+                                        <p className="text-white/40 text-xs font-bold uppercase mt-1">LIVE</p>
+                                    ) : null}
+                                </div>
                             ) : null}
                         </div>
                     </div>

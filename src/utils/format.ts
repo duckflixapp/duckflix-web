@@ -78,3 +78,17 @@ export const srtToVtt = (srtText: string): string => {
 
     return vtt;
 };
+
+export const getMimeExtension = (mimeType: string | null | undefined): string => {
+    const map: Record<string, string> = {
+        'video/mp4': 'mp4',
+        'video/x-msvideo': 'avi',
+        'video/x-matroska': 'mkv',
+        'video/quicktime': 'mov',
+        'video/webm': 'webm',
+        'video/mpeg': 'mpeg',
+        'application/x-mpegURL': 'hls',
+    };
+
+    return map[mimeType ?? ''] ?? 'unknown';
+};

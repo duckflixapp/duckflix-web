@@ -1,4 +1,3 @@
-// hooks/useNotificationListener.ts
 import { useEffect } from 'react';
 import { socket, connectSocket } from '../lib/socket';
 

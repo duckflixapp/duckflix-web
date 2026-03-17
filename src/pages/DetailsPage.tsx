@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X } from 'lucide-react';
+import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
 import { useMovieDetail } from '../hooks/use-movie-detailed';
 import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
@@ -13,6 +13,8 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useLibrary } from '../hooks/useLibrary';
+import { MovieSettingsModal } from '../components/movies/MovieSettingsModal';
+import { useMovieVersions } from '../hooks/useMovieVersions';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -32,10 +34,12 @@ export default function DetailsPage() {
 
     const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
-    const { movie, isLoading, refresh } = useMovieDetail(id);
+    const { movie, isLoading, refresh, updateMovie, isUpdating } = useMovieDetail(id);
+    const { versions } = useMovieVersions(id);
     const navigate = useNavigate();
     const { downloadProgress, progressMap } = useMovieSocket(id);
     const { addMovie, removeMovie } = useLibrary();
+    const [showSettings, setShowSettings] = useState(false);
 
     const handleNotification = useCallback(
         (notification: NotificationSocketData) => {
@@ -58,7 +62,7 @@ export default function DetailsPage() {
     if (!movie) return null;
 
     const tag = getTagFromVersions(movie.versions);
-    const availableVersions = movie.versions
+    const availableVersions = versions
         .filter((v) => v.status === 'ready' || v.status === 'processing')
         .sort((a, b) => {
             if (a.status === 'ready' && b.status === 'processing') return -1;
@@ -97,6 +101,15 @@ export default function DetailsPage() {
                 >
                     <ChevronLeft size={24} />
                 </button>
+
+                {auth?.hasRole('contributor') && (
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                    >
+                        <Settings size={22} />
+                    </button>
+                )}
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
@@ -229,6 +242,15 @@ export default function DetailsPage() {
                     </div>
                 </div>
             </div>
+            {showSettings && (
+                <MovieSettingsModal
+                    movie={movie}
+                    updateMovie={updateMovie}
+                    isUpdating={isUpdating}
+                    onClose={() => setShowSettings(false)}
+                    onMovieDeleted={() => navigate('/browse')}
+                />
+            )}
         </div>
     );
 }

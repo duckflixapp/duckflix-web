@@ -1,6 +1,6 @@
 import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import { motion, AnimatePresence } from 'framer-motion';
-import { formatBytes } from '../../utils/format';
+import { getMimeExtension } from '../../utils/format';
 import { useEffect, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, FileUp, Gauge, Layers, Subtitles } from 'lucide-react';
 import { appendSubtitleName } from '../../utils/subtitles';
@@ -137,9 +137,18 @@ export function SettingsBox({
                                             <span className="font-bold">{v.height ? v.height + 'p' : 'Auto'}</span>
                                             <div className="flex items-center gap-2">
                                                 {activeVersion?.id === v.id && <Check size={14} />}
-                                                {v.fileSize && (
-                                                    <span className="text-[9px] opacity-30 uppercase">{formatBytes(v.fileSize)}</span>
-                                                )}
+                                                {v.height ? (
+                                                    <>
+                                                        {v.streamUrl.includes('/live/') && (
+                                                            <span className="text-[9px] opacity-30 uppercase">live</span>
+                                                        )}
+                                                        {v.mimeType && (
+                                                            <span className="text-[9px] opacity-30 uppercase">
+                                                                {getMimeExtension(v.mimeType)}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                ) : null}
                                             </div>
                                         </button>
                                     ))}

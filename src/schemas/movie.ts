@@ -40,3 +40,21 @@ export const createMovieSchema = z
     );
 
 export type MovieFormValues = z.infer<typeof createMovieSchema>;
+
+export const updateMovieSchema = z.object({
+    dbUrl: z.url('Invalid DB URL').max(1000).optional().nullable(),
+    title: z.string().min(1).max(255).optional().nullable(),
+    overview: z.string().max(1000).optional().nullable(),
+    releaseYear: z.coerce
+        .number()
+        .int()
+        .min(1888)
+        .max(new Date().getFullYear() + 5)
+        .optional()
+        .nullable(),
+    bannerUrl: z.url().max(1000).optional().nullable(),
+    posterUrl: z.url().max(1000).optional().nullable(),
+    genreIds: z.preprocess((val) => (typeof val === 'string' ? [val] : val), z.array(z.uuid()).max(10)).optional(),
+});
+
+export type MovieUpdateFormValues = z.infer<typeof updateMovieSchema>;
