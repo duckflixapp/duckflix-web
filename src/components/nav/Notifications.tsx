@@ -4,6 +4,7 @@ import { useNotifications } from '../../hooks/use-notifications';
 import type { NotificationDTO } from '@duckflix/shared';
 import { timeAgo } from '../../utils/format';
 import { useNotificationSocket } from '../../hooks/useNotificationSocket';
+import { useNavigate } from 'react-router-dom';
 
 export function NotificationBox() {
     const [isOpen, setIsOpen] = useState(false);
@@ -102,12 +103,18 @@ const iconMap = {
 };
 
 function NotificationItem({ notification: n, mark }: { notification: NotificationDTO; mark: () => unknown }) {
+    const navigate = useNavigate();
     const config = iconMap[n.type] || iconMap.info;
     const Icon = config.icon;
 
+    const handleClick = () => {
+        mark();
+        navigate(`/details/${n.movieId}`);
+    };
+
     return (
         <div
-            onClick={mark}
+            onClick={handleClick}
             className="group relative p-4 rounded-3xl transition-all hover:bg-white/5 border border-transparent hover:border-white/5 cursor-default overflow-hidden"
         >
             {!n.isRead && <div className="absolute inset-0 bg-primary/2 pointer-events-none" />}

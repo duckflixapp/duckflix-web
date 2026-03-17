@@ -21,7 +21,12 @@ export default function Navbar() {
                           label: 'Watch Now',
                           onClick: () => navigate(`/details/${data.movieId}`),
                       }
-                    : undefined,
+                    : data.status == 'started'
+                      ? {
+                            label: 'Open',
+                            onClick: () => navigate(`/details/${data.movieId}`),
+                        }
+                      : undefined,
         });
     };
     useNotificationSocket(handleNotification);
