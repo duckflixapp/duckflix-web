@@ -14,6 +14,7 @@ import { useAuthContext } from '../contexts/AuthContext';
 import { useLibrary } from '../hooks/useLibrary';
 import { MovieSettingsModal, type SettingsTab } from '../components/movies/MovieSettingsModal';
 import { useMovieVersions } from '../hooks/useMovieVersions';
+import { MovieError } from '../components/movies/MovieError';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -84,7 +85,7 @@ export default function DetailsPage() {
 
     if (movie.status === 'processing') return <MovieProcessing movie={movie} />;
 
-    if (movie.status !== 'ready') return <p>{JSON.stringify(movie)}</p>;
+    if (movie.status !== 'ready') return <MovieError movie={movie} />;
 
     const canPlay = movie.versions.length > 0;
 
