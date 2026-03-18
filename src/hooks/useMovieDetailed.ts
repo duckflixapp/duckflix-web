@@ -4,6 +4,8 @@ import type { MovieDetailedDTO } from '@duckflix/shared';
 import type { MovieUpdateFormValues } from '../schemas/movie';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import { useCallback } from 'react';
+import { useNotificationSocket, type NotificationSocketData } from './useNotificationSocket';
 
 export const useMovieDetail = (id: string | undefined) => {
     const queryClient = useQueryClient();
@@ -19,6 +21,17 @@ export const useMovieDetail = (id: string | undefined) => {
         staleTime: 100,
         enabled: !!id,
     });
+
+    const invalidate = useCallback(() => queryClient.invalidateQueries({ queryKey: ['movie', id] }), [id, queryClient]);
+
+    const handleNotification = useCallback(
+        (notification: NotificationSocketData) => {
+            if (notification.movieId !== id) return;
+            invalidate();
+        },
+        [id, invalidate]
+    );
+    useNotificationSocket(handleNotification);
 
     const updateMovie = useMutation({
         mutationFn: async (data: MovieUpdateFormValues) => {

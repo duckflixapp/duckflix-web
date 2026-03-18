@@ -1,11 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
-import { useMovieDetail } from '../hooks/use-movie-detailed';
+import { useMovieDetail } from '../hooks/useMovieDetailed';
 import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { useMovieSocket } from '../hooks/useMovieSocket';
-import { useNotificationSocket, type NotificationSocketData } from '../hooks/useNotificationSocket';
 import { MovieDownloadProgress } from '../components/movies/MovieDownloading';
 import { MovieProcessing } from '../components/movies/MovieProcessing';
 import { api } from '../lib/api';
@@ -34,21 +33,12 @@ export default function DetailsPage() {
 
     const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
-    const { movie, isLoading, refresh, updateMovie, isUpdating } = useMovieDetail(id);
+    const { movie, isLoading, updateMovie, isUpdating } = useMovieDetail(id);
     const { versions } = useMovieVersions(id);
     const navigate = useNavigate();
     const { downloadProgress, progressMap } = useMovieSocket(id);
     const { addMovie, removeMovie } = useLibrary();
     const [showSettings, setShowSettings] = useState(false);
-
-    const handleNotification = useCallback(
-        (notification: NotificationSocketData) => {
-            if (notification.movieId !== id) return;
-            refresh();
-        },
-        [id, refresh]
-    );
-    useNotificationSocket(handleNotification);
 
     const killJob = (verId: string) => {
         api.delete(`/tasks/movies/${verId}/kill`).catch((err) => {

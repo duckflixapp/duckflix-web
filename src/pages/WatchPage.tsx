@@ -15,7 +15,7 @@ import {
     Loader2,
     Cast,
 } from 'lucide-react';
-import { useMovieDetail } from '../hooks/use-movie-detailed';
+import { useMovieDetail } from '../hooks/useMovieDetailed';
 import { srtToVtt } from '../utils/format';
 import { SettingsBox } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';

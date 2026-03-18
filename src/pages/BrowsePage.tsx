@@ -6,7 +6,7 @@ import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useInView } from 'react-intersection-observer';
 import { useEffect, useRef } from 'react';
-import { useFeaturedMovie } from '../hooks/use-movie-detailed';
+import { useFeaturedMovie } from '../hooks/useMovieDetailed';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;
 
