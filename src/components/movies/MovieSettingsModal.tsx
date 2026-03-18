@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import type { MovieUpdateFormValues } from '../../schemas/movie';
 import { appendSubtitleName } from '../../utils/subtitles';
 
-type SettingsTab = 'versions' | 'subtitles' | 'details';
+export type SettingsTab = 'versions' | 'subtitles' | 'details';
 
 const PRESET_HEIGHTS = [480, 720, 1080, 1440, 2160];
 
@@ -24,10 +24,12 @@ interface Props {
     onMovieDeleted: () => void;
     updateMovie: (data: MovieUpdateFormValues) => void;
     isUpdating: boolean;
+    initialTab?: SettingsTab;
 }
 
-export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie, isUpdating }: Props) {
-    const [tab, setTab] = useState<SettingsTab>('details');
+export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie, isUpdating, initialTab }: Props) {
+    const [tab, setTab] = useState<SettingsTab>(initialTab ?? 'details');
+
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 

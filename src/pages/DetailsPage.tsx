@@ -1,9 +1,9 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
 import { useMovieDetail } from '../hooks/useMovieDetailed';
 import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMovieSocket } from '../hooks/useMovieSocket';
 import { MovieDownloadProgress } from '../components/movies/MovieDownloading';
 import { MovieProcessing } from '../components/movies/MovieProcessing';
@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useLibrary } from '../hooks/useLibrary';
-import { MovieSettingsModal } from '../components/movies/MovieSettingsModal';
+import { MovieSettingsModal, type SettingsTab } from '../components/movies/MovieSettingsModal';
 import { useMovieVersions } from '../hooks/useMovieVersions';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
@@ -30,6 +30,7 @@ const getTagFromVersions = (versions: MovieVersionDTO[]) => {
 
 export default function DetailsPage() {
     const { id } = useParams<{ id: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
@@ -38,7 +39,21 @@ export default function DetailsPage() {
     const navigate = useNavigate();
     const { downloadProgress, progressMap } = useMovieSocket(id);
     const { addMovie, removeMovie } = useLibrary();
-    const [showSettings, setShowSettings] = useState(false);
+    const settingsParam = searchParams.get('settings');
+    const [showSettings, setShowSettings] = useState(!!settingsParam);
+    const [initialTab, setInitialTab] = useState<SettingsTab | null>(settingsParam === 'versions' ? 'versions' : null);
+
+    useEffect(() => {
+        if (settingsParam) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setInitialTab(settingsParam === 'versions' ? 'versions' : null);
+            setShowSettings(true);
+            setSearchParams((p) => {
+                p.delete('settings');
+                return p;
+            });
+        }
+    }, [setSearchParams, settingsParam]);
 
     const killJob = (verId: string) => {
         api.delete(`/tasks/movies/${verId}/kill`).catch((err) => {
@@ -196,7 +211,7 @@ export default function DetailsPage() {
                 </div>
 
                 <div className="space-y-8 h-fit">
-                    {movie.uploader && (
+                    {movie.uploader && !movie.uploader.system && (
                         <div>
                             <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
                             <div className="flex items-center gap-3">
@@ -239,6 +254,7 @@ export default function DetailsPage() {
                     isUpdating={isUpdating}
                     onClose={() => setShowSettings(false)}
                     onMovieDeleted={() => navigate('/browse')}
+                    initialTab={initialTab ?? undefined}
                 />
             )}
         </div>

@@ -302,7 +302,7 @@ function UploadSection({
                             <div className="relative">
                                 <input
                                     {...register('dbUrl')}
-                                    placeholder="themoviedb.org/movie..."
+                                    placeholder="imdb.com/title..."
                                     className={`w-full bg-black/20 border border-white/5 rounded-2xl py-3 px-4 text-xs outline-none focus:border-primary/30 transition-all ${errors.dbUrl ? 'border-red-500/50 focus:border-red-500' : 'border-white/10'}`}
                                 />
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-white/10 uppercase flex gap-2">
