@@ -374,7 +374,7 @@ function DetailsTab({
                     <button
                         type="submit"
                         disabled={isUpdating || !isDirty}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary/80 text-background text-sm font-medium rounded-2xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary/80 text-background text-sm font-medium rounded-3xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         {isUpdating && <Loader2 size={14} className="animate-spin" />}
                         Save Changes
