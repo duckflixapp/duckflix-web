@@ -23,20 +23,7 @@ export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
     }, [confirmDelete]);
 
     return (
-        <div className="min-h-screen relative flex flex-col items-center justify-center gap-6 text-center px-8">
-            {/* top left */}
-            <div className="absolute top-8 left-8 flex items-center gap-4">
-                <button
-                    onClick={() => navigate('/browse')}
-                    className="p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all cursor-pointer"
-                >
-                    <ChevronLeft size={24} />
-                </button>
-                <div>
-                    <h1 className="text-white font-bold text-lg leading-none">{movie.title}</h1>
-                </div>
-            </div>
-
+        <div className="min-h-screen relative pb-16 flex flex-col items-center justify-center gap-6 text-center px-8">
             {/* center */}
             <div className="p-4 bg-red-500/10 rounded-full border border-red-500/20">
                 <X size={32} className="text-red-400" />
@@ -44,7 +31,7 @@ export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
             <div className="space-y-2">
                 <h1 className="text-2xl font-black text-white">{movie.title}</h1>
                 <p className="text-white/40 text-sm">This movie encountered an error and cannot be played.</p>
-                <span className="inline-block mt-2 text-[10px] px-3 py-1 rounded-xl uppercase font-bold tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                <span className="inline-block mt-2 text-[10px] px-3 py-1 rounded-2xl uppercase font-bold tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
                     {movie.status}
                 </span>
             </div>

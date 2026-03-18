@@ -195,7 +195,7 @@ export function HeroSection({
                     </h1>
                     <div className="flex flex-wrap gap-2 mb-6">
                         {movie.rating && (
-                            <span className="px-3 py-1.5 rounded-xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
+                            <span className="px-3 py-1.5 rounded-2xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
                                 <Star size={12} fill="currentColor" /> {movie.rating}
                             </span>
                         )}
@@ -203,7 +203,7 @@ export function HeroSection({
                             <span
                                 key={genre.id}
                                 title={genre.id}
-                                className="px-3 py-1.5 rounded-xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
+                                className="px-3 py-1.5 rounded-2xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
                             >
                                 {genre.name}
                             </span>
@@ -214,14 +214,14 @@ export function HeroSection({
                         {canPlay && (
                             <button
                                 onClick={() => openWatch(movie)}
-                                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-3xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
+                                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-4xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
                             >
                                 <Play size={20} fill="currentColor" /> <span>Play Now</span>
                             </button>
                         )}
                         <button
                             onClick={() => openDetails(movie)}
-                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-3xl font-medium transition-all cursor-pointer"
+                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-4xl font-medium transition-all cursor-pointer"
                         >
                             <Info size={20} /> Details
                         </button>
