@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { LibraryDTO, LibraryItemDTO, LibraryMinDTO, PaginatedResponse } from '@duckflix/shared';
+import { toast } from 'sonner';
 
 export const libraryApi = {
     getUserLibraries: () => api.get<{ libraries: LibraryMinDTO[] }>('/library/'),
@@ -15,6 +16,7 @@ export const libraryApi = {
 
 export const useLibrary = (libraryId?: string) => {
     const queryClient = useQueryClient();
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: ['libraries'] });
 
     // --- QUERIES ---
     const libraries = useQuery({
@@ -56,11 +58,39 @@ export const useLibrary = (libraryId?: string) => {
         },
     });
 
+    const createLibrary = useMutation({
+        mutationFn: async (name: string) => await api.post('/library', { name }),
+        onSuccess: () => {
+            toast.success('Collection created');
+            invalidate();
+        },
+        onError: (err) => {
+            toast.error('Failed to create collection');
+            console.error(err);
+        },
+    });
+
+    const deleteLibrary = useMutation({
+        mutationFn: async (id: string) => await api.delete(`/library/${id}`),
+        onSuccess: () => {
+            toast.success('Collection deleted');
+            invalidate();
+        },
+        onError: (err) => {
+            toast.error('Failed to delete collection');
+            console.error(err);
+        },
+    });
+
     return {
         libraries,
         libraryDetails,
         libraryMovies,
         addMovie: addMovieMutation.mutate,
         removeMovie: removeMovieMutation.mutate,
+        createLibrary: createLibrary.mutate,
+        isCreating: createLibrary.isPending,
+        deleteLibrary: deleteLibrary.mutate,
+        isDeleting: deleteLibrary.isPending,
     };
 };

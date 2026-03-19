@@ -1,16 +1,24 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLibrary } from '../hooks/useLibrary';
 import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
-import { Library, ArrowLeft, Loader2, ClockFading } from 'lucide-react';
+import { Library, ArrowLeft, Loader2, ClockFading, Plus, Trash2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
+import CreateLibraryModal from '../components/library/CreateLibraryModal';
 
 export default function LibraryPage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const [showCreate, setShowCreate] = useState(false);
     const navigate = useNavigate();
 
     const selectedLibId = searchParams.get('id');
-    const { libraries: librariesQuery, libraryMovies, libraryDetails } = useLibrary(selectedLibId ?? undefined);
+    const {
+        libraries: librariesQuery,
+        libraryMovies,
+        libraryDetails,
+        createLibrary,
+        deleteLibrary,
+    } = useLibrary(selectedLibId ?? undefined);
 
     const { ref, inView } = useInView();
 
@@ -28,6 +36,10 @@ export default function LibraryPage() {
         else setSearchParams({});
     };
 
+    const handleCreate = (name: string) => {
+        createLibrary(name, { onSuccess: () => setShowCreate(false) });
+    };
+
     if (!selectedLibId) {
         return (
             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -42,19 +54,35 @@ export default function LibraryPage() {
                               .fill(0)
                               .map((_, i) => <div key={i} className="h-40 bg-white/5 rounded-3xl animate-pulse" />)
                         : libraries.map((lib) => (
-                              <button
-                                  key={lib.id}
-                                  onClick={() => selectLibrary(lib.id)}
-                                  className="group relative cursor-pointer bg-white/5 border border-white/10 rounded-4xl p-8 flex flex-col items-start transition-all hover:bg-white/10 hover:border-primary/50 text-left"
-                              >
-                                  <div className="p-4 bg-primary/10 rounded-2xl text-primary mb-6 group-hover:scale-110 transition-transform">
-                                      {lib.type === 'watchlist' ? <ClockFading size={24} /> : <Library size={24} />}
-                                  </div>
-                                  <h3 className="text-lg font-bold text-white">{lib.name}</h3>
-                                  <p className="text-text/40 text-[10px] font-black uppercase tracking-widest mt-1">{lib.size} Items</p>
-                              </button>
+                              <div key={lib.id} className="relative group/lib">
+                                  <button
+                                      onClick={() => selectLibrary(lib.id)}
+                                      className="w-full group cursor-pointer bg-white/5 border border-white/10 rounded-4xl p-8 flex flex-col items-start transition-all hover:bg-white/10 hover:border-primary/50 text-left"
+                                  >
+                                      <div className="p-4 bg-primary/10 rounded-2xl text-primary mb-6 group-hover:scale-110 transition-transform">
+                                          {lib.type === 'watchlist' ? <ClockFading size={24} /> : <Library size={24} />}
+                                      </div>
+                                      <h3 className="text-lg font-bold text-white truncate w-full">{lib.name}</h3>
+                                      <p className="text-text/40 text-[10px] font-black uppercase tracking-widest mt-1">{lib.size} Items</p>
+                                  </button>
+                                  {lib.type === 'custom' && <DeleteLibraryButton onDelete={() => deleteLibrary(lib.id)} />}
+                              </div>
                           ))}
+
+                    {!librariesQuery.isLoading && (
+                        <button
+                            onClick={() => setShowCreate(true)}
+                            className="group cursor-pointer bg-white/3 border border-dashed border-white/10 rounded-4xl p-8 flex flex-col items-start transition-all hover:bg-white/5 hover:border-primary/30 text-left"
+                        >
+                            <div className="p-4 bg-white/5 rounded-2xl text-white/30 mb-6 group-hover:text-primary group-hover:bg-primary/10 transition-all">
+                                <Plus size={24} />
+                            </div>
+                            <h3 className="text-lg font-bold text-white/30 group-hover:text-white transition-colors">New Collection</h3>
+                            <p className="text-text/20 text-[10px] font-black uppercase tracking-widest mt-1">Create playlist</p>
+                        </button>
+                    )}
                 </div>
+                {showCreate && <CreateLibraryModal onCreate={handleCreate} onClose={() => setShowCreate(false)} />}
             </div>
         );
     }
@@ -137,5 +165,38 @@ export default function LibraryPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+function DeleteLibraryButton({ onDelete }: { onDelete: () => void }) {
+    const [confirm, setConfirm] = useState(false);
+    const ref = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        if (!confirm) return;
+        const handler = (e: MouseEvent) => {
+            if (!ref.current?.contains(e.target as Node)) setConfirm(false);
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [confirm]);
+
+    return (
+        <button
+            ref={ref}
+            onClick={(e) => {
+                e.stopPropagation();
+                if (!confirm) {
+                    setConfirm(true);
+                    return;
+                }
+                onDelete();
+            }}
+            className={`absolute top-4 right-4 p-2 rounded-xl transition-all cursor-pointer opacity-0 group-hover/lib:opacity-100 text-xs font-bold ${
+                confirm ? 'bg-red-500/20 text-red-400 px-3' : 'hover:bg-red-500/10 text-white/20 hover:text-red-400'
+            }`}
+        >
+            {confirm ? 'Delete?' : <Trash2 size={16} />}
+        </button>
     );
 }
