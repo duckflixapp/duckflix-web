@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { UserPlus, Shield, Mail, Loader2, Edit2, type LucideIcon, UserLock, Trash2 } from 'lucide-react';
+import { UserPlus, Shield, Mail, Loader2, Edit2, UserLock, Trash2 } from 'lucide-react';
 import type { UserRole } from '@duckflix/shared';
 import { useAdminUsers } from '../../hooks/useAdminUser';
+import AdminSection from '../../components/admin/AdminSection';
+import InputGroup from '../../components/admin/InputGroup';
 
-export default function UsersPage() {
+export default function AdminUsersPage() {
     const { users, loading, updateRole, isUpdating, deleteUser } = useAdminUsers();
 
     // Form state
@@ -28,7 +30,7 @@ export default function UsersPage() {
         );
 
     const getInputClassName = () => `
-        w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 text-sm 
+        w-full bg-white/3 border border-white/10 rounded-3xl px-4 py-2.5 text-sm 
         outline-none transition-all focus:border-primary/50 text-white
     `;
 
@@ -83,7 +85,7 @@ export default function UsersPage() {
                             <button
                                 type="submit"
                                 disabled={isUpdating || !email}
-                                className="bg-primary hover:bg-primary/80 text-black text-sm font-medium px-8 py-2.5 rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="bg-primary hover:bg-primary/80 text-black text-sm font-medium px-8 py-2.5 rounded-3xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 {isUpdating && <Loader2 size={16} className="animate-spin" />}
                                 Update Permissions
@@ -96,7 +98,7 @@ export default function UsersPage() {
                     <div className="overflow-hidden rounded-2xl border border-white/5 bg-white/2">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-white/5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">
+                                <tr className="bg-white/3 text-[10px] uppercase tracking-[0.2em] font-bold text-white/40">
                                     <th className="px-6 py-4">User</th>
                                     <th className="px-6 py-4">Current Role</th>
                                     <th className="px-6 py-4 text-right">Action</th>
@@ -147,32 +149,6 @@ export default function UsersPage() {
                     </div>
                 </AdminSection>
             </div>
-        </div>
-    );
-}
-
-function InputGroup({ label, description, children }: { label: string; description?: string; children: React.ReactNode }) {
-    return (
-        <div className="flex flex-col gap-2.5 w-full">
-            <div className="flex flex-col">
-                <label className="text-[13px] font-bold text-white/80 tracking-tight">{label}</label>
-                {description && <span className="text-[10px] text-white/40 mt-0.5">{description}</span>}
-            </div>
-            {children}
-        </div>
-    );
-}
-
-function AdminSection({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
-    return (
-        <div className="bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-4xl p-6 shadow-xl">
-            <div className="flex items-center gap-3 mb-6 text-primary">
-                <div className="p-2.5 bg-primary/10 rounded-2xl">
-                    <Icon size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-white/90 tracking-tight">{title}</h3>
-            </div>
-            {children}
         </div>
     );
 }

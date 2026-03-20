@@ -1,6 +1,6 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
-import { useMovieDetail } from '../hooks/useMovieDetailed';
+import { useMovieDetailed } from '../hooks/useMovieDetailed';
 import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
 import { formatBytes, getQualityLabel } from '../utils/format';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,7 @@ import { useLibrary } from '../hooks/useLibrary';
 import { MovieSettingsModal, type SettingsTab } from '../components/movies/MovieSettingsModal';
 import { useMovieVersions } from '../hooks/useMovieVersions';
 import { MovieError } from '../components/movies/MovieError';
+import MovieNotFound from '../components/movies/MovieNotFound';
 
 const getTagFromVersions = (versions: MovieVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -35,7 +36,7 @@ export default function DetailsPage() {
 
     const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
-    const { movie, isLoading, updateMovie, isUpdating } = useMovieDetail(id);
+    const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
     const { versions } = useMovieVersions(id);
     const navigate = useNavigate();
     const { downloadProgress, progressMap } = useMovieSocket(id);
@@ -65,6 +66,7 @@ export default function DetailsPage() {
     };
 
     if (isLoading) return <DetailsSkeleton />;
+    if (isNotFound) return <MovieNotFound />;
     if (!movie) return null;
 
     const tag = getTagFromVersions(movie.versions);

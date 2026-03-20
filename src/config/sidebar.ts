@@ -17,7 +17,8 @@ export const adminSidebar: SidebarGroup[] = [
         title: 'Administration',
         role: 'admin',
         items: [
-            { link: '/admin', icon: Settings, text: 'System' },
+            { link: '/admin', icon: Settings, text: 'Overview' },
+            { link: '/admin/system', icon: Settings, text: 'System' },
             { link: '/admin/roles', icon: UserLock, text: 'Roles' },
             // { link: '/admin/library', icon: Database, text: 'Content Manager' },
         ],

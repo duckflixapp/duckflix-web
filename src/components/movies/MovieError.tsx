@@ -2,13 +2,13 @@ import type { MovieDetailedDTO } from '@duckflix/shared';
 import { ChevronLeft, Loader2, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMovieVersions } from '../../hooks/useMovieVersions';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { useMovieDetailed } from '../../hooks/useMovieDetailed';
 
 export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
     const navigate = useNavigate();
     const auth = useAuthContext();
-    const { deleteMovie, isDeletingMovie } = useMovieVersions(movie.id);
+    const { deleteMovie, isDeletingMovie } = useMovieDetailed(movie.id);
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 

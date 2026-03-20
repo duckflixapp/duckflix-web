@@ -68,16 +68,6 @@ export const useMovieVersions = (movieId: string | undefined) => {
         },
     });
 
-    const deleteMovie = useMutation({
-        mutationFn: async () => {
-            await api.delete(`/movies/${movieId}`);
-        },
-        onError: (err) => {
-            const message = err instanceof AxiosError ? err.response?.data.message : undefined;
-            toast.error('Failed to delete movie', { description: message });
-        },
-    });
-
     return {
         versions: query.data ?? [],
         isLoadingVersions: query.isLoading,
@@ -85,7 +75,5 @@ export const useMovieVersions = (movieId: string | undefined) => {
         isAdding: addVersion.isPending,
         deleteVersion: deleteVersion.mutate,
         isDeletingVersion: deleteVersion.isPending,
-        deleteMovie: deleteMovie.mutate,
-        isDeletingMovie: deleteMovie.isPending,
     };
 };

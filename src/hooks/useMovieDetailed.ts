@@ -7,7 +7,7 @@ import { AxiosError } from 'axios';
 import { useCallback } from 'react';
 import { useNotificationSocket, type NotificationSocketData } from './useNotificationSocket';
 
-export const useMovieDetail = (id: string | undefined) => {
+export const useMovieDetailed = (id: string | undefined) => {
     const queryClient = useQueryClient();
 
     const query = useQuery({
@@ -17,7 +17,10 @@ export const useMovieDetail = (id: string | undefined) => {
             const { movie } = await api.get<{ movie: MovieDetailedDTO }>(`/movies/${id}`);
             return movie;
         },
-        retry: false,
+        retry: (failureCount, error) => {
+            if (error instanceof AxiosError && error.response?.status === 404) return false;
+            return failureCount < 3;
+        },
         staleTime: 100,
         enabled: !!id,
     });
@@ -48,12 +51,27 @@ export const useMovieDetail = (id: string | undefined) => {
         },
     });
 
+    const deleteMovie = useMutation({
+        mutationFn: async () => await api.delete(`/movies/${id}`),
+        onSuccess: () => {
+            toast.success('Movie deleted');
+            queryClient.invalidateQueries({ queryKey: ['movie', id] });
+        },
+        onError: (err) => {
+            const message = err instanceof AxiosError ? err.response?.data.message : undefined;
+            toast.error('Failed to delete movie', { description: message });
+        },
+    });
+
     return {
         movie: query.data,
+        isNotFound: query.error instanceof AxiosError && query.error.response?.status === 404,
         isLoading: query.isLoading,
         refresh: query.refetch,
         updateMovie: updateMovie.mutate,
         isUpdating: updateMovie.isPending,
+        deleteMovie: deleteMovie.mutate,
+        isDeletingMovie: deleteMovie.isPending,
     };
 };
 

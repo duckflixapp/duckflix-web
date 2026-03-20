@@ -15,7 +15,7 @@ import {
     Loader2,
     Cast,
 } from 'lucide-react';
-import { useMovieDetail } from '../hooks/useMovieDetailed';
+import { useMovieDetailed } from '../hooks/useMovieDetailed';
 import { srtToVtt } from '../utils/format';
 import { SettingsBox } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';
@@ -38,7 +38,7 @@ const formatTime = (seconds: number) => {
 
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
-    const { movie, isLoading } = useMovieDetail(id);
+    const { movie, isLoading } = useMovieDetailed(id);
     const navigate = useNavigate();
 
     const [showControls, setShowControls] = useState(true);

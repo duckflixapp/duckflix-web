@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import type { MovieUpdateFormValues } from '../../schemas/movie';
 import { appendSubtitleName } from '../../utils/subtitles';
+import { useMovieDetailed } from '../../hooks/useMovieDetailed';
 
 export type SettingsTab = 'versions' | 'subtitles' | 'details';
 
@@ -33,7 +34,8 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-    const { versions, isLoadingVersions, addVersion, deleteVersion, deleteMovie, isDeletingMovie } = useMovieVersions(movie.id);
+    const { versions, isLoadingVersions, addVersion, deleteVersion } = useMovieVersions(movie.id);
+    const { deleteMovie, isDeletingMovie } = useMovieDetailed(movie.id);
 
     const existingHeights = new Set(
         versions

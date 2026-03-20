@@ -15,9 +15,10 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from './providers/AuthProvider';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
-import AdminPage from './pages/admin/AdminPage';
-import UsersPage from './pages/admin/RolesPage';
+import AdminSystemPage from './pages/admin/SystemPage';
+import AdminUsersPage from './pages/admin/UsersPage';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import AdminOverviewPage from './pages/admin/OverviewPage';
 
 function App() {
     return (
@@ -69,8 +70,9 @@ function App() {
 
                         <Route path="/admin" element={<AdminRoute />}>
                             <Route element={<Layout admin={true} />}>
-                                <Route index element={<AdminPage />} />
-                                <Route path="roles" element={<UsersPage />} />
+                                <Route index element={<AdminOverviewPage />} />
+                                <Route path="system" element={<AdminSystemPage />} />
+                                <Route path="roles" element={<AdminUsersPage />} />
                             </Route>
                         </Route>
 

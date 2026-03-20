@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Globe, Mail, Cpu, Languages, Loader2, ChevronDown, type LucideIcon, Settings } from 'lucide-react';
+import { Globe, Mail, Cpu, Languages, Loader2, ChevronDown, Settings } from 'lucide-react';
 import { api } from '../../lib/api';
 import { adminConfigSchema } from '../../schemas/admin';
 import { useForm, useWatch, type FieldError } from 'react-hook-form';
@@ -8,8 +8,10 @@ import { useAdmin } from '../../hooks/useAdmin';
 import { toast } from 'sonner';
 import type { SystemSettingsDTO } from '@duckflix/shared';
 import axios from 'axios';
+import AdminSection from '../../components/admin/AdminSection';
+import InputGroup from '../../components/admin/InputGroup';
 
-export default function AdminPage() {
+export default function AdminSystemPage() {
     const { system } = useAdmin();
     const [loading] = useState(false);
 
@@ -73,7 +75,7 @@ export default function AdminPage() {
     if (!system) return null;
 
     const getInputClassName = (error?: FieldError) => `
-        w-full bg-white/5 border rounded-2xl px-4 py-2.5 text-sm outline-none transition-all 
+        w-full bg-white/3 border rounded-3xl px-4 py-2.5 text-sm outline-none transition-all 
         ${error ? 'border-red-500/50 focus:border-red-500 bg-red-500/5' : 'border-white/10 focus:border-primary/50'}
     `;
 
@@ -128,7 +130,7 @@ export default function AdminPage() {
                             />
                         </InputGroup>
 
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div className="flex items-center justify-between px-6 py-4 bg-white/3 rounded-4xl border border-white/5">
                             <div>
                                 <p className="text-sm font-bold text-text/80">Enable Registration</p>
                                 <p className="text-[11px] text-text/40">Enable users to create their accounts</p>
@@ -141,7 +143,7 @@ export default function AdminPage() {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div className="flex items-center justify-between px-6 py-4 bg-white/3 rounded-4xl border border-white/5">
                             <div>
                                 <p className="text-sm font-bold text-text/80">Trust Emails</p>
                                 <p className="text-[11px] text-text/40">Verify users automatically</p>
@@ -255,50 +257,6 @@ export default function AdminPage() {
                     </InputGroup>
                 </AdminSection>
             </div>
-        </div>
-    );
-}
-
-function InputGroup({
-    label,
-    description,
-    error,
-    children,
-}: {
-    label: string;
-    description?: string;
-    error?: FieldError;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="flex flex-col gap-2.5 w-full">
-            <div className="flex flex-col relative">
-                <div className="flex justify-between items-center">
-                    <label className="text-[13px] font-bold text-text/80 tracking-tight">{label}</label>
-                    {error && (
-                        <span className="text-[10px] text-red-400 font-bold uppercase tracking-wider animate-in fade-in slide-in-from-right-1 duration-200">
-                            {error.message}
-                        </span>
-                    )}
-                </div>
-                {description && <span className="text-[10px] text-text/40 mt-0.5 leading-tight">{description}</span>}
-            </div>
-            <div>{children}</div>
-        </div>
-    );
-}
-
-function AdminSection({ title, icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
-    const Icon = icon;
-    return (
-        <div className="bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-4xl p-6 mb-auto shadow-xl">
-            <div className="flex items-center gap-3 mb-6 text-primary">
-                <div className="p-2.5 bg-primary/10 rounded-2xl">
-                    <Icon size={20} />
-                </div>
-                <h3 className="text-lg font-bold text-text/90 tracking-tight">{title}</h3>
-            </div>
-            {children}
         </div>
     );
 }
