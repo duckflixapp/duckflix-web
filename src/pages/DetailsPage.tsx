@@ -309,7 +309,7 @@ function VersionBadge({
                     <div className="flex flex-col min-w-0 flex-1">
                         <p className="text-xs font-bold text-white/80 leading-none truncate">Processing</p>
                         <p className="text-[9px] text-white/30 font-medium mt-1 uppercase tracking-wider truncate">
-                            {ext} • {v.fileSize ? formatBytes(v.fileSize, 0) : 'Calculating...'}
+                            {ext} • {v.height}p
                         </p>
                     </div>
                 </div>
