@@ -9,6 +9,8 @@ import { useGenres } from '../hooks/use-genres';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import type { MovieDTO } from '@duckflix/shared';
+import { toast } from 'sonner';
+import { AxiosError } from 'axios';
 
 export default function UploadPage() {
     const { genres } = useGenres();
@@ -72,8 +74,8 @@ export default function UploadPage() {
                 },
             })
             .catch((err) => {
-                console.error('Upload error:', err);
-                alert('Error while uploading');
+                const message = err instanceof AxiosError ? err.response?.data.message : undefined;
+                toast('Failed to upload movie', { description: message });
                 setUploadProgress(null);
             });
 
