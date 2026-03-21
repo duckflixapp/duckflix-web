@@ -45,11 +45,17 @@ export default function DetailsPage() {
     const [showSettings, setShowSettings] = useState(!!settingsParam);
     const [initialTab, setInitialTab] = useState<SettingsTab | null>(settingsParam === 'versions' ? 'versions' : null);
 
+    const handleOpenSettings = () => {
+        setInitialTab(settingsParam === 'versions' ? 'versions' : null);
+        setShowSettings(true);
+        setSearchParams((p) => {
+            p.delete('settings');
+            return p;
+        });
+    };
+
     useEffect(() => {
         if (settingsParam) {
-            // eslint-disable-next-line react-hooks/set-state-in-effect
-            setInitialTab(settingsParam === 'versions' ? 'versions' : null);
-            setShowSettings(true);
             setSearchParams((p) => {
                 p.delete('settings');
                 return p;
@@ -112,7 +118,7 @@ export default function DetailsPage() {
 
                 {auth?.hasRole('contributor') && (
                     <button
-                        onClick={() => setShowSettings(true)}
+                        onClick={handleOpenSettings}
                         className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
                     >
                         <Settings size={22} />
