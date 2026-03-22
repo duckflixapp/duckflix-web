@@ -16,7 +16,7 @@ export default function UploadPage() {
     const { genres } = useGenres();
     const [file, setFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-    const [showManual, setShowManual] = useState(false); // State za prikazivanje rucnog unosa
+    const [showManual, setShowManual] = useState(false);
     const navigate = useNavigate();
 
     const {
