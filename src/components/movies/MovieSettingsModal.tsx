@@ -305,6 +305,7 @@ function DetailsTab({
             releaseYear: form.releaseYear ? Number(form.releaseYear) : null,
             bannerUrl: form.bannerUrl || null,
             posterUrl: form.posterUrl || null,
+            genres: null,
         });
     };
 

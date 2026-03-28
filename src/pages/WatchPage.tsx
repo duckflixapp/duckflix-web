@@ -64,7 +64,7 @@ export default function WatchPage() {
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
 
-    const title = 'default';
+    const title = '#';
 
     const availableVersions = useMemo(() => {
         if (!video) return [];

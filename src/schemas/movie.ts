@@ -39,7 +39,10 @@ export const updateMovieSchema = z.object({
         .nullable(),
     bannerUrl: z.url().max(1000).optional().nullable(),
     posterUrl: z.url().max(1000).optional().nullable(),
-    genreIds: z.preprocess((val) => (typeof val === 'string' ? [val] : val), z.array(z.uuid()).max(10)).optional(),
+    genres: z
+        .preprocess((val) => (typeof val === 'string' ? [val] : val), z.array(z.string()).max(10))
+        .nullable()
+        .optional(),
 });
 
 export type MovieUpdateFormValues = z.infer<typeof updateMovieSchema>;

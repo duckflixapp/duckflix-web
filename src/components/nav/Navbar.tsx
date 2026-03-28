@@ -99,7 +99,7 @@ function SearchBar() {
 
     const openDetails = (movie: MovieDTO) => {
         inputRef.current?.blur();
-        navigate(`/details/${movie.id}`);
+        navigate(`/details/movie/${movie.id}`);
         setShowResults(false);
     };
 
