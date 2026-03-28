@@ -62,7 +62,7 @@ export default function RegisterPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px]" />
 
             <div className="relative w-full max-w-110 mx-4">
-                <div className="bg-secondary/10 backdrop-blur-2xl border border-white/10 px-8 py-10 rounded-3xl shadow-2xl">
+                <div className="bg-secondary/10 backdrop-blur-2xl border border-white/10 px-8 py-10 rounded-[42px] shadow-2xl">
                     <div className="text-center mt-3 mb-8">
                         <h1 className="text-3xl font-bold text-text tracking-tight">Create Account</h1>
                         <p className="text-text/50 text-sm mt-2">Join the Duckflix streaming</p>
@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                         {serverError && (
-                            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-xl text-sm">
+                            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-3xl text-sm">
                                 <AlertCircle size={18} />
                                 {serverError}
                             </div>
@@ -88,14 +88,14 @@ export default function RegisterPage() {
                                     {...register('name')}
                                     type="text"
                                     placeholder="John Doe"
-                                    className={`w-full bg-background/50 border ${errors.name ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
+                                    className={`w-full bg-background/50 border ${errors.name ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
                                 />
                             </div>
                             {errors.name && <p className="text-red-500 text-[10px] ml-1">{errors.name.message}</p>}
                         </div>
 
                         {/* Email */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-medium text-text/80 ml-1">Email Address</label>
                             <div className="relative group">
                                 <Mail
@@ -106,14 +106,14 @@ export default function RegisterPage() {
                                     {...register('email')}
                                     type="email"
                                     placeholder="john@example.com"
-                                    className={`w-full bg-background/50 border ${errors.email ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
+                                    className={`w-full bg-background/50 border ${errors.email ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
                                 />
                             </div>
                             {errors.email && <p className="text-red-500 text-[10px] ml-1">{errors.email.message}</p>}
                         </div>
 
                         {/* Password */}
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-medium text-text/80 ml-1">Password</label>
                             <div className="relative group">
                                 <Lock
@@ -124,7 +124,7 @@ export default function RegisterPage() {
                                     {...register('password')}
                                     type="password"
                                     placeholder="••••••••"
-                                    className={`w-full bg-background/50 border ${errors.password ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
+                                    className={`w-full bg-background/50 border ${errors.password ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
                                 />
                             </div>
                             {errors.password && <p className="text-red-500 text-[10px] ml-1 leading-tight">{errors.password.message}</p>}
@@ -133,7 +133,7 @@ export default function RegisterPage() {
                         <button
                             type="submit"
                             disabled={mutation.isPending}
-                            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-background text-sm font-medium py-3 rounded-xl transition-all transform cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-background text-sm font-medium py-3 rounded-3xl transition-all transform cursor-pointer active:scale-[0.98] flex items-center justify-center gap-1.5"
                         >
                             {mutation.isPending ? <Loader2 className="animate-spin" size={20} /> : 'Register'}
                         </button>

@@ -76,7 +76,7 @@ export default function LoginPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/10 rounded-full blur-[120px]" />
 
             <div className="relative w-full max-w-110 mx-4">
-                <div className="bg-secondary/10 backdrop-blur-2xl border border-white/10 px-8 py-12 rounded-3xl shadow-2xl">
+                <div className="bg-secondary/10 backdrop-blur-2xl border border-white/10 px-8 py-12 rounded-[42px] shadow-2xl">
                     <div className="text-center mt-3 mb-8">
                         <h1 className="text-3xl font-bold text-text tracking-tight">Welcome Back</h1>
                         <p className="text-text/50 text-sm mt-2">Log in to your Duckflix account</p>
@@ -84,13 +84,13 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {error && (
-                            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-xl text-sm animate-shake">
+                            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-3xl text-sm animate-shake">
                                 <AlertCircle size={18} />
                                 {error}
                             </div>
                         )}
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-medium text-text/80 ml-1">Email Address</label>
                             <div className="relative group">
                                 <Mail
@@ -103,14 +103,14 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="name@example.com"
-                                    className={`w-full bg-background/50 border ${fieldErrors.email ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
+                                    className={`w-full bg-background/50 border ${fieldErrors.email ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
                                     required
                                 />
                             </div>
                             {fieldErrors.email && <p className="text-red-500 text-xs ml-1">{fieldErrors.email}</p>}
                         </div>
 
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-1.5">
                             <label className="text-xs font-medium text-text/80 ml-1">Password</label>
                             <div className="relative group">
                                 <Lock
@@ -123,7 +123,7 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className={`w-full bg-background/50 border ${fieldErrors.password ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
+                                    className={`w-full bg-background/50 border ${fieldErrors.password ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
                                     required
                                 />
                             </div>
@@ -133,7 +133,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-background text-sm font-medium py-3 rounded-xl transition-all transform cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
+                            className="w-full bg-primary hover:bg-primary/90 disabled:opacity-50 text-background text-sm font-medium py-3 rounded-3xl transition-all transform cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
                         >
                             {isLoading ? <Loader2 className="animate-spin" size={20} /> : 'Sign In'}
                         </button>
