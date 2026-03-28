@@ -57,6 +57,7 @@ export const useMovieDetailed = (id: string | undefined) => {
         onSuccess: () => {
             toast.success('Movie deleted');
             queryClient.invalidateQueries({ queryKey: ['movie', id] });
+            queryClient.invalidateQueries({ queryKey: ['movie', 'featured'] });
         },
         onError: (err) => {
             const message = err instanceof AxiosError ? err.response?.data.message : undefined;

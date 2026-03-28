@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { VideoDTO } from '@duckflix/shared';
+import type { VideoDTO, VideoResolved } from '@duckflix/shared';
 import { AxiosError } from 'axios';
 
 export const useVideo = (id: string | undefined) => {
@@ -19,9 +19,20 @@ export const useVideo = (id: string | undefined) => {
         enabled: !!id,
     });
 
+    const resolveQuery = useQuery({
+        queryKey: ['video', id, 'resolve'],
+        queryFn: async () => {
+            const { content } = await api.get<{ content: VideoResolved }>(`/videos/${id}/resolve`);
+            return content;
+        },
+        enabled: !!id,
+    });
+
     return {
         video: query.data ?? null,
         isLoading: query.isLoading,
         isNotFound: query.error instanceof AxiosError && query.error.response?.status === 404,
+        videoResolved: resolveQuery.data ?? null,
+        videoResolving: resolveQuery.isLoading,
     };
 };

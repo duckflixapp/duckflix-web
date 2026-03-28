@@ -38,7 +38,7 @@ const formatTime = (seconds: number) => {
 
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
-    const { video, isLoading } = useVideo(id);
+    const { video, isLoading, videoResolved } = useVideo(id);
     const navigate = useNavigate();
 
     const [showControls, setShowControls] = useState(true);
@@ -64,7 +64,7 @@ export default function WatchPage() {
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
 
-    const title = '#';
+    const title = videoResolved?.name;
 
     const availableVersions = useMemo(() => {
         if (!video) return [];
@@ -346,7 +346,7 @@ export default function WatchPage() {
         player.cast({
             src: activeVersion.streamUrl,
             contentType: activeVersion.mimeType,
-            title: title,
+            title: title ?? '',
             subtitles: subtitles.map((s, idx) => ({
                 id: idx,
                 url: s.subtitleUrl,
@@ -355,7 +355,7 @@ export default function WatchPage() {
             })),
             activeSubtitle: subtitles.findIndex((s) => s.id === subtitle?.id),
         });
-    }, [player, activeVersion, video, subtitle]);
+    }, [activeVersion, video, player, title, subtitle?.id]);
 
     if (isLoading || !video)
         return (

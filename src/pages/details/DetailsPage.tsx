@@ -14,7 +14,7 @@ export default function DetailsResolver() {
     useEffect(() => {
         api.get<{ content: VideoResolved }>(`/videos/${id}/resolve`)
             .then(({ content }) => {
-                if (content.type === 'movie') navigate(`/details/movie/${content.contentId}${search}`, { replace: true });
+                if (content.type === 'movie') navigate(`/details/movie/${content.id}${search}`, { replace: true });
             })
             .catch(() => setNotFound(true));
     }, [id, navigate, search]);
