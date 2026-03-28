@@ -32,7 +32,7 @@ export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
                 <h1 className="text-2xl font-black text-white">{movie.title}</h1>
                 <p className="text-white/40 text-sm">This movie encountered an error and cannot be played.</p>
                 <span className="inline-block mt-2 text-[10px] px-3 py-1 rounded-2xl uppercase font-bold tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
-                    {movie.status}
+                    {movie.video.status}
                 </span>
             </div>
             <div className="flex items-center gap-3">

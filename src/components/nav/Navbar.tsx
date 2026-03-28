@@ -19,12 +19,12 @@ export default function Navbar() {
                 data.status == 'completed'
                     ? {
                           label: 'Watch Now',
-                          onClick: () => navigate(`/details/${data.movieId}`),
+                          onClick: () => navigate(`/details/${data.videoId}`),
                       }
                     : data.status == 'started'
                       ? {
                             label: 'Open',
-                            onClick: () => navigate(`/details/${data.movieId}`),
+                            onClick: () => navigate(`/details/${data.videoId}`),
                         }
                       : undefined,
         });

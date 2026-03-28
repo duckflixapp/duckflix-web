@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Film, Subtitles, Settings, Trash2, Plus, Loader2 } from 'lucide-react';
-import type { MovieDetailedDTO, MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import type { MovieDetailedDTO, SubtitleDTO, VideoVersionDTO } from '@duckflix/shared';
 import { formatBytes, getMimeExtension } from '../../utils/format';
-import { useMovieVersions } from '../../hooks/useMovieVersions';
+import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import type { MovieUpdateFormValues } from '../../schemas/movie';
@@ -34,7 +34,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-    const { versions, isLoadingVersions, addVersion, deleteVersion } = useMovieVersions(movie.id);
+    const { versions, isLoadingVersions, addVersion, deleteVersion } = useVideoVersions(movie.videoId);
     const { deleteMovie, isDeletingMovie } = useMovieDetailed(movie.id);
 
     const existingHeights = new Set(
@@ -150,7 +150,7 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                                         onDelete={deleteVersion}
                                     />
                                 )}
-                                {tab === 'subtitles' && <SubtitlesTab subtitles={movie.subtitles} movieId={movie.id} />}
+                                {tab === 'subtitles' && <SubtitlesTab subtitles={movie.video.subtitles} movieId={movie.id} />}
                                 {tab === 'details' && <DetailsTab movie={movie} onUpdate={updateMovie} isUpdating={isUpdating} />}
                             </motion.div>
                         </AnimatePresence>
@@ -169,7 +169,7 @@ function VersionsTab({
     onAdd,
     onDelete,
 }: {
-    versions: MovieVersionDTO[];
+    versions: VideoVersionDTO[];
     isLoading: boolean;
     availablePresets: number[];
     onAdd: (height: number, config: { onSettled: () => void }) => void;
@@ -284,7 +284,7 @@ function DetailsTab({
 }) {
     const [form, setForm] = useState({
         title: movie.title ?? '',
-        overview: movie.description ?? '',
+        overview: movie.overview ?? '',
         releaseYear: movie.releaseYear?.toString() ?? '',
         bannerUrl: movie.bannerUrl ?? '',
         posterUrl: movie.posterUrl ?? '',
@@ -292,7 +292,7 @@ function DetailsTab({
 
     const isDirty =
         form.title !== (movie.title ?? '') ||
-        form.overview !== (movie.description ?? '') ||
+        form.overview !== (movie.overview ?? '') ||
         form.releaseYear !== (movie.releaseYear?.toString() ?? '') ||
         form.bannerUrl !== (movie.bannerUrl ?? '') ||
         form.posterUrl !== (movie.posterUrl ?? '');

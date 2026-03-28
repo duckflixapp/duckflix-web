@@ -4,12 +4,12 @@ import { Play, RotateCcw } from 'lucide-react';
 import { formatTime } from '../../utils/format';
 
 interface ResumeNotificationProps {
-    movieId: string;
+    videoId: string;
     videoRef: React.RefObject<HTMLVideoElement | null>;
     onClose?: () => void;
 }
 
-export function ResumeNotification({ movieId, videoRef, onClose }: ResumeNotificationProps) {
+export function ResumeNotification({ videoId, videoRef, onClose }: ResumeNotificationProps) {
     const [resumeTime, setResumeTime] = useState<number | null>(null);
 
     useEffect(() => {
@@ -17,7 +17,7 @@ export function ResumeNotification({ movieId, videoRef, onClose }: ResumeNotific
         if (!video) return;
 
         const checkProgress = () => {
-            const savedTime = localStorage.getItem(`watch-progress-${movieId}`);
+            const savedTime = localStorage.getItem(`watch-progress-${videoId}`);
             const time = savedTime ? parseFloat(savedTime) : 0;
 
             if (time > 10 && time < video.duration - 30) setResumeTime(time);
@@ -25,7 +25,7 @@ export function ResumeNotification({ movieId, videoRef, onClose }: ResumeNotific
 
         video.addEventListener('loadedmetadata', checkProgress);
         return () => video.removeEventListener('loadedmetadata', checkProgress);
-    }, [movieId, videoRef]);
+    }, [videoId, videoRef]);
 
     useEffect(() => {
         if (resumeTime) {
@@ -46,7 +46,7 @@ export function ResumeNotification({ movieId, videoRef, onClose }: ResumeNotific
     };
 
     const handleStartOver = () => {
-        localStorage.removeItem(`watch-progress-${movieId}`);
+        localStorage.removeItem(`watch-progress-${videoId}`);
         setResumeTime(null);
         onClose?.();
     };

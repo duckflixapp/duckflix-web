@@ -7,7 +7,8 @@ import BrowsePage from './pages/BrowsePage';
 import Sidebar from './components/sidebar/Sidebar';
 import UploadPage from './pages/UploadPage';
 import SearchPage from './pages/SearchPage';
-import DetailsPage from './pages/DetailsPage';
+import MovieDetailsPage from './pages/details/MovieDetailsPage';
+import DetailsResolver from './pages/details/DetailsPage';
 import WatchPage from './pages/WatchPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LibraryPage from './pages/LibraryPage';
@@ -55,7 +56,8 @@ function App() {
                             <Route index path="/browse" element={<BrowsePage />} />
                             <Route path="/library" element={<LibraryPage />} />
                             <Route path="/search" element={<SearchPage />} />
-                            <Route path="/details/:id" element={<DetailsPage />} />
+                            <Route path="/details/:id" element={<DetailsResolver />} />
+                            <Route path="/details/movie/:id" element={<MovieDetailsPage />} />
 
                             {/* Contributor Only */}
                             <Route element={<ContributorRoute />}>

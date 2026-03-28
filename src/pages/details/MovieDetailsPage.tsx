@@ -1,23 +1,23 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
-import { useMovieDetailed } from '../hooks/useMovieDetailed';
-import type { JobProgress, MovieVersionDTO } from '@duckflix/shared';
-import { formatBytes, getQualityLabel } from '../utils/format';
+import { useMovieDetailed } from '../../hooks/useMovieDetailed';
+import type { JobProgress, VideoVersionDTO } from '@duckflix/shared';
+import { formatBytes, getQualityLabel } from '../../utils/format';
 import { useEffect, useState } from 'react';
-import { useMovieSocket } from '../hooks/useMovieSocket';
-import { MovieDownloadProgress } from '../components/movies/MovieDownloading';
-import { MovieProcessing } from '../components/movies/MovieProcessing';
-import { api } from '../lib/api';
+import { useVideoSocket } from '../../hooks/useVideoSocket';
+import { MovieDownloadProgress } from '../../components/movies/MovieDownloading';
+import { MovieProcessing } from '../../components/movies/MovieProcessing';
+import { api } from '../../lib/api';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
-import { useAuthContext } from '../contexts/AuthContext';
-import { useLibrary } from '../hooks/useLibrary';
-import { MovieSettingsModal, type SettingsTab } from '../components/movies/MovieSettingsModal';
-import { useMovieVersions } from '../hooks/useMovieVersions';
-import { MovieError } from '../components/movies/MovieError';
-import MovieNotFound from '../components/movies/MovieNotFound';
+import { useAuthContext } from '../../contexts/AuthContext';
+import { useLibrary } from '../../hooks/useLibrary';
+import { MovieSettingsModal, type SettingsTab } from '../../components/movies/MovieSettingsModal';
+import { useVideoVersions } from '../../hooks/useVideoVersions';
+import { MovieError } from '../../components/movies/MovieError';
+import MovieNotFound from '../../components/movies/MovieNotFound';
 
-const getTagFromVersions = (versions: MovieVersionDTO[]) => {
+const getTagFromVersions = (versions: VideoVersionDTO[]) => {
     if (versions.length == 0) return null;
 
     const highest: number = versions.reduce((max, { height }) => (height > max ? height : max), -1);
@@ -37,9 +37,9 @@ export default function DetailsPage() {
     const auth = useAuthContext();
     const [showDescription, setShowDesc] = useState<boolean>(false);
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
-    const { versions } = useMovieVersions(id);
+    const { versions } = useVideoVersions(movie?.videoId);
     const navigate = useNavigate();
-    const { downloadProgress, progressMap } = useMovieSocket(id);
+    const { downloadProgress, progressMap } = useVideoSocket(movie?.videoId);
     const { addMovie, removeMovie } = useLibrary();
     const settingsParam = searchParams.get('settings');
     const [showSettings, setShowSettings] = useState(!!settingsParam);
@@ -75,7 +75,9 @@ export default function DetailsPage() {
     if (isNotFound) return <MovieNotFound />;
     if (!movie) return null;
 
-    const tag = getTagFromVersions(movie.versions);
+    const video = movie.video;
+    const uploader = video.uploader;
+    const tag = getTagFromVersions(video.versions);
     const availableVersions = versions
         .filter((v) => v.status === 'ready' || v.status === 'processing')
         .sort((a, b) => {
@@ -89,13 +91,14 @@ export default function DetailsPage() {
         else addMovie({ libId: 'watchlist', movieId: movie.id });
     };
 
-    if (movie.status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
+    const status = movie.video.status;
+    if (status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
 
-    if (movie.status === 'processing') return <MovieProcessing movie={movie} />;
+    if (status === 'processing') return <MovieProcessing movie={movie} />;
 
-    if (movie.status !== 'ready') return <MovieError movie={movie} />;
+    if (status !== 'ready') return <MovieError movie={movie} />;
 
-    const canPlay = movie.versions.length > 0;
+    const canPlay = movie.video.versions.length > 0;
 
     return (
         <div className="min-h-screen pb-20">
@@ -162,7 +165,7 @@ export default function DetailsPage() {
                         <div className="flex flex-wrap gap-4 pt-4">
                             {canPlay && (
                                 <button
-                                    onClick={() => navigate(`/watch/${movie.id}`)}
+                                    onClick={() => navigate(`/watch/${movie.videoId}`)}
                                     className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-4xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
                                 >
                                     <Play size={20} fill="currentColor" />
@@ -184,15 +187,15 @@ export default function DetailsPage() {
 
             <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
-                    {movie.description && (
+                    {movie.overview && (
                         <div>
-                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Description</h3>
+                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Overview</h3>
                             <div className="flex flex-wrap gap-3">
                                 <p
                                     onClick={() => setShowDesc((prev) => !prev)}
                                     className={`text-text/70 w-full text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-3'}`}
                                 >
-                                    {movie.description}
+                                    {movie.overview}
                                 </p>
                             </div>
                         </div>
@@ -220,22 +223,22 @@ export default function DetailsPage() {
                 </div>
 
                 <div className="space-y-8 h-fit">
-                    {movie.uploader && !movie.uploader.system && (
+                    {uploader && !uploader.system && (
                         <div>
                             <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
                             <div className="flex items-center gap-3">
-                                <p className="text-white font-medium">{movie.uploader.name}</p>
+                                <p className="text-white font-medium">{uploader.name}</p>
 
                                 <span
                                     className={`text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider ${
-                                        movie.uploader.role === 'admin'
+                                        uploader.role === 'admin'
                                             ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                            : movie.uploader.role === 'contributor'
+                                            : uploader.role === 'contributor'
                                               ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
                                               : 'bg-white/5 text-white/40 border border-white/10'
                                     }`}
                                 >
-                                    {movie.uploader.role}
+                                    {uploader.role}
                                 </span>
                             </div>
                         </div>
@@ -276,7 +279,7 @@ function VersionBadge({
     cancelJob,
     canCancel,
 }: {
-    v: MovieVersionDTO;
+    v: VideoVersionDTO;
     activeProgress?: JobProgress;
     canCancel: boolean;
     cancelJob: (verId: string) => unknown;

@@ -26,8 +26,8 @@ export default function BrowsePage() {
 
     const { ref, inView } = useInView();
 
-    const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
-    const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.id}`);
+    const openDetails = (movie: MovieDTO) => navigate(`/details/movie/${movie.id}`);
+    const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.videoId}`);
 
     useEffect(() => {
         if (inView && hasNextPage) {
@@ -183,7 +183,7 @@ export function HeroSection({
 }) {
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
-    const canPlay = movie.duration && movie.status == 'ready';
+    const canPlay = movie.duration && movie.video.status == 'ready';
     return (
         <section className="relative w-full aspect-21/9 min-h-120 max-h-screen px-8 pt-6 z-10">
             <div className="relative w-full h-full rounded-4xl overflow-hidden shadow-2xl border border-white/5">

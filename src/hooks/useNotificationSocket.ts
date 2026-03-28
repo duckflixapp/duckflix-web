@@ -2,8 +2,8 @@ import { useEffect } from 'react';
 import { socket, connectSocket } from '../lib/socket';
 
 export interface NotificationSocketData {
-    movieId?: string;
-    movieVerId?: string;
+    videoId?: string;
+    videoVerId?: string;
     status: 'started' | 'completed' | 'downloaded' | 'error';
     title: string;
     message: string;

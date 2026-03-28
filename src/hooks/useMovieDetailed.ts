@@ -27,12 +27,13 @@ export const useMovieDetailed = (id: string | undefined) => {
 
     const invalidate = useCallback(() => queryClient.invalidateQueries({ queryKey: ['movie', id] }), [id, queryClient]);
 
+    const movie = query.data;
     const handleNotification = useCallback(
         (notification: NotificationSocketData) => {
-            if (notification.movieId !== id) return;
+            if (notification.videoId !== movie?.videoId) return;
             invalidate();
         },
-        [id, invalidate]
+        [movie, invalidate]
     );
     useNotificationSocket(handleNotification);
 

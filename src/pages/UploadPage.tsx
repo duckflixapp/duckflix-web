@@ -5,15 +5,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useDropzone } from 'react-dropzone';
 import { formatBytes } from '../utils/format';
 import { createMovieSchema, type MovieFormValues } from '../schemas/movie';
-import { useGenres } from '../hooks/use-genres';
+import { useMovieGenres } from '../hooks/use-genres';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
-import type { MovieDTO } from '@duckflix/shared';
+import type { VideoMinDTO } from '@duckflix/shared';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 
 export default function UploadPage() {
-    const { genres } = useGenres();
+    const { genres } = useMovieGenres();
     const [file, setFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const [showManual, setShowManual] = useState(false);
@@ -31,13 +31,14 @@ export default function UploadPage() {
             title: '',
             overview: '',
             dbUrl: '',
-            genreIds: [],
+            genres: [],
+            type: 'movie',
         },
     });
 
     const selectedGenreIds = useWatch({
         control,
-        name: 'genreIds',
+        name: 'genres',
         defaultValue: [],
     });
 
@@ -67,7 +68,7 @@ export default function UploadPage() {
         }
 
         const data = await api
-            .post<{ movie: MovieDTO }>('/movies/upload', formData as never, {
+            .post<{ video: VideoMinDTO }>('/videos/upload', formData as never, {
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
                     setUploadProgress(percentCompleted);
@@ -79,7 +80,7 @@ export default function UploadPage() {
                 setUploadProgress(null);
             });
 
-        if (data) navigate(`/details/${data.movie.id}`);
+        if (data) navigate(`/details/${data.video.id}`);
     };
 
     const changeFile = (file: File | null) => setFile(file);
@@ -151,8 +152,8 @@ export default function UploadPage() {
                                         <label className="text-[10px] mb-2 uppercase tracking-[0.2em] text-white/30 font-black block">
                                             Select Genres
                                         </label>
-                                        {errors.genreIds && (
-                                            <span className="text-red-500 text-[10px] font-bold ">{errors.genreIds.message}</span>
+                                        {errors.genres && (
+                                            <span className="text-red-500 text-[10px] font-bold ">{errors.genres.message}</span>
                                         )}
                                     </div>
 
@@ -166,10 +167,10 @@ export default function UploadPage() {
                                                         type="button"
                                                         onClick={() => {
                                                             const nextValue = isSelected
-                                                                ? selectedGenreIds?.filter((id) => id !== genre.id)
-                                                                : [...(selectedGenreIds ?? []), genre.id];
+                                                                ? selectedGenreIds?.filter((id) => id !== genre.name)
+                                                                : [...(selectedGenreIds ?? []), genre.name];
 
-                                                            setValue('genreIds', nextValue, { shouldValidate: true });
+                                                            setValue('genres', nextValue, { shouldValidate: true });
                                                         }}
                                                         className={`px-5 py-2.5 my-auto rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border
                                                     ${

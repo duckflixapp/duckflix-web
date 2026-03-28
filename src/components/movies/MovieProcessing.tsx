@@ -3,7 +3,7 @@ import type { MovieDetailedDTO } from '@duckflix/shared';
 import { formatBytes } from '../../utils/format';
 
 export function MovieProcessing({ movie }: { movie: MovieDetailedDTO }) {
-    const originalVersion = movie.versions.find((v) => v.isOriginal);
+    const originalVersion = movie.video.versions.find((v) => v.isOriginal);
 
     return (
         <div className="relative h-full flex flex-col items-center justify-center bg-transparent text-text overflow-hidden">

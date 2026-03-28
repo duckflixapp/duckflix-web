@@ -15,7 +15,6 @@ import {
     Loader2,
     Cast,
 } from 'lucide-react';
-import { useMovieDetailed } from '../hooks/useMovieDetailed';
 import { srtToVtt } from '../utils/format';
 import { SettingsBox } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';
@@ -23,10 +22,11 @@ import { PlayerOverlay } from '../components/player/PlayerOverlay';
 import { ProgressBar } from '../components/player/ProgressBar';
 import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
-import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import type { VideoVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import Hls from 'hls.js';
 import { appendSubtitleName } from '../utils/subtitles';
 import { api } from '../lib/api';
+import { useVideo } from '../hooks/useVideo';
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -38,7 +38,7 @@ const formatTime = (seconds: number) => {
 
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
-    const { movie, isLoading } = useMovieDetailed(id);
+    const { video, isLoading } = useVideo(id);
     const navigate = useNavigate();
 
     const [showControls, setShowControls] = useState(true);
@@ -59,19 +59,21 @@ export default function WatchPage() {
     const hlsRef = useRef<Hls | null>(null);
     const [hlsLevels, setHlsLevels] = useState<Hls['levels']>([]);
     const [currentHlsLevel, setCurrentHlsLevel] = useState<number>(-1);
-    const [manualVersion, setManualVersion] = useState<MovieVersionDTO | null>(null);
-    const [sessionizedVersions, setSessionizedVersions] = useState<MovieVersionDTO[]>([]);
+    const [manualVersion, setManualVersion] = useState<VideoVersionDTO | null>(null);
+    const [sessionizedVersions, setSessionizedVersions] = useState<VideoVersionDTO[]>([]);
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
 
+    const title = 'default';
+
     const availableVersions = useMemo(() => {
-        if (!movie) return [];
-        return [...movie.versions, ...(movie.generatedVersions ?? [])]
+        if (!video) return [];
+        return [...video.versions, ...(video.generatedVersions ?? [])]
             .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
             .sort((a, b) => b.height - a.height);
-    }, [movie]);
+    }, [video]);
 
-    const autoVersion: MovieVersionDTO = useMemo(
+    const autoVersion: VideoVersionDTO = useMemo(
         () => ({
             id: 'auto',
             height: 0,
@@ -226,19 +228,19 @@ export default function WatchPage() {
 
     const toggleSubtitles = useCallback(() => {
         if (subtitle) setSubtitle(null);
-        else if (movie && (movie.subtitles.length > 0 || localSubs.length > 0)) {
+        else if (video && (video.subtitles.length > 0 || localSubs.length > 0)) {
             const code = localStorage.getItem('prefered-subtitle-lang');
             const filter =
                 lastActiveSubtitleIdRef.current != null
                     ? (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current
                     : (t: SubtitleDTO) => t.language === code;
 
-            const s = movie.subtitles.find(filter) ?? localSubs.find(filter);
+            const s = video.subtitles.find(filter) ?? localSubs.find(filter);
             if (s) setSubtitle(s);
             else if (localSubs.length > 0) setSubtitle(localSubs[0]);
-            else setSubtitle(movie.subtitles[0]);
+            else setSubtitle(video.subtitles[0]);
         }
-    }, [localSubs, movie, subtitle]);
+    }, [localSubs, video, subtitle]);
 
     const changeSubtitle = (s: SubtitleDTO | null) => {
         setSubtitle(s);
@@ -339,12 +341,12 @@ export default function WatchPage() {
     }, [activeVersion, allVersions, id, videoElement]);
 
     const castVideo = useCallback(() => {
-        if (!activeVersion || !movie) return;
-        const subtitles = appendSubtitleName(movie.subtitles);
+        if (!activeVersion || !video) return;
+        const subtitles = appendSubtitleName(video.subtitles);
         player.cast({
             src: activeVersion.streamUrl,
             contentType: activeVersion.mimeType,
-            title: movie.title,
+            title: title,
             subtitles: subtitles.map((s, idx) => ({
                 id: idx,
                 url: s.subtitleUrl,
@@ -353,16 +355,16 @@ export default function WatchPage() {
             })),
             activeSubtitle: subtitles.findIndex((s) => s.id === subtitle?.id),
         });
-    }, [player, activeVersion, movie, subtitle]);
+    }, [player, activeVersion, video, subtitle]);
 
-    if (isLoading || !movie)
+    if (isLoading || !video)
         return (
             <div className="h-screen bg-black flex items-center justify-center text-primary">
                 <Loader2 className="animate-spin" />
             </div>
         );
 
-    const handleChangeResolution = (v: MovieVersionDTO) => {
+    const handleChangeResolution = (v: VideoVersionDTO) => {
         const video = videoElement;
         if (!video) return;
 
@@ -434,7 +436,7 @@ export default function WatchPage() {
                 language: 'local',
                 name: file.name.slice(0, 20),
                 subtitleUrl: blobUrl,
-                movieId: id || '',
+                videoId: video.id || '',
                 createdAt: new Date().toISOString(),
             };
 
@@ -496,7 +498,7 @@ export default function WatchPage() {
                             <ChevronLeft size={24} className="text-white" />
                         </button>
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-none">{movie.title}</h1>
+                            <h1 className="text-white font-bold text-lg leading-none">{title}</h1>
                             {actualVersionForTopBar && actualVersionForTopBar.height ? (
                                 <div className="flex items-center gap-2">
                                     <p className="text-white/40 text-xs font-bold uppercase mt-1">{actualVersionForTopBar.height}p</p>
@@ -517,7 +519,7 @@ export default function WatchPage() {
 
             <PlayerOverlay paused={isScrubbing ? false : player.paused} isBuffering={player.isBuffering} />
 
-            {id && <ResumeNotification movieId={id} videoRef={videoRef} />}
+            {id && <ResumeNotification videoId={video.id} videoRef={videoRef} />}
 
             {/* BOTTOM CONTROLS */}
             <div
@@ -592,7 +594,7 @@ export default function WatchPage() {
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
-                                subtitles={[...movie.subtitles, ...localSubs]}
+                                subtitles={[...video.subtitles, ...localSubs]}
                                 activeSubtitle={subtitle}
                                 setSubtitle={changeSubtitle}
                                 onUploadLocal={() => fileInputRef.current?.click()}

@@ -5,7 +5,7 @@ import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
 import type { MovieDTO } from '@duckflix/shared';
 import { useInfiniteMovies } from '../hooks/useMovies';
 import { useInView } from 'react-intersection-observer';
-import { useGenres } from '../hooks/use-genres';
+import { useMovieGenres } from '../hooks/use-genres';
 
 type OrderType = 'newest' | 'oldest' | 'title' | 'rating';
 
@@ -54,7 +54,7 @@ export default function SearchPage() {
 
     const changeSort = (option: OrderType) => updateParams({ sort: option });
     const changeGenre = (id: string | null) => updateParams({ genre: id });
-    const openDetails = (movie: MovieDTO) => navigate(`/details/${movie.id}`);
+    const openDetails = (movie: MovieDTO) => navigate(`/details/movie/${movie.id}`);
 
     const results = infiniteData?.pages.flatMap((page) => page.data) ?? [];
     const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
@@ -137,7 +137,7 @@ function Filters({
     selectedGenre: string | null;
     setSelectedGenre: (val: string | null) => void;
 }) {
-    const { genres } = useGenres();
+    const { genres } = useMovieGenres();
 
     if (hidden) return null;
 

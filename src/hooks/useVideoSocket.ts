@@ -8,15 +8,15 @@ export interface MovieSocketData {
     progress?: JobProgress | DownloadProgress;
 }
 
-export function useMovieSocket(movieId?: string) {
+export function useVideoSocket(videoId?: string) {
     const [progressMap, setProgressMap] = useState<Map<string, JobProgress>>(new Map());
     const [downloadProgress, setDownloadProgress] = useState<DownloadProgress | null>(null);
 
     useEffect(() => {
-        if (!movieId) return;
+        if (!videoId) return;
         connectSocket();
 
-        socket.emit('movie:join', movieId);
+        socket.emit('video:join', videoId);
 
         socket.on('video:progress', (data: MovieSocketData) => {
             if (data.status === 'downloading') {
@@ -34,10 +34,10 @@ export function useMovieSocket(movieId?: string) {
         });
 
         return () => {
-            socket.emit('movie:leave', movieId);
+            socket.emit('video:leave', videoId);
             socket.off('video:progress');
         };
-    }, [movieId]);
+    }, [videoId]);
 
     return { progressMap, downloadProgress };
 }

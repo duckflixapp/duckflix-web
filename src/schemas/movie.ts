@@ -1,6 +1,7 @@
 import * as z from 'zod';
 
 export const createMovieSchema = z.object({
+    type: z.enum(['movie']),
     dbUrl: z.url('Invalid URL').or(z.literal('')).optional(),
 
     title: z.string().max(255, 'Title is too long').optional(),
@@ -20,7 +21,7 @@ export const createMovieSchema = z.object({
     bannerUrl: z.url('Invalid banner URL').or(z.literal('')).optional(),
     posterUrl: z.url('Invalid poster URL').or(z.literal('')).optional(),
 
-    genreIds: z.array(z.uuid()).optional(),
+    genres: z.array(z.string()).optional(),
 });
 
 export type MovieFormValues = z.infer<typeof createMovieSchema>;
