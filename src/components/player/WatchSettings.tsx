@@ -1,4 +1,4 @@
-import type { MovieVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import type { VideoVersionDTO, SubtitleDTO } from '@duckflix/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMimeExtension } from '../../utils/format';
 import { useEffect, useState } from 'react';
@@ -22,9 +22,9 @@ export function SettingsBox({
 }: {
     isOpen: boolean;
     onClose: () => void;
-    versions: MovieVersionDTO[];
-    activeVersion: MovieVersionDTO | null;
-    onChangeResolution: (v: MovieVersionDTO) => void;
+    versions: VideoVersionDTO[];
+    activeVersion: VideoVersionDTO | null;
+    onChangeResolution: (v: VideoVersionDTO) => void;
     playbackSpeed: number;
     onChangeSpeed: (s: number) => void;
     subtitles: SubtitleDTO[];
