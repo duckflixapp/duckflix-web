@@ -36,7 +36,7 @@ export default function UploadPage() {
         },
     });
 
-    const selectedGenreIds = useWatch({
+    const selectedGenres = useWatch({
         control,
         name: 'genres',
         defaultValue: [],
@@ -52,8 +52,8 @@ export default function UploadPage() {
         const formData = new FormData();
 
         Object.entries(values).forEach(([key, value]) => {
-            if (key === 'genreIds' && Array.isArray(value)) {
-                value.forEach((id) => formData.append('genreIds[]', id));
+            if (key === 'genres' && Array.isArray(value)) {
+                value.forEach((id) => formData.append('genres[]', id));
             } else if (value !== null && value !== undefined && value !== '') {
                 formData.append(key, value.toString());
             }
@@ -160,15 +160,15 @@ export default function UploadPage() {
                                     <div className="flex overflow-scroll gap-3">
                                         {genres &&
                                             genres.map((genre) => {
-                                                const isSelected = selectedGenreIds?.includes(genre.id);
+                                                const isSelected = selectedGenres?.includes(genre.name);
                                                 return (
                                                     <button
                                                         key={genre.id}
                                                         type="button"
                                                         onClick={() => {
                                                             const nextValue = isSelected
-                                                                ? selectedGenreIds?.filter((id) => id !== genre.name)
-                                                                : [...(selectedGenreIds ?? []), genre.name];
+                                                                ? selectedGenres?.filter((g) => g !== genre.name)
+                                                                : [...(selectedGenres ?? []), genre.name];
 
                                                             setValue('genres', nextValue, { shouldValidate: true });
                                                         }}

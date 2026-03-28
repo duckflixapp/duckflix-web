@@ -1,6 +1,6 @@
 import type { MovieDTO } from '@duckflix/shared';
 import { useBestRatedMovies, useInfiniteMovies, useRecentMovies } from '../hooks/useMovies';
-import { Play, Info, Star, UploadCloud, Plus, ShieldAlert, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -265,14 +265,6 @@ function EmptyState({ canUpload, onNavigate }: { canUpload: boolean; onNavigate:
             <div className="flex flex-col items-center justify-center min-h-120 w-full bg-white/2 border border-dashed border-white/10 rounded-[40px] p-12 text-center animate-in fade-in zoom-in-95 duration-500">
                 <div className="relative mb-8">
                     <div className={`absolute inset-0 blur-2xl rounded-full ${canUpload ? 'bg-primary/20' : 'bg-red-500/10'}`} />
-
-                    <div className="relative w-24 h-24 bg-secondary/20 border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl">
-                        {canUpload ? (
-                            <UploadCloud size={48} strokeWidth={1.5} className="text-primary" />
-                        ) : (
-                            <ShieldAlert size={48} strokeWidth={1.5} className="text-red-400" />
-                        )}
-                    </div>
                 </div>
 
                 <div className="max-w-md space-y-3">
@@ -289,10 +281,10 @@ function EmptyState({ canUpload, onNavigate }: { canUpload: boolean; onNavigate:
                 {canUpload ? (
                     <button
                         onClick={onNavigate}
-                        className="mt-10 flex items-center gap-2 px-10 py-4 bg-primary text-background font-semibold rounded-2xl transition-all cursor-pointer"
+                        className="mt-10 flex items-center gap-2 px-8 py-3.5 bg-primary text-background font-semibold rounded-4xl transition-all cursor-pointer shadow-lg shadow-primary/20"
                     >
-                        <Plus size={18} strokeWidth={3} />
-                        UPLOAD
+                        <Plus size={20} strokeWidth={3} />
+                        Upload
                     </button>
                 ) : (
                     <div className="mt-10 px-6 py-2 rounded-xl bg-white/5 border border-white/5 text-[10px] uppercase tracking-[0.2em] font-bold text-white/20">

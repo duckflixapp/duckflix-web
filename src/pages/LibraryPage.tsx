@@ -48,7 +48,7 @@ export default function LibraryPage() {
                     <p className="text-text/40 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Organize your movies</p>
                 </header>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
                     {librariesQuery.isLoading
                         ? Array(4)
                               .fill(0)
@@ -142,7 +142,7 @@ export default function LibraryPage() {
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                     {movies.map((item) => (
                         <MovieCard key={item.movieId} movie={item.movie} onClick={() => navigate(`/details/movie/${item.movie.id}`)} />
                     ))}

@@ -1,19 +1,25 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Loader2 } from 'lucide-react';
 import type { VideoResolved } from '@duckflix/shared';
+import MovieNotFound from '../../components/movies/MovieNotFound';
 
 export default function DetailsResolver() {
     const { id } = useParams<{ id: string }>();
     const { search } = useLocation();
     const navigate = useNavigate();
+    const [notFound, setNotFound] = useState<boolean>(false);
 
     useEffect(() => {
-        api.get<{ content: VideoResolved }>(`/videos/${id}/resolve`).then(({ content }) => {
-            if (content.type === 'movie') navigate(`/details/movie/${content.contentId}${search}`, { replace: true });
-        });
+        api.get<{ content: VideoResolved }>(`/videos/${id}/resolve`)
+            .then(({ content }) => {
+                if (content.type === 'movie') navigate(`/details/movie/${content.contentId}${search}`, { replace: true });
+            })
+            .catch(() => setNotFound(true));
     }, [id, navigate, search]);
+
+    if (notFound) return <MovieNotFound />;
 
     return <Loading />;
 }
