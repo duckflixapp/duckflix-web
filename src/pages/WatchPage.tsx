@@ -272,7 +272,6 @@ export default function WatchPage() {
 
     useEffect(() => {
         if (!videoElement || !activeVersion) return;
-        console.log('trying to play: ', activeVersion, 'on video element:', videoElement);
 
         let hls: Hls | null = null;
 
