@@ -76,7 +76,7 @@ export default function UploadPage() {
             })
             .catch((err) => {
                 const message = err instanceof AxiosError ? err.response?.data.message : undefined;
-                toast('Failed to upload movie', { description: message });
+                toast('Failed to upload video', { description: message });
                 setUploadProgress(null);
             });
 
