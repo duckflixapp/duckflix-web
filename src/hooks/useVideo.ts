@@ -1,9 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { VideoDTO, VideoResolved } from '@duckflix/shared';
 import { AxiosError } from 'axios';
+import { toast } from 'sonner';
 
 export const useVideo = (id: string | undefined) => {
+    const queryClient = useQueryClient();
+
     const query = useQuery({
         queryKey: ['video', id],
         queryFn: async () => {
@@ -17,6 +20,19 @@ export const useVideo = (id: string | undefined) => {
         },
         staleTime: 100,
         enabled: !!id,
+    });
+
+    const deleteVideo = useMutation({
+        mutationFn: async () => await api.delete(`/videos/${id}`),
+        onSuccess: () => {
+            toast.success('Video deleted');
+            queryClient.invalidateQueries({ queryKey: ['video', id] });
+            queryClient.invalidateQueries({ queryKey: ['movie'] });
+        },
+        onError: (err) => {
+            const message = err instanceof AxiosError ? err.response?.data.message : undefined;
+            toast.error('Failed to delete video', { description: message });
+        },
     });
 
     const resolveQuery = useQuery({
@@ -34,5 +50,7 @@ export const useVideo = (id: string | undefined) => {
         isNotFound: query.error instanceof AxiosError && query.error.response?.status === 404,
         videoResolved: resolveQuery.data ?? null,
         videoResolving: resolveQuery.isLoading,
+        deleteVideo: deleteVideo.mutate,
+        isDeletingVideo: deleteVideo.isPending,
     };
 };

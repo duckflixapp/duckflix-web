@@ -1,41 +1,44 @@
 import { useEffect, useRef, useState } from 'react';
-import { X, Film, Subtitles, Settings, Trash2, Plus, Loader2 } from 'lucide-react';
-import type { MovieDetailedDTO, SubtitleDTO, VideoVersionDTO } from '@duckflix/shared';
+import { X, Film, Subtitles, Settings, Trash2, Plus, Loader2, type LucideIcon } from 'lucide-react';
+import type { SubtitleDTO, VideoDTO, VideoVersionDTO } from '@duckflix/shared';
 import { formatBytes, getMimeExtension } from '../../utils/format';
 import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
-import type { MovieUpdateFormValues } from '../../schemas/movie';
 import { appendSubtitleName } from '../../utils/subtitles';
-import { useMovieDetailed } from '../../hooks/useMovieDetailed';
+import { useVideo } from '../../hooks/useVideo';
 
 export type SettingsTab = 'versions' | 'subtitles' | 'details';
-
-const PRESET_HEIGHTS = [480, 720, 1080, 1440, 2160];
-
-const tabs = [
-    { id: 'details', label: 'Details', icon: Settings },
-    { id: 'versions', label: 'Versions', icon: Film },
-    { id: 'subtitles', label: 'Subtitles', icon: Subtitles },
-] as const;
-
-interface Props {
-    movie: MovieDetailedDTO;
-    onClose: () => void;
-    onMovieDeleted: () => void;
-    updateMovie: (data: MovieUpdateFormValues) => void;
-    isUpdating: boolean;
-    initialTab?: SettingsTab;
+export interface Tab {
+    id: SettingsTab;
+    label: string;
+    icon: LucideIcon;
 }
 
-export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie, isUpdating, initialTab }: Props) {
+const TABS = [
+    { id: 'versions' as const, label: 'Versions', icon: Film },
+    { id: 'subtitles' as const, label: 'Subtitles', icon: Subtitles },
+];
+const PRESET_HEIGHTS = [480, 720, 1080, 1440, 2160];
+
+interface Props {
+    video: VideoDTO;
+    title: string;
+    onClose?: () => void;
+    onDelete?: () => void;
+    initialTab?: SettingsTab;
+    detailsTab?: React.ReactNode;
+    deleteLabel?: string;
+}
+export function VideoSettingsModal({ video, title, onClose, onDelete, initialTab, detailsTab, deleteLabel = 'Delete' }: Props) {
+    const tabs = [detailsTab && { id: 'details' as const, label: 'Details', icon: Settings }, ...TABS].filter((t) => !!t) satisfies Tab[];
     const [tab, setTab] = useState<SettingsTab>(initialTab ?? 'details');
 
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
-    const { versions, isLoadingVersions, addVersion, deleteVersion } = useVideoVersions(movie.videoId);
-    const { deleteMovie, isDeletingMovie } = useMovieDetailed(movie.id);
+    const { deleteVideo, isDeletingVideo: isDeleting } = useVideo(video.id);
+    const { versions, isLoadingVersions, addVersion, deleteVersion } = useVideoVersions(video.id);
 
     const existingHeights = new Set(
         versions
@@ -45,12 +48,12 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
     const original = versions.find((v) => v.isOriginal);
     const availablePresets = PRESET_HEIGHTS.filter((h) => h <= (original?.height ?? 0) && !existingHeights.has(h));
 
-    const handleDeleteMovie = () => {
+    const handleDelete = () => {
         if (!confirmDelete) {
             setConfirmDelete(true);
             return;
         }
-        deleteMovie(undefined, { onSuccess: onMovieDeleted });
+        deleteVideo(undefined, { onSuccess: onDelete });
     };
 
     useEffect(() => {
@@ -88,8 +91,8 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                     {/* sidebar */}
                     <div className="w-56 shrink-0 border-r border-white/5 p-4 flex flex-col gap-1">
                         <div className="px-3 py-4 mb-2">
-                            <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold">Movie Settings</p>
-                            <p className="text-white font-semibold text-sm mt-1 truncate">{movie.title}</p>
+                            <p className="text-[10px] uppercase tracking-[0.2em] text-white/20 font-bold">Settings</p>
+                            <p className="text-white font-semibold text-sm mt-1 truncate">{title}</p>
                         </div>
 
                         {tabs.map(({ id, label, icon: Icon }) => (
@@ -110,16 +113,16 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                         <div className="mt-auto pt-4 border-t border-white/5">
                             <button
                                 ref={deleteButtonRef}
-                                onClick={handleDeleteMovie}
-                                disabled={isDeletingMovie}
+                                onClick={handleDelete}
+                                disabled={isDeleting}
                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-3xl text-sm transition-all cursor-pointer ${
                                     confirmDelete
                                         ? 'bg-red-500/20 text-red-400 border border-red-500/30'
                                         : 'text-red-400/60 hover:text-red-400 hover:bg-red-500/10'
                                 }`}
                             >
-                                {isDeletingMovie ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                {confirmDelete ? 'Confirm Delete' : 'Delete Movie'}
+                                {isDeleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                {confirmDelete ? 'Confirm Delete' : deleteLabel}
                             </button>
                         </div>
                     </div>
@@ -150,8 +153,8 @@ export function MovieSettingsModal({ movie, onClose, onMovieDeleted, updateMovie
                                         onDelete={deleteVersion}
                                     />
                                 )}
-                                {tab === 'subtitles' && <SubtitlesTab subtitles={movie.video.subtitles} movieId={movie.id} />}
-                                {tab === 'details' && <DetailsTab movie={movie} onUpdate={updateMovie} isUpdating={isUpdating} />}
+                                {tab === 'subtitles' && <SubtitlesTab subtitles={video.subtitles} />}
+                                {tab === 'details' && detailsTab}
                             </motion.div>
                         </AnimatePresence>
                     </div>
@@ -273,128 +276,14 @@ function VersionsTab({
         </div>
     );
 }
-function DetailsTab({
-    movie,
-    onUpdate,
-    isUpdating,
-}: {
-    movie: MovieDetailedDTO;
-    onUpdate: (data: MovieUpdateFormValues) => void;
-    isUpdating: boolean;
-}) {
-    const [form, setForm] = useState({
-        title: movie.title ?? '',
-        overview: movie.overview ?? '',
-        releaseYear: movie.releaseYear?.toString() ?? '',
-        bannerUrl: movie.bannerUrl ?? '',
-        posterUrl: movie.posterUrl ?? '',
-    });
 
-    const isDirty =
-        form.title !== (movie.title ?? '') ||
-        form.overview !== (movie.overview ?? '') ||
-        form.releaseYear !== (movie.releaseYear?.toString() ?? '') ||
-        form.bannerUrl !== (movie.bannerUrl ?? '') ||
-        form.posterUrl !== (movie.posterUrl ?? '');
-
-    const handleSubmit = (e: React.SubmitEvent) => {
-        e.preventDefault();
-        onUpdate({
-            title: form.title || undefined,
-            overview: form.overview || null,
-            releaseYear: form.releaseYear ? Number(form.releaseYear) : null,
-            bannerUrl: form.bannerUrl || null,
-            posterUrl: form.posterUrl || null,
-            genres: null,
-        });
-    };
-
-    const inputClass =
-        'w-full bg-white/3 border border-white/6 rounded-3xl px-4 py-3 text-xs text-text/75 outline-none transition-all focus:border-primary/50 placeholder:text-white/20';
-
-    return (
-        <div className="space-y-6">
-            <div>
-                <h2 className="text-white font-bold text-lg">Details</h2>
-                <p className="text-white/40 text-xs mt-1">Edit movie metadata.</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Title</label>
-                        <input
-                            className={inputClass}
-                            value={form.title}
-                            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                            placeholder="Movie title"
-                        />
-                    </div>
-
-                    <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Overview</label>
-                        <textarea
-                            className={`${inputClass} resize-none h-24`}
-                            value={form.overview}
-                            onChange={(e) => setForm((p) => ({ ...p, overview: e.target.value }))}
-                            placeholder="Movie overview"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Release Year</label>
-                        <input
-                            className={inputClass}
-                            type="number"
-                            value={form.releaseYear}
-                            onChange={(e) => setForm((p) => ({ ...p, releaseYear: e.target.value }))}
-                            placeholder="2024"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Banner URL</label>
-                        <input
-                            className={inputClass}
-                            value={form.bannerUrl}
-                            onChange={(e) => setForm((p) => ({ ...p, bannerUrl: e.target.value }))}
-                            placeholder="https://..."
-                        />
-                    </div>
-
-                    <div className="col-span-2 flex flex-col gap-1.5">
-                        <label className="text-[10px] uppercase tracking-[0.15em] text-white/30 font-bold">Poster URL</label>
-                        <input
-                            className={inputClass}
-                            value={form.posterUrl}
-                            onChange={(e) => setForm((p) => ({ ...p, posterUrl: e.target.value }))}
-                            placeholder="https://..."
-                        />
-                    </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                    <button
-                        type="submit"
-                        disabled={isUpdating || !isDirty}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary/80 text-background text-sm font-medium rounded-3xl transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                        {isUpdating && <Loader2 size={14} className="animate-spin" />}
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
-    );
-}
-
-function SubtitlesTab({ subtitles: _subtitles }: { subtitles: SubtitleDTO[]; movieId: string }) {
+function SubtitlesTab({ subtitles: _subtitles }: { subtitles: SubtitleDTO[] }) {
     const subtitles = appendSubtitleName(_subtitles);
     return (
         <div className="space-y-6">
             <div>
                 <h2 className="text-white font-bold text-lg">Subtitles</h2>
-                <p className="text-white/40 text-xs mt-1">Manage subtitles for this movie.</p>
+                <p className="text-white/40 text-xs mt-1">Manage subtitles for this video.</p>
             </div>
             {subtitles.length === 0 ? (
                 <p className="text-white/20 text-sm italic py-4">No subtitles available</p>

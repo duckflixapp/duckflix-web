@@ -52,19 +52,6 @@ export const useMovieDetailed = (id: string | undefined) => {
         },
     });
 
-    const deleteMovie = useMutation({
-        mutationFn: async () => await api.delete(`/movies/${id}`),
-        onSuccess: () => {
-            toast.success('Movie deleted');
-            queryClient.invalidateQueries({ queryKey: ['movie', id] });
-            queryClient.invalidateQueries({ queryKey: ['movie', 'featured'] });
-        },
-        onError: (err) => {
-            const message = err instanceof AxiosError ? err.response?.data.message : undefined;
-            toast.error('Failed to delete movie', { description: message });
-        },
-    });
-
     return {
         movie: query.data,
         isNotFound: query.error instanceof AxiosError && query.error.response?.status === 404,
@@ -72,8 +59,6 @@ export const useMovieDetailed = (id: string | undefined) => {
         refresh: query.refetch,
         updateMovie: updateMovie.mutate,
         isUpdating: updateMovie.isPending,
-        deleteMovie: deleteMovie.mutate,
-        isDeletingMovie: deleteMovie.isPending,
     };
 };
 

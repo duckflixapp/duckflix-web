@@ -12,10 +12,11 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useLibrary } from '../../hooks/useLibrary';
-import { MovieSettingsModal, type SettingsTab } from '../../components/movies/MovieSettingsModal';
+import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
 import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { MovieError } from '../../components/movies/MovieError';
 import MovieNotFound from '../../components/movies/MovieNotFound';
+import { MovieDetailsTab } from '../../components/video-settings/VideoSettingsMovieDetails';
 
 const getTagFromVersions = (versions: VideoVersionDTO[]) => {
     if (versions.length == 0) return null;
@@ -30,7 +31,7 @@ const getTagFromVersions = (versions: VideoVersionDTO[]) => {
     return 'SD';
 };
 
-export default function DetailsPage() {
+export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -260,13 +261,14 @@ export default function DetailsPage() {
                 </div>
             </div>
             {showSettings && (
-                <MovieSettingsModal
-                    movie={movie}
-                    updateMovie={updateMovie}
-                    isUpdating={isUpdating}
+                <VideoSettingsModal
+                    video={video}
+                    title={movie.title}
                     onClose={() => setShowSettings(false)}
-                    onMovieDeleted={() => navigate('/browse')}
+                    onDelete={() => navigate('/browse')}
+                    deleteLabel="Delete Movie"
                     initialTab={initialTab ?? undefined}
+                    detailsTab={<MovieDetailsTab movie={movie} onUpdate={updateMovie} isUpdating={isUpdating} />}
                 />
             )}
         </div>

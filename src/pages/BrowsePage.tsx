@@ -1,4 +1,4 @@
-import type { MovieDTO } from '@duckflix/shared';
+import type { MovieDTO, VideoType } from '@duckflix/shared';
 import { useBestRatedMovies, useInfiniteMovies, useRecentMovies } from '../hooks/useMovies';
 import { Play, Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -26,8 +26,8 @@ export default function BrowsePage() {
 
     const { ref, inView } = useInView();
 
-    const openDetails = (movie: MovieDTO) => navigate(`/details/movie/${movie.id}`);
-    const openWatch = (movie: MovieDTO) => navigate(`/watch/${movie.videoId}`);
+    const openDetails = (type: VideoType, id: string) => navigate(`/details/${type}/${id}`);
+    const openWatch = (videoId: string) => navigate(`/watch/${videoId}`);
 
     useEffect(() => {
         if (inView && hasNextPage) {
@@ -75,7 +75,7 @@ export default function BrowsePage() {
 
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {allMovies.map((movie) => (
-                                <MovieCard key={movie.id} movie={movie} onClick={() => openDetails(movie)} />
+                                <MovieCard key={movie.id} movie={movie} onClick={() => openDetails('movie', movie.id)} />
                             ))}
 
                             {isFetchingNextPage &&
@@ -102,7 +102,7 @@ function MovieListSection({
     movies: MovieDTO[];
 
     loading: boolean;
-    onOpenDetails: (movie: MovieDTO) => void;
+    onOpenDetails: (type: VideoType, id: string) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -156,7 +156,7 @@ function MovieList({
 }: {
     loading: boolean;
     movies: MovieDTO[];
-    onOpenDetails: (movie: MovieDTO) => void;
+    onOpenDetails: (type: VideoType, id: string) => void;
 }) {
     if (isLoading)
         return Array(12)
@@ -165,7 +165,7 @@ function MovieList({
 
     return movies.map((movie) => (
         <div key={movie.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
-            <MovieCard movie={movie} onClick={() => openDetails(movie)} />
+            <MovieCard movie={movie} onClick={() => openDetails('movie', movie.id)} />
         </div>
     ));
 }
@@ -178,8 +178,8 @@ export function HeroSection({
 }: {
     loading: boolean;
     movie: MovieDTO | null;
-    onOpenDetails: (movie: MovieDTO) => void;
-    onOpenWatch: (movie: MovieDTO) => void;
+    onOpenDetails: (type: VideoType, id: string) => void;
+    onOpenWatch: (videoId: string) => void;
 }) {
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
@@ -213,14 +213,14 @@ export function HeroSection({
                     <div className="flex flex-wrap gap-4">
                         {canPlay && (
                             <button
-                                onClick={() => openWatch(movie)}
+                                onClick={() => openWatch(movie.videoId)}
                                 className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-4xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
                             >
                                 <Play size={20} fill="currentColor" /> <span>Play Now</span>
                             </button>
                         )}
                         <button
-                            onClick={() => openDetails(movie)}
+                            onClick={() => openDetails('movie', movie.id)}
                             className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-4xl font-medium transition-all cursor-pointer"
                         >
                             <Info size={20} /> Details

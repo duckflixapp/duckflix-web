@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import type { MovieDTO, PaginatedResponse } from '@duckflix/shared';
+import type { MovieDTO, PaginatedResponse, VideoType } from '@duckflix/shared';
 import { api } from '../../lib/api';
 import { NotificationBox } from './Notifications';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
@@ -97,9 +97,9 @@ function SearchBar() {
         setShowResults(false);
     };
 
-    const openDetails = (movie: MovieDTO) => {
+    const openDetails = (type: VideoType, id: string) => {
         inputRef.current?.blur();
-        navigate(`/details/movie/${movie.id}`);
+        navigate(`/details/${type}/${id}`);
         setShowResults(false);
     };
 
@@ -143,7 +143,7 @@ function SearchBar() {
                 results={results}
                 moreResults={results.length < totalResults}
                 onExternalSearch={externalSearch}
-                onOpenMovie={openDetails}
+                onOpenDetails={openDetails}
             />
         </div>
     );
@@ -154,13 +154,13 @@ function SearchResultBox({
     moreResults,
     hidden: isHidden,
     onExternalSearch: externalSearch,
-    onOpenMovie: openMovie,
+    onOpenDetails: openDetails,
 }: {
     results: MovieDTO[];
     moreResults: boolean;
     hidden: boolean;
     onExternalSearch: () => unknown;
-    onOpenMovie: (movie: MovieDTO) => unknown;
+    onOpenDetails: (type: VideoType, id: string) => unknown;
 }) {
     if (isHidden) return null;
 
@@ -182,7 +182,7 @@ function SearchResultBox({
                         <div
                             key={movie.id}
                             className="p-2 hover:bg-white/5 rounded-2xl cursor-pointer flex items-center gap-4 group transition-all"
-                            onClick={() => openMovie(movie)}
+                            onClick={() => openDetails('movie', movie.id)}
                         >
                             <div className="relative w-12 h-12 bg-secondary/20 rounded-lg overflow-hidden shrink-0 border border-white/5">
                                 {movie.posterUrl ? (
