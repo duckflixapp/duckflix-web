@@ -292,7 +292,7 @@ export default function WatchPage() {
                 maxMaxBufferLength: 48,
                 startFragPrefetch: false,
                 autoStartLoad: true,
-                capLevelToPlayerSize: true,
+                capLevelToPlayerSize: false,
                 startLevel: -1,
                 abrEwmaDefaultEstimate: 5000000,
             });
@@ -311,6 +311,7 @@ export default function WatchPage() {
             hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
                 setRequestedHlsLevel('auto');
                 setHlsLevels(data.levels);
+
                 const firstUrl = data.levels[0]?.url[0] ?? '';
                 const session = new URL(firstUrl, window.location.origin).searchParams.get('session');
 
@@ -340,6 +341,58 @@ export default function WatchPage() {
         };
     }, [activeVersion, allVersions, id, videoElement]);
 
+    const handleChangeResolution = useCallback(
+        (v: VideoVersionDTO) => {
+            const video = videoElement;
+            if (!video) return;
+
+            const isAuto = v.id === 'auto' || v.height === 0;
+            const isHlsVersion = v.mimeType === 'application/x-mpegURL';
+
+            if (hlsRef.current && (isAuto || isHlsVersion)) {
+                if (isAuto) {
+                    hlsRef.current.currentLevel = -1;
+                    setRequestedHlsLevel('auto');
+                } else {
+                    const idx = hlsLevels.findIndex((l) => l.height === v.height);
+                    if (idx !== -1) {
+                        hlsRef.current.currentLevel = idx;
+                        setRequestedHlsLevel(idx);
+                    }
+                }
+                return;
+            }
+
+            if (isAuto) {
+                setManualVersion(null);
+                return;
+            }
+
+            const t = video.currentTime;
+            const wasPlaying = !video.paused;
+
+            const onLoaded = () => {
+                video.currentTime = t;
+                if (wasPlaying) {
+                    video.play().catch((e) => console.error('Auto-play failed:', e));
+                }
+                video.removeEventListener('loadedmetadata', onLoaded);
+            };
+
+            video.addEventListener('loadedmetadata', onLoaded);
+            setManualVersion(v);
+        },
+        [hlsLevels, videoElement]
+    );
+
+    useEffect(() => {
+        if (!availableVersions.length) return;
+
+        // Pick best Ready version as default
+        const readyVersion = availableVersions.find((v) => v.streamUrl.includes('/media/stream/'));
+        if (readyVersion) handleChangeResolution(readyVersion);
+    }, [availableVersions, handleChangeResolution]);
+
     const castVideo = useCallback(() => {
         if (!activeVersion || !video) return;
         const subtitles = appendSubtitleName(video.subtitles);
@@ -363,47 +416,6 @@ export default function WatchPage() {
                 <Loader2 className="animate-spin" />
             </div>
         );
-
-    const handleChangeResolution = (v: VideoVersionDTO) => {
-        const video = videoElement;
-        if (!video) return;
-
-        const isAuto = v.id === 'auto' || v.height === 0;
-        const isHlsVersion = v.mimeType === 'application/x-mpegURL';
-
-        if (hlsRef.current && (isAuto || isHlsVersion)) {
-            if (isAuto) {
-                hlsRef.current.currentLevel = -1;
-                setRequestedHlsLevel('auto');
-            } else {
-                const idx = hlsLevels.findIndex((l) => l.height === v.height);
-                if (idx !== -1) {
-                    hlsRef.current.currentLevel = idx;
-                    setRequestedHlsLevel(idx);
-                }
-            }
-            return;
-        }
-
-        if (isAuto) {
-            setManualVersion(null);
-            return;
-        }
-
-        const t = video.currentTime;
-        const wasPlaying = !video.paused;
-
-        const onLoaded = () => {
-            video.currentTime = t;
-            if (wasPlaying) {
-                video.play().catch((e) => console.error('Auto-play failed:', e));
-            }
-            video.removeEventListener('loadedmetadata', onLoaded);
-        };
-
-        video.addEventListener('loadedmetadata', onLoaded);
-        setManualVersion(v);
-    };
 
     const handleLocalSubtitleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
