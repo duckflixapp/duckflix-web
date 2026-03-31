@@ -109,7 +109,7 @@ function NotificationItem({ notification: n, mark }: { notification: Notificatio
 
     const handleClick = () => {
         mark();
-        if (n.videoId) navigate(`/details/${n.videoId}${n.videoId ? '?settings=versions&version=' + n.videoVerId : ''}`);
+        if (n.videoId) navigate(`/details/${n.videoId}${n.videoVerId ? '?settings=versions&version=' + n.videoVerId : ''}`);
     };
 
     return (
