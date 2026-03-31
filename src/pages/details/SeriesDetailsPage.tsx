@@ -1,17 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Calendar, ChevronLeft, Layers } from 'lucide-react';
 import { useSeriesDetailed } from '../../hooks/useSeriesDetailed';
-import { useState } from 'react';
 
 import type { SeriesGenreDTO } from '@duckflix/shared';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import WatchlistButton from '../../components/buttons/WatchlistButton';
+import VideoOverview from '../../components/details/VideoOverview';
 
 export default function SeriesDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [showDescription, setShowDesc] = useState<boolean>(false);
 
     const { series, isLoading, isNotFound } = useSeriesDetailed(id);
 
@@ -92,20 +91,8 @@ export default function SeriesDetailsPage() {
             <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 {/* Left Column: Details */}
                 <div className="lg:col-span-2 space-y-12">
-                    {/* 1. Overview */}
-                    {series.overview && (
-                        <div>
-                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Overview</h3>
-                            <p
-                                onClick={() => setShowDesc((prev) => !prev)}
-                                className={`text-text/70 w-full text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-3'}`}
-                            >
-                                {series.overview}
-                            </p>
-                        </div>
-                    )}
+                    <VideoOverview title={'Series Overview'} overview={series.overview} />
 
-                    {/* 3. Genres */}
                     {!!series.genres.length && (
                         <div>
                             <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Genres</h3>

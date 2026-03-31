@@ -1,16 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Calendar, ChevronLeft, Clock } from 'lucide-react';
-import { useState } from 'react';
 
 import { useSeasonDetailed } from '../../hooks/useSeasonDetails';
 import type { EpisodeMinDTO } from '@duckflix/shared';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
+import VideoOverview from '../../components/details/VideoOverview';
 
 export default function SeasonDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    const [showDescription, setShowDesc] = useState<boolean>(false);
 
     const { season, isLoading, isNotFound } = useSeasonDetailed(id);
 
@@ -82,17 +81,7 @@ export default function SeasonDetailsPage() {
             {/* Content Section */}
             <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-8">
-                    {season.overview && (
-                        <div className="mb-10">
-                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Season Overview</h3>
-                            <p
-                                onClick={() => setShowDesc((prev) => !prev)}
-                                className={`text-text/70 w-full text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-3'}`}
-                            >
-                                {season.overview}
-                            </p>
-                        </div>
-                    )}
+                    <VideoOverview title={'Season Overview'} overview={season.overview} />
 
                     <div>
                         <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-6 flex items-center gap-2">

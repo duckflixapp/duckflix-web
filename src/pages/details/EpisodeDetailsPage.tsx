@@ -16,14 +16,13 @@ import { VideoError } from '../../components/details/VideoError';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import { EpisodeDetailsTab } from '../../components/video-settings/VideoSettingsEpisodeDetails';
 import PlayButton from '../../components/buttons/PlayButton';
+import VideoOverview from '../../components/details/VideoOverview';
 
 export default function EpisodeDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
     const auth = useAuthContext();
-
-    const [showDescription, setShowDesc] = useState<boolean>(false);
 
     const { episode, isNotFound, isLoading } = useEpisodeDetailed(id);
     const { versions } = useVideoVersions(episode?.videoId);
@@ -129,17 +128,7 @@ export default function EpisodeDetailsPage() {
             {/* Content Section */}
             <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
-                    {episode.overview && (
-                        <div>
-                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Episode Overview</h3>
-                            <p
-                                onClick={() => setShowDesc(!showDescription)}
-                                className={`text-text/70 text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-4'}`}
-                            >
-                                {episode.overview}
-                            </p>
-                        </div>
-                    )}
+                    <VideoOverview title={'Episode Overview'} overview={episode.overview} />
                 </div>
 
                 <DetailsSidebar

@@ -16,13 +16,13 @@ import { DetailsSidebar } from '../../components/details/DetailsSidebar';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import WatchlistButton from '../../components/buttons/WatchlistButton';
 import PlayButton from '../../components/buttons/PlayButton';
+import VideoOverview from '../../components/details/VideoOverview';
 
 export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const auth = useAuthContext();
-    const [showDescription, setShowDesc] = useState<boolean>(false);
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
     const { versions } = useVideoVersions(movie?.videoId);
     const navigate = useNavigate();
@@ -153,19 +153,7 @@ export default function MovieDetailsPage() {
 
             <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
-                    {movie.overview && (
-                        <div>
-                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Overview</h3>
-                            <div className="flex flex-wrap gap-3">
-                                <p
-                                    onClick={() => setShowDesc((prev) => !prev)}
-                                    className={`text-text/70 w-full text-sm leading-relaxed cursor-pointer ${!showDescription && 'line-clamp-3'}`}
-                                >
-                                    {movie.overview}
-                                </p>
-                            </div>
-                        </div>
-                    )}
+                    <VideoOverview title={'Movie Overview'} overview={movie.overview} />
                     {!!movie.genres.length && (
                         <div>
                             <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Genres</h3>
