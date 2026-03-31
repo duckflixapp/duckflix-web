@@ -20,6 +20,9 @@ import AdminSystemPage from './pages/admin/SystemPage';
 import AdminUsersPage from './pages/admin/UsersPage';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import AdminOverviewPage from './pages/admin/OverviewPage';
+import SeriesDetailsPage from './pages/details/SeriesDetailsPage';
+import SeriesSeasonDetailsPage from './pages/details/SeriesSeasonDetailsPage';
+import EpisodeDetailsPage from './pages/details/EpisodeDetailsPage';
 
 function App() {
     return (
@@ -58,6 +61,9 @@ function App() {
                             <Route path="/search" element={<SearchPage />} />
                             <Route path="/details/:id" element={<DetailsResolver />} />
                             <Route path="/details/movie/:id" element={<MovieDetailsPage />} />
+                            <Route path="/details/series/:id" element={<SeriesDetailsPage />} />
+                            <Route path="/details/season/:id" element={<SeriesSeasonDetailsPage />} />
+                            <Route path="/details/episode/:id" element={<EpisodeDetailsPage />} />
 
                             {/* Contributor Only */}
                             <Route element={<ContributorRoute />}>

@@ -1,35 +1,21 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Play, Star, Clock, Calendar, ChevronLeft, Bookmark, X, Settings } from 'lucide-react';
+import { Star, Clock, Calendar, ChevronLeft, Settings } from 'lucide-react';
 import { useMovieDetailed } from '../../hooks/useMovieDetailed';
-import type { JobProgress, VideoVersionDTO } from '@duckflix/shared';
-import { formatBytes, getQualityLabel } from '../../utils/format';
 import { useEffect, useState } from 'react';
-import { useVideoSocket } from '../../hooks/useVideoSocket';
-import { MovieDownloadProgress } from '../../components/movies/MovieDownloading';
-import { MovieProcessing } from '../../components/movies/MovieProcessing';
-import { api } from '../../lib/api';
-import { toast } from 'sonner';
-import { AxiosError } from 'axios';
+import { VideoDownloadProgress } from '../../components/details/VideoDownloadProgress';
+import { VideoProcessing } from '../../components/details/VideoProcessing';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useLibrary } from '../../hooks/useLibrary';
 import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
 import { useVideoVersions } from '../../hooks/useVideoVersions';
-import { MovieError } from '../../components/movies/MovieError';
-import MovieNotFound from '../../components/movies/MovieNotFound';
+import { VideoError } from '../../components/details/VideoError';
 import { MovieDetailsTab } from '../../components/video-settings/VideoSettingsMovieDetails';
-
-const getTagFromVersions = (versions: VideoVersionDTO[]) => {
-    if (versions.length == 0) return null;
-
-    const highest: number = versions.reduce((max, { height }) => (height > max ? height : max), -1);
-
-    if (highest >= 4320) return '8K Ultra HD';
-    if (highest >= 2160) return '4K Ultra HD';
-    if (highest >= 1440) return '2K QHD';
-    if (highest >= 1080) return 'Full HD';
-    if (highest >= 720) return 'HD';
-    return 'SD';
-};
+import { getTagFromVersions } from '../../utils/video';
+import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
+import { DetailsSidebar } from '../../components/details/DetailsSidebar';
+import VideoNotFound from '../../components/details/VideoNotFound';
+import WatchlistButton from '../../components/buttons/WatchlistButton';
+import PlayButton from '../../components/buttons/PlayButton';
 
 export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -40,7 +26,6 @@ export default function MovieDetailsPage() {
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
     const { versions } = useVideoVersions(movie?.videoId);
     const navigate = useNavigate();
-    const { downloadProgress, progressMap } = useVideoSocket(movie?.videoId);
     const { addMovie, removeMovie } = useLibrary();
     const settingsParam = searchParams.get('settings');
     const [showSettings, setShowSettings] = useState(!!settingsParam);
@@ -64,16 +49,8 @@ export default function MovieDetailsPage() {
         }
     }, [setSearchParams, settingsParam]);
 
-    const killJob = (verId: string) => {
-        api.delete(`/tasks/movies/${verId}/kill`).catch((err) => {
-            let message;
-            if (err instanceof AxiosError) message = err.response?.data.message;
-            toast('Error, Job kill failed', { description: message });
-        });
-    };
-
     if (isLoading) return <DetailsSkeleton />;
-    if (isNotFound) return <MovieNotFound />;
+    if (isNotFound) return <VideoNotFound />;
     if (!movie) return null;
 
     const video = movie.video;
@@ -93,11 +70,13 @@ export default function MovieDetailsPage() {
     };
 
     const status = movie.video.status;
-    if (status === 'downloading') return <MovieDownloadProgress title={movie.title} progress={downloadProgress} />;
 
-    if (status === 'processing') return <MovieProcessing movie={movie} />;
-
-    if (status !== 'ready') return <MovieError movie={movie} />;
+    if (status === 'downloading') return <VideoDownloadProgress title={movie.title} videoId={movie.videoId} />;
+    if (status === 'processing') {
+        const originalVersion = movie.video.versions.find((v) => v.isOriginal) ?? null;
+        return <VideoProcessing title={movie.title} originalVersion={originalVersion} />;
+    }
+    if (status !== 'ready') return <VideoError title={movie.title} video={movie.video} />;
 
     const canPlay = movie.video.versions.length > 0;
 
@@ -153,7 +132,7 @@ export default function MovieDetailsPage() {
                                 </div>
                             )}
                             {tag && (
-                                <span className="px-2 py-0.5 border border-white/20 rounded-xl text-[10px] uppercase tracking-widest text-white/40">
+                                <span className="px-2.5 py-1 border border-white/20 rounded-2xl text-[10px] uppercase tracking-widest text-white/40">
                                     {tag}
                                 </span>
                             )}
@@ -164,29 +143,15 @@ export default function MovieDetailsPage() {
                         </h1>
 
                         <div className="flex flex-wrap gap-4 pt-4">
-                            {canPlay && (
-                                <button
-                                    onClick={() => navigate(`/watch/${movie.videoId}`)}
-                                    className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-primary hover:bg-primary/90 text-background font-bold rounded-4xl transition-all shadow-[0_0_30px_rgba(var(--primary-rgb),0.3)]"
-                                >
-                                    <Play size={20} fill="currentColor" />
-                                    PLAY NOW
-                                </button>
-                            )}
+                            {canPlay && <PlayButton videoId={movie.videoId} />}
 
-                            <button
-                                onClick={handleToWatchlist}
-                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
-                            >
-                                <Bookmark size={20} fill={movie.inUserLibrary ? 'white' : 'transparent'} />
-                                Watchlist
-                            </button>
+                            <WatchlistButton onClick={handleToWatchlist} isActive={movie.inUserLibrary ?? false} />
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
+            <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
                     {movie.overview && (
                         <div>
@@ -201,11 +166,11 @@ export default function MovieDetailsPage() {
                             </div>
                         </div>
                     )}
-                    <div>
-                        <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Genres</h3>
-                        <div className="flex flex-wrap gap-3">
-                            {movie.genres &&
-                                movie.genres.map((genre) => (
+                    {!!movie.genres.length && (
+                        <div>
+                            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Genres</h3>
+                            <div className="flex flex-wrap gap-3">
+                                {movie.genres.map((genre) => (
                                     <span
                                         onClick={() => navigate('/search?genre=' + encodeURIComponent(genre.id))}
                                         key={genre.id}
@@ -215,50 +180,20 @@ export default function MovieDetailsPage() {
                                         <span className="relative z-10 uppercase tracking-wider text-[12px]">{genre.name}</span>
                                     </span>
                                 ))}
-                        </div>
-                    </div>
-                    <div>
-                        <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
-                        <div className="flex flex-wrap gap-3"></div>
-                    </div>
-                </div>
-
-                <div className="space-y-8 h-fit">
-                    {uploader && !uploader.system && (
-                        <div>
-                            <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
-                            <div className="flex items-center gap-3">
-                                <p className="text-white font-medium">{uploader.name}</p>
-
-                                <span
-                                    className={`text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider ${
-                                        uploader.role === 'admin'
-                                            ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                                            : uploader.role === 'contributor'
-                                              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                              : 'bg-white/5 text-white/40 border border-white/10'
-                                    }`}
-                                >
-                                    {uploader.role}
-                                </span>
                             </div>
                         </div>
                     )}
-                    <div>
-                        <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Available Qualities</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {availableVersions.map((v) => (
-                                <VersionBadge
-                                    key={v.id}
-                                    v={v}
-                                    activeProgress={progressMap.get(v.id)}
-                                    canCancel={auth?.hasRole('contributor') ?? false}
-                                    cancelJob={killJob}
-                                />
-                            ))}
-                        </div>
-                    </div>
+                    {/* <div>
+                        <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
+                        <div className="flex flex-wrap gap-3"></div>
+                    </div> */}
                 </div>
+                <DetailsSidebar
+                    videoId={video.id}
+                    availableVersions={availableVersions}
+                    uploader={uploader}
+                    isContributor={auth?.hasRole('contributor') ?? false}
+                />
             </div>
             {showSettings && (
                 <VideoSettingsModal
@@ -271,95 +206,6 @@ export default function MovieDetailsPage() {
                     detailsTab={<MovieDetailsTab movie={movie} onUpdate={updateMovie} isUpdating={isUpdating} />}
                 />
             )}
-        </div>
-    );
-}
-
-function VersionBadge({
-    v,
-    activeProgress,
-    cancelJob,
-    canCancel,
-}: {
-    v: VideoVersionDTO;
-    activeProgress?: JobProgress;
-    canCancel: boolean;
-    cancelJob: (verId: string) => unknown;
-}) {
-    const isProcessing = v.status === 'processing';
-    const percent = activeProgress?.progress ?? 0;
-    const isActivelyUpdating = !!activeProgress;
-
-    const rawExt = v.mimeType?.split('/')[1] || '';
-    const ext = rawExt.replace('x-', '').replace('msvideo', 'avi').replace('matroska', 'mkv').slice(0, 3);
-
-    if (!isProcessing) {
-        return (
-            <div className="flex items-center gap-2 bg-white/3 border border-white/5 rounded-2xl px-3 py-2 hover:border-white/10 transition-all group">
-                <span className="text-[11px] font-bold text-text/60 group-hover:text-text/90">
-                    {getQualityLabel(v.width ?? 0, v.height)}
-                </span>
-                <span className="text-[9px] text-white/20 font-black uppercase tracking-tighter">{ext}</span>
-                <div className="w-px h-3 bg-white/10 mx-0.5" />
-                <span className="text-[10px] text-text/30 font-medium group-hover:text-text/40">
-                    {v.fileSize ? formatBytes(v.fileSize, 0) : 'N/A'}
-                </span>
-            </div>
-        );
-    }
-
-    return (
-        <div className="w-full relative bg-primary/5 border border-primary/20 rounded-3xl p-4 overflow-hidden group/card">
-            <div className="absolute inset-0 bg-linear-to-r from-transparent via-primary/5 to-transparent -translate-x-full group-hover/card:animate-[shimmer_2s_infinite] pointer-events-none" />
-
-            <div className="relative z-10 flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center bg-primary/10 rounded-xl w-10 aspect-square">
-                        <span className="text-xs font-black text-primary uppercase">{getQualityLabel(v.width ?? 0, v.height, true)}</span>
-                    </div>
-                    <div className="flex flex-col min-w-0 flex-1">
-                        <p className="text-xs font-bold text-white/80 leading-none truncate">Processing</p>
-                        <p className="text-[9px] text-white/30 font-medium mt-1 uppercase tracking-wider truncate">
-                            {ext} • {v.height}p
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-1">
-                    <div className="text-right">
-                        <span className="font-bold text-sm text-primary">{isActivelyUpdating ? `${Math.floor(percent)}%` : 'waiting'}</span>
-                    </div>
-
-                    {canCancel && (
-                        <button
-                            onClick={() => cancelJob(v.id)}
-                            className="flex items-center justify-center rounded-lg h-6.5 hover:bg-primary/10 text-white transition-all group-hover/card:w-6.5 w-0 overflow-hidden duration-200 cursor-pointer"
-                            title="Cancel process"
-                        >
-                            <X size={14} strokeWidth={3} />
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                <div
-                    className="absolute h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_12px_rgba(var(--primary-rgb),0.5)]"
-                    style={{ width: `${isActivelyUpdating ? percent : 0}%` }}
-                />
-            </div>
-        </div>
-    );
-}
-
-function DetailsSkeleton() {
-    return (
-        <div className="min-h-screen bg-background animate-pulse">
-            <div className="h-[70vh] bg-white/5 w-full" />
-            <div className="p-16 space-y-4">
-                <div className="h-10 bg-white/5 w-1/3 rounded-lg" />
-                <div className="h-6 bg-white/5 w-1/2 rounded-lg" />
-            </div>
         </div>
     );
 }

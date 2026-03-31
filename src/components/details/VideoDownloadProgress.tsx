@@ -1,7 +1,9 @@
 import { Loader2, Users, Antenna } from 'lucide-react';
-import type { DownloadProgress } from '@duckflix/shared';
+import { useVideoSocket } from '../../hooks/useVideoSocket';
 
-export function MovieDownloadProgress({ title, progress }: { title: string; progress: DownloadProgress | null }) {
+export function VideoDownloadProgress({ title, videoId }: { title: string; videoId: string }) {
+    const { downloadProgress: progress } = useVideoSocket(videoId);
+
     const percent = progress?.percent ?? 0;
 
     return (

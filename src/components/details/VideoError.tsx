@@ -1,14 +1,15 @@
-import type { MovieDetailedDTO } from '@duckflix/shared';
+import type { VideoMinDTO } from '@duckflix/shared';
 import { ChevronLeft, Loader2, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { useMovieDetailed } from '../../hooks/useMovieDetailed';
+import { useVideo } from '../../hooks/useVideo';
 
-export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
+export function VideoError({ title, video }: { title: string; video: VideoMinDTO }) {
     const navigate = useNavigate();
     const auth = useAuthContext();
-    const { deleteMovie, isDeletingMovie } = useMovieDetailed(movie.id);
+    const { deleteVideo, isDeletingVideo } = useVideo(video.id);
+
     const [confirmDelete, setConfirmDelete] = useState(false);
     const deleteButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -29,10 +30,10 @@ export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
                 <X size={32} className="text-red-400" />
             </div>
             <div className="space-y-2">
-                <h1 className="text-2xl font-black text-white">{movie.title}</h1>
-                <p className="text-white/40 text-sm">This movie encountered an error and cannot be played.</p>
+                <h1 className="text-2xl font-black text-white">{title}</h1>
+                <p className="text-white/40 text-sm">This video encountered an error and cannot be played.</p>
                 <span className="inline-block mt-2 text-[10px] px-3 py-1 rounded-2xl uppercase font-bold tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
-                    {movie.video.status}
+                    {video.status}
                 </span>
             </div>
             <div className="flex items-center gap-3">
@@ -51,17 +52,17 @@ export function MovieError({ movie }: { movie: MovieDetailedDTO }) {
                                 setConfirmDelete(true);
                                 return;
                             }
-                            deleteMovie(undefined, { onSuccess: () => navigate('/browse') });
+                            deleteVideo(undefined, { onSuccess: () => navigate('/browse') });
                         }}
-                        disabled={isDeletingMovie}
+                        disabled={isDeletingVideo}
                         className={`flex items-center gap-2 px-6 py-3 text-sm font-medium rounded-3xl transition-all cursor-pointer border ${
                             confirmDelete
                                 ? 'bg-red-500/20 text-red-400 border-red-500/30'
                                 : 'bg-white/5 hover:bg-red-500/10 border-white/10 text-red-400 hover:border-red-500/30'
                         }`}
                     >
-                        {isDeletingMovie ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                        {confirmDelete ? 'Confirm Delete' : 'Delete Movie'}
+                        {isDeletingVideo ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                        {confirmDelete ? 'Confirm Delete' : 'Delete Video'}
                     </button>
                 )}
             </div>

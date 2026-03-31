@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Loader2 } from 'lucide-react';
 import type { VideoResolved } from '@duckflix/shared';
-import MovieNotFound from '../../components/movies/MovieNotFound';
+import MovieNotFound from '../../components/details/VideoNotFound';
 
 export default function DetailsResolver() {
     const { id } = useParams<{ id: string }>();
@@ -15,6 +15,7 @@ export default function DetailsResolver() {
         api.get<{ content: VideoResolved }>(`/videos/${id}/resolve`)
             .then(({ content }) => {
                 if (content.type === 'movie') navigate(`/details/movie/${content.id}${search}`, { replace: true });
+                if (content.type === 'episode') navigate(`/details/episode/${content.id}${search}`, { replace: true });
             })
             .catch(() => setNotFound(true));
     }, [id, navigate, search]);

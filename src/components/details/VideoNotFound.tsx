@@ -1,7 +1,7 @@
 import { ChevronLeft, Film } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-export default function MovieNotFound() {
+export default function VideoNotFound() {
     const navigate = useNavigate();
     return (
         <div className="h-full flex flex-col items-center justify-center gap-6">
@@ -9,8 +9,8 @@ export default function MovieNotFound() {
                 <Film size={32} className="text-[#ccc]" />
             </div>
             <div className="text-center space-y-2">
-                <h1 className="text-2xl font-black text-white">Movie not found</h1>
-                <p className="text-white/40 text-sm">This movie doesn't exist or has been deleted.</p>
+                <h1 className="text-2xl font-black text-white">Video not found</h1>
+                <p className="text-white/40 text-sm">This video doesn't exist or has been deleted.</p>
             </div>
             <button
                 onClick={() => navigate('/browse')}

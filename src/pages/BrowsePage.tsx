@@ -1,12 +1,13 @@
 import type { MovieDTO, VideoType } from '@duckflix/shared';
 import { useBestRatedMovies, useInfiniteMovies, useRecentMovies } from '../hooks/useMovies';
-import { Play, Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useInView } from 'react-intersection-observer';
 import { useEffect, useRef } from 'react';
 import { useFeaturedMovie } from '../hooks/useMovieDetailed';
+import PlayButton from '../components/buttons/PlayButton';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;
 
@@ -27,7 +28,6 @@ export default function BrowsePage() {
     const { ref, inView } = useInView();
 
     const openDetails = (type: VideoType, id: string) => navigate(`/details/${type}/${id}`);
-    const openWatch = (videoId: string) => navigate(`/watch/${videoId}`);
 
     useEffect(() => {
         if (inView && hasNextPage) {
@@ -48,7 +48,7 @@ export default function BrowsePage() {
             {!hasMovies && !moviesLoading && (
                 <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />
             )}
-            <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} onOpenWatch={openWatch} />
+            <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} />
             {hasMovies && (
                 <div className="flex flex-col px-8 py-12 gap-8">
                     {recentMovies && recentMovies.length > 0 && (
@@ -174,12 +174,10 @@ export function HeroSection({
     loading: isLoading,
     movie,
     onOpenDetails: openDetails,
-    onOpenWatch: openWatch,
 }: {
     loading: boolean;
     movie: MovieDTO | null;
     onOpenDetails: (type: VideoType, id: string) => void;
-    onOpenWatch: (videoId: string) => void;
 }) {
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
@@ -211,14 +209,7 @@ export function HeroSection({
                     </div>
 
                     <div className="flex flex-wrap gap-4">
-                        {canPlay && (
-                            <button
-                                onClick={() => openWatch(movie.videoId)}
-                                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background px-8 py-3.5 rounded-4xl font-bold transition-all transform cursor-pointer shadow-lg shadow-primary/20"
-                            >
-                                <Play size={20} fill="currentColor" /> <span>Play Now</span>
-                            </button>
-                        )}
+                        {canPlay && <PlayButton videoId={movie.videoId} />}
                         <button
                             onClick={() => openDetails('movie', movie.id)}
                             className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-4xl font-medium transition-all cursor-pointer"
