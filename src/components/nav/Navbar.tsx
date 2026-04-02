@@ -1,12 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import type { MovieDTO, PaginatedResponse, VideoType } from '@duckflix/shared';
-import { api } from '../../lib/api';
+import { useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import type { SearchResultDTO } from '@duckflix/shared';
 import { NotificationBox } from './Notifications';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { fetchUnified } from '../../hooks/useSearch';
+import { useDebounce } from 'use-debounce';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -54,42 +55,33 @@ export default function Navbar() {
 
 function SearchBar() {
     const [search, setSearch] = useState('');
-    const [results, setResults] = useState<MovieDTO[]>([]);
+    const [results, setResults] = useState<SearchResultDTO[]>([]);
     const [totalResults, setTotalResults] = useState<number>(0);
-    const [showResults, setShowResults] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const [showResults, setShowResults] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const searchContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
-
-    const searchMovies = useCallback(async (query: string) => {
-        if (query.length > 0) {
-            setLoading(true);
-            setShowResults(true);
-            api.get<PaginatedResponse<MovieDTO>>('/movies/', {
-                params: {
-                    limit: 5,
-                    search: query,
-                },
-            }).then((result) => {
-                setLoading(false);
-                setShowResults(true);
-                setResults(result.data);
-                setTotalResults(result.meta.totalItems);
-            });
-        } else {
-            setResults([]);
-            setShowResults(false);
-        }
-    }, []);
+    const [debouncedSearch] = useDebounce(search, 350);
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            searchMovies(search.trim());
-        }, 350);
-
-        return () => clearTimeout(timer);
-    }, [searchMovies, search]);
+        const fetch = async () => {
+            if (debouncedSearch.length > 0) {
+                setLoading(true);
+                setShowResults(true);
+                const query = await fetchUnified({ limit: 5, q: debouncedSearch.trim() });
+                setLoading(false);
+                setShowResults(true);
+                setResults(query.data);
+                setTotalResults(query.meta.totalItems);
+            } else {
+                setResults([]);
+                setShowResults(false);
+            }
+        };
+        fetch();
+    }, [debouncedSearch]);
 
     const externalSearch = () => {
         inputRef.current?.blur();
@@ -97,7 +89,7 @@ function SearchBar() {
         setShowResults(false);
     };
 
-    const openDetails = (type: VideoType, id: string) => {
+    const openDetails = (type: string, id: string) => {
         inputRef.current?.blur();
         navigate(`/details/${type}/${id}`);
         setShowResults(false);
@@ -128,7 +120,7 @@ function SearchBar() {
                         onFocus={onFocus}
                         type="search"
                         className="border-0 outline-0 pr-8 text-[13px] w-52 md:w-72 lg:w-96 bg-transparent text-text"
-                        placeholder="Search movies..."
+                        placeholder="Search movies and series..."
                     />
                     {loading && (
                         <div className="absolute right-3 animate-in fade-in duration-300">
@@ -156,11 +148,11 @@ function SearchResultBox({
     onExternalSearch: externalSearch,
     onOpenDetails: openDetails,
 }: {
-    results: MovieDTO[];
+    results: SearchResultDTO[];
     moreResults: boolean;
     hidden: boolean;
     onExternalSearch: () => unknown;
-    onOpenDetails: (type: VideoType, id: string) => unknown;
+    onOpenDetails: (type: string, id: string) => unknown;
 }) {
     if (isHidden) return null;
 
@@ -178,18 +170,18 @@ function SearchResultBox({
                 </div>
             ) : (
                 <div className="p-2 flex flex-col gap-1">
-                    {results.map((movie) => (
+                    {results.map((result) => (
                         <div
-                            key={movie.id}
+                            key={result.id}
                             className="p-2 hover:bg-white/5 rounded-2xl cursor-pointer flex items-center gap-4 group transition-all"
-                            onClick={() => openDetails('movie', movie.id)}
+                            onClick={() => openDetails(result.type, result.id)}
                         >
                             <div className="relative w-12 h-12 bg-secondary/20 rounded-lg overflow-hidden shrink-0 border border-white/5">
-                                {movie.posterUrl ? (
+                                {result.image ? (
                                     <img
-                                        src={movie.posterUrl}
+                                        src={result.image}
                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                        alt=""
+                                        alt={result.title}
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-text/20">
@@ -198,14 +190,9 @@ function SearchResultBox({
                                 )}
                             </div>
                             <div className="flex flex-col flex-1 gap-1 min-w-0">
-                                <span className="font-bold text-[13px] text-text/90 transition-colors truncate">{movie.title}</span>
+                                <span className="font-bold text-[13px] text-text/90 transition-colors truncate">{result.title}</span>
                                 <div className="flex items-center gap-2 text-[10px] text-text/40 font-medium tracking-tight">
-                                    <span className="text-text/60 bg-white/5 px-1.5 py-0.5 rounded">{movie.releaseYear}</span>
-                                    {movie.duration && (
-                                        <span>
-                                            {Math.floor(movie.duration / 3600)}h {Math.ceil(movie.duration / 60) % 60}m
-                                        </span>
-                                    )}
+                                    <span className="text-text/60 bg-white/5 px-1.5 py-0.5 rounded">{result.release}</span>
                                 </div>
                             </div>
                             <div className="pr-2">

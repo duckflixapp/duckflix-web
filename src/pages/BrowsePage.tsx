@@ -1,33 +1,34 @@
-import type { MovieDTO, VideoType } from '@duckflix/shared';
-import { useBestRatedMovies, useInfiniteMovies, useRecentMovies } from '../hooks/useMovies';
+import type { MovieDTO, SearchResultDTO, VideoType } from '@duckflix/shared';
 import { Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { MovieCard } from '../components/movies/MovieCard';
 import { useAuthContext } from '../contexts/AuthContext';
 import { useInView } from 'react-intersection-observer';
 import { useEffect, useRef } from 'react';
 import { useFeaturedMovie } from '../hooks/useMovieDetailed';
 import PlayButton from '../components/buttons/PlayButton';
+import { useBestRatedUnified, useInfiniteSearch, useRecentUnified } from '../hooks/useSearch';
+import { SearchCard } from '../components/search/SearchCard';
+import { capitalize } from '../utils/string';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;
 
 export default function BrowsePage() {
     const { movie: heroMovie } = useFeaturedMovie();
-    const { data: recentMovies, isLoading: recentLoading } = useRecentMovies({ page: 1, limit: 12 });
-    const { data: bestRatedMovies, isLoading: bestRatedLoading } = useBestRatedMovies({ page: 1, limit: 12 });
+    const { data: recent, isLoading: recentLoading } = useRecentUnified(12);
+    const { data: bestRated, isLoading: bestRatedLoading } = useBestRatedUnified(12);
     const {
         data: infiniteData,
         isLoading: allLoading,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
-    } = useInfiniteMovies({ limit: 20, orderBy: 'title' });
+    } = useInfiniteSearch({ limit: 20, sort: ['title', 'asc'] });
     const auth = useAuthContext();
     const navigate = useNavigate();
 
     const { ref, inView } = useInView();
 
-    const openDetails = (type: VideoType, id: string) => navigate(`/details/${type}/${id}`);
+    const openDetails = (type: string, id: string) => navigate(`/details/${type}/${id}`);
 
     useEffect(() => {
         if (inView && hasNextPage) {
@@ -35,9 +36,9 @@ export default function BrowsePage() {
         }
     }, [inView, fetchNextPage, hasNextPage]);
 
-    const moviesLoading = allLoading || recentLoading || bestRatedLoading;
-    const allMovies = infiniteData?.pages.flatMap((page) => page.data) ?? [];
-    const hasMovies = allMovies.length > 0;
+    const loading = allLoading || recentLoading || bestRatedLoading;
+    const allUnified = infiniteData?.pages.flatMap((page) => page.data) ?? [];
+    const hasContent = allUnified.length > 0;
 
     return (
         <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full">
@@ -45,27 +46,17 @@ export default function BrowsePage() {
                 className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
                 style={{ animationDuration: '8s' }}
             />
-            {!hasMovies && !moviesLoading && (
+            {!hasContent && !loading && (
                 <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />
             )}
             <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} />
-            {hasMovies && (
+            {hasContent && (
                 <div className="flex flex-col px-8 py-12 gap-8">
-                    {recentMovies && recentMovies.length > 0 && (
-                        <MovieListSection
-                            title="Recently Added"
-                            movies={recentMovies}
-                            loading={recentLoading}
-                            onOpenDetails={openDetails}
-                        />
+                    {recent && recent.length > 0 && (
+                        <ResultListSection title="Recently Added" results={recent} loading={recentLoading} onOpenDetails={openDetails} />
                     )}
-                    {(bestRatedLoading || (bestRatedMovies && bestRatedMovies.length >= SHOW_BEST_RATED_THRESHOLD)) && (
-                        <MovieListSection
-                            title="Best Rated"
-                            movies={bestRatedMovies}
-                            loading={bestRatedLoading}
-                            onOpenDetails={openDetails}
-                        />
+                    {(bestRatedLoading || (bestRated && bestRated.length >= SHOW_BEST_RATED_THRESHOLD)) && (
+                        <ResultListSection title="Best Rated" results={bestRated} loading={bestRatedLoading} onOpenDetails={openDetails} />
                     )}
                     <section className="relative z-10">
                         <div className="flex flex-col gap-1 mb-8">
@@ -74,8 +65,8 @@ export default function BrowsePage() {
                         </div>
 
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
-                            {allMovies.map((movie) => (
-                                <MovieCard key={movie.id} movie={movie} onClick={() => openDetails('movie', movie.id)} />
+                            {allUnified.map((result) => (
+                                <SearchCard key={result.id} result={result} onClick={() => openDetails(result.type, result.id)} />
                             ))}
 
                             {isFetchingNextPage &&
@@ -92,17 +83,16 @@ export default function BrowsePage() {
     );
 }
 
-function MovieListSection({
+function ResultListSection({
     title,
-    movies,
+    results,
     loading: isLoading,
     onOpenDetails: openDetails,
 }: {
     title: string;
-    movies: MovieDTO[];
-
+    results: SearchResultDTO[];
     loading: boolean;
-    onOpenDetails: (type: VideoType, id: string) => void;
+    onOpenDetails: (type: string, id: string) => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -134,7 +124,7 @@ function MovieListSection({
                     ref={scrollRef}
                     className="flex gap-4 overflow-x-auto pb-6 pt-2 px-2 custom-scrollbar snap-x snap-mandatory scroll-smooth"
                 >
-                    <MovieList loading={isLoading} movies={movies} onOpenDetails={openDetails} />
+                    <ResultList loading={isLoading} results={results} onOpenDetails={openDetails} />
                 </div>
                 <button
                     onClick={() => scroll('right')}
@@ -149,23 +139,23 @@ function MovieListSection({
     );
 }
 
-function MovieList({
+function ResultList({
     loading: isLoading,
-    movies,
+    results,
     onOpenDetails: openDetails,
 }: {
     loading: boolean;
-    movies: MovieDTO[];
-    onOpenDetails: (type: VideoType, id: string) => void;
+    results: SearchResultDTO[];
+    onOpenDetails: (type: string, id: string) => void;
 }) {
     if (isLoading)
         return Array(12)
             .fill(0)
             .map((_, i) => <MovieSkeleton key={i} />);
 
-    return movies.map((movie) => (
-        <div key={movie.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
-            <MovieCard movie={movie} onClick={() => openDetails('movie', movie.id)} />
+    return results.map((result) => (
+        <div key={result.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
+            <SearchCard result={result} onClick={() => openDetails(result.type, result.id)} />
         </div>
     ));
 }
@@ -181,7 +171,7 @@ export function HeroSection({
 }) {
     if (isLoading) return <HeroSkeleton />;
     if (!movie) return null;
-    const canPlay = movie.duration && movie.video.status == 'ready';
+    const canPlay = movie.runtime && movie.video.status == 'ready';
     return (
         <section className="relative w-full aspect-21/9 min-h-120 max-h-screen px-8 pt-6 z-10">
             <div className="relative w-full h-full rounded-4xl overflow-hidden shadow-2xl border border-white/5">
@@ -200,7 +190,7 @@ export function HeroSection({
                         {movie.genres.map((genre) => (
                             <span
                                 key={genre.id}
-                                title={genre.id}
+                                title={capitalize(genre.name)}
                                 className="px-3 py-1.5 rounded-2xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
                             >
                                 {genre.name}

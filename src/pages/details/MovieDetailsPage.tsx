@@ -123,11 +123,11 @@ export default function MovieDetailsPage() {
                                     <span>{movie.releaseYear}</span>
                                 </div>
                             )}
-                            {movie.duration && (
+                            {movie.runtime && (
                                 <div className="flex items-center gap-1.5 text-text/60">
                                     <Clock size={16} />
                                     <span>
-                                        {Math.floor(movie.duration / 3600)}h {Math.ceil(movie.duration / 60) % 60}m
+                                        {Math.floor(movie.runtime / 3600)}h {Math.ceil(movie.runtime / 60) % 60}m
                                     </span>
                                 </div>
                             )}
@@ -160,7 +160,7 @@ export default function MovieDetailsPage() {
                             <div className="flex flex-wrap gap-3">
                                 {movie.genres.map((genre) => (
                                     <span
-                                        onClick={() => navigate('/search?genre=' + encodeURIComponent(genre.id))}
+                                        onClick={() => navigate('/search?genres=' + encodeURIComponent(genre.name.toLowerCase()))}
                                         key={genre.id}
                                         className="group relative px-5 py-2 bg-white/3 border border-white/10 rounded-3xl text-sm font-medium text-text/70 transition-all duration-300 hover:border-primary/50 hover:text-primary cursor-pointer overflow-hidden"
                                     >

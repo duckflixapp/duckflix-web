@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLibrary } from '../hooks/useLibrary';
-import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
+import { MovieCard, CardSkeleton } from '../components/movies/MovieCard';
 import { Library, ArrowLeft, Loader2, ClockFading, Plus, Trash2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import CreateLibraryModal from '../components/library/CreateLibraryModal';
@@ -150,7 +150,7 @@ export default function LibraryPage() {
                     {(isInitialLoading || libraryMovies.isFetchingNextPage) &&
                         Array(6)
                             .fill(0)
-                            .map((_, i) => <MovieCardSkeleton key={`skeleton-${i}`} />)}
+                            .map((_, i) => <CardSkeleton key={`skeleton-${i}`} />)}
                 </div>
             )}
 

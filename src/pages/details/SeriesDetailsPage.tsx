@@ -23,7 +23,7 @@ export default function SeriesDetailsPage() {
     const handleToWatchlist = () => {};
 
     const openSeasonDetails = (seasonId: string) => navigate(`/details/season/${seasonId}`);
-    const handleGenreClick = (genre: SeriesGenreDTO) => navigate('/search?genre=' + encodeURIComponent(genre.id));
+    const handleGenreClick = (genre: SeriesGenreDTO) => navigate('/search?genres=' + encodeURIComponent(genre.name));
     const handleGoBack = () => navigate('/browse');
 
     return (

@@ -1,10 +1,10 @@
-import type { MovieMinDTO } from '@duckflix/shared';
+import type { SearchResultDTO } from '@duckflix/shared';
 import { useState } from 'react';
 
-export function MovieCard({ movie, onClick: handleClick }: { movie: MovieMinDTO; onClick?: () => unknown }) {
+export function SearchCard({ result, onClick: handleClick }: { result: SearchResultDTO; onClick?: () => unknown }) {
     const [imgError, setImgError] = useState(false);
 
-    const showPlaceholder = !movie.posterUrl || imgError;
+    const showPlaceholder = !result.image || imgError;
 
     return (
         <div className="group/movie-card cursor-pointer relative transition-all duration-300" onClick={handleClick}>
@@ -15,8 +15,8 @@ export function MovieCard({ movie, onClick: handleClick }: { movie: MovieMinDTO;
             >
                 {!showPlaceholder ? (
                     <img
-                        src={movie.posterUrl!}
-                        alt={movie.title}
+                        src={result.image!}
+                        alt={result.title}
                         loading="lazy"
                         decoding="async"
                         onError={() => setImgError(true)}
@@ -33,23 +33,9 @@ export function MovieCard({ movie, onClick: handleClick }: { movie: MovieMinDTO;
 
             <div className="px-1">
                 <h3 className="font-bold text-sm truncate text-text/90 group-hover/movie-card:text-primary transition-colors duration-300">
-                    {movie.title}
+                    {result.title}
                 </h3>
-                {movie.releaseYear && (
-                    <p className="text-[10px] font-black text-text/30 uppercase tracking-widest mt-0.5">{movie.releaseYear}</p>
-                )}
-            </div>
-        </div>
-    );
-}
-
-export function CardSkeleton() {
-    return (
-        <div className="animate-pulse">
-            <div className="aspect-2/3 w-full bg-white/5 rounded-2xl mb-3 border border-white/5 shadow-lg" />
-            <div className="space-y-2 px-1">
-                <div className="h-3 w-3/4 bg-white/10 rounded-full" />
-                <div className="h-2 w-1/4 bg-white/5 rounded-full" />
+                {result.release && <p className="text-[10px] font-black text-text/30 uppercase tracking-widest mt-0.5">{result.release}</p>}
             </div>
         </div>
     );

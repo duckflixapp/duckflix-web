@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { SlidersHorizontal, Film, Clock, CalendarDays, ArrowDownAz, Star } from 'lucide-react';
-import { MovieCard, MovieCardSkeleton } from '../components/movies/MovieCard';
-import type { MovieDTO } from '@duckflix/shared';
-import { useInfiniteMovies } from '../hooks/useMovies';
+import { SlidersHorizontal, Film, Clock, ArrowDownAz, Star, CalendarArrowDown } from 'lucide-react';
+import { CardSkeleton } from '../components/movies/MovieCard';
+import type { SearchResultDTO } from '@duckflix/shared';
 import { useInView } from 'react-intersection-observer';
 import { useMovieGenres } from '../hooks/use-genres';
-
-type OrderType = 'newest' | 'oldest' | 'title' | 'rating';
+import { useInfiniteSearch, type SortField, type SortOrder } from '../hooks/useSearch';
+import { SearchCard } from '../components/search/SearchCard';
 
 const countFilters = (...args: (unknown | undefined | null)[]): number => {
     return args.reduce<number>((p, val) => p + (val != null && val != undefined ? 1 : 0), 0);
@@ -18,11 +17,11 @@ export default function SearchPage() {
     const [showFilters, setShowFilters] = useState<boolean>();
     const navigate = useNavigate();
 
-    const query = searchParams.get('query') || '';
-    const sortBy = (searchParams.get('sort') as OrderType) || 'newest';
-    const selectedGenre = searchParams.get('genre') || null;
+    const query = searchParams.get('query') ?? '';
+    const sort = (searchParams.get('sort')?.split(',').filter(Boolean) as [SortField, SortOrder]) ?? null;
+    const selectedGenres = searchParams.get('genres')?.split(',').filter(Boolean) ?? [];
 
-    const filtersCount = countFilters(selectedGenre);
+    const filtersCount = countFilters(...selectedGenres);
 
     const {
         data: infiniteData,
@@ -30,7 +29,7 @@ export default function SearchPage() {
         hasNextPage,
         isFetchingNextPage,
         isLoading,
-    } = useInfiniteMovies({ limit: 12, search: query, orderBy: sortBy, genreId: selectedGenre ?? undefined });
+    } = useInfiniteSearch({ limit: 20, q: query, sort, genres: selectedGenres });
 
     const { ref, inView } = useInView();
 
@@ -52,9 +51,9 @@ export default function SearchPage() {
         setSearchParams(newParams);
     };
 
-    const changeSort = (option: OrderType) => updateParams({ sort: option });
-    const changeGenre = (id: string | null) => updateParams({ genre: id });
-    const openDetails = (movie: MovieDTO) => navigate(`/details/movie/${movie.id}`);
+    const changeSort = (sort: string) => updateParams({ sort: sort ?? null });
+    const changeGenres = (genres: string[]) => updateParams({ genres: genres.filter(Boolean).join(',') });
+    const openDetails = (result: SearchResultDTO) => navigate(`/details/${result.type}/${result.id}`);
 
     const results = infiniteData?.pages.flatMap((page) => page.data) ?? [];
     const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
@@ -68,7 +67,7 @@ export default function SearchPage() {
                     <div className="w-full flex flex-col md:flex-row md:items-center justify-start md:justify-between md:gap-6 border-b border-white/5 pb-4">
                         <div className="w-full max-w-2xl">
                             <h1 className="text-3xl font-bold font-poppins text-text mb-2">Search Library</h1>
-                            <p className="text-text/40 text-sm mb-6">Find movies, collections, and more in your database.</p>
+                            <p className="text-text/40 text-sm mb-6">Find movies and series in your database.</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <div className="hidden md:flex items-center gap-2 mr-4 border-r border-white/10 pr-4">
@@ -88,10 +87,10 @@ export default function SearchPage() {
                     </div>
                     <Filters
                         hidden={!showFilters}
-                        sortBy={sortBy}
+                        sort={sort}
                         changeSort={changeSort}
-                        selectedGenre={selectedGenre}
-                        setSelectedGenre={changeGenre}
+                        selectedGenres={selectedGenres}
+                        setSelectedGenres={changeGenres}
                     />
                 </div>
                 {isLoading && results.length === 0 ? (
@@ -99,20 +98,20 @@ export default function SearchPage() {
                         {Array(10)
                             .fill(0)
                             .map((_, i) => (
-                                <MovieCardSkeleton key={i} />
+                                <CardSkeleton key={i} />
                             ))}
                     </div>
                 ) : results.length > 0 ? (
                     <div className="space-y-12">
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-                            {results.map((movie) => (
-                                <MovieCard key={movie.id} movie={movie} onClick={() => openDetails(movie)} />
+                            {results.map((result) => (
+                                <SearchCard key={result.id} result={result} onClick={() => openDetails(result)} />
                             ))}
 
                             {isFetchingNextPage &&
                                 Array(6)
                                     .fill(0)
-                                    .map((_, i) => <MovieCardSkeleton key={`loading-${i}`} />)}
+                                    .map((_, i) => <CardSkeleton key={`loading-${i}`} />)}
                         </div>
                         <div ref={ref} className="h-20 w-full" />
                     </div>
@@ -124,29 +123,32 @@ export default function SearchPage() {
     );
 }
 
+const sortOptions = [
+    { id: 'date,desc', label: 'Latest Added', icon: Clock },
+    { id: 'title,asc', label: 'Alphabetical', icon: ArrowDownAz },
+    { id: 'rating,desc', label: 'Best Rated', icon: Star },
+    { id: 'release,desc', label: 'Released Year', icon: CalendarArrowDown },
+] as const;
+
 function Filters({
     hidden,
-    sortBy,
+    sort,
     changeSort,
-    selectedGenre,
-    setSelectedGenre,
+    selectedGenres,
+    setSelectedGenres,
 }: {
     hidden: boolean;
-    sortBy: OrderType;
-    changeSort: (val: OrderType) => void;
-    selectedGenre: string | null;
-    setSelectedGenre: (val: string | null) => void;
+    sort: [SortField, SortOrder] | null;
+    changeSort: (sort: string) => void;
+    selectedGenres: string[];
+    setSelectedGenres: (val: string[]) => void;
 }) {
     const { genres } = useMovieGenres();
 
     if (hidden) return null;
 
-    const sortOptions = [
-        { id: 'newest', label: 'Latest Added', icon: Clock },
-        { id: 'oldest', label: 'Oldest Added', icon: CalendarDays },
-        { id: 'title', label: 'Alphabetical', icon: ArrowDownAz },
-        { id: 'rating', label: 'Best Rated', icon: Star },
-    ] as const;
+    const handleGenreClick = (genre: string) =>
+        setSelectedGenres(selectedGenres.includes(genre) ? selectedGenres.filter((g) => g !== genre) : [...selectedGenres, genre]);
 
     return (
         <div className="flex flex-col gap-4 p-6 bg-white/2 border border-white/5 rounded-2xl animate-in fade-in slide-in-from-top-2">
@@ -158,7 +160,7 @@ function Filters({
                             key={id}
                             onClick={() => changeSort(id)}
                             className={`flex items-center flex-nowrap gap-2 px-4 py-2 rounded-full text-xs transition-all border snap-start ${
-                                sortBy === id
+                                sort?.join(',') == id
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-secondary/10 text-text/60 border-white/5 hover:bg-secondary/20'
                             }`}
@@ -176,9 +178,9 @@ function Filters({
                     {genres?.map((genre) => (
                         <button
                             key={genre.id}
-                            onClick={() => setSelectedGenre(selectedGenre === genre.id ? null : genre.id)}
+                            onClick={() => handleGenreClick(genre.name)}
                             className={`flex-none px-4 py-2 rounded-full text-xs transition-all border snap-start ${
-                                selectedGenre === genre.id
+                                selectedGenres.includes(genre.name)
                                     ? 'bg-primary text-background border-primary'
                                     : 'bg-secondary/10 text-text/60 border-white/5 hover:bg-secondary/20'
                             }`}
