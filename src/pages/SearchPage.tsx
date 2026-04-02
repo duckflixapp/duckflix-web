@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, Film, Clock, ArrowDownAz, Star, CalendarArrowDown } from 'lucide-react';
-import { CardSkeleton } from '../components/movies/MovieCard';
+import { CardSkeleton } from '../components/content/ContentCard';
 import { useInView } from 'react-intersection-observer';
 import { useMovieGenres } from '../hooks/use-genres';
 import { useInfiniteSearch, type SortField, type SortOrder } from '../hooks/useSearch';
-import { ContentCard } from '../components/search/ContentCard';
+import { ContentCard } from '../components/content/ContentCard';
 import type { ContentDTO } from '@duckflix/shared';
 
 const countFilters = (...args: (unknown | undefined | null)[]): number => {

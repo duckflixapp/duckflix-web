@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { useFeaturedMovie } from '../hooks/useMovieDetailed';
 import PlayButton from '../components/buttons/PlayButton';
 import { useBestRatedUnified, useInfiniteSearch, useRecentUnified } from '../hooks/useSearch';
-import { ContentCard } from '../components/search/ContentCard';
+import { ContentCard } from '../components/content/ContentCard';
 import { capitalize } from '../utils/string';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;

@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLibrary } from '../hooks/useLibrary';
-import { CardSkeleton } from '../components/movies/MovieCard';
+import { CardSkeleton } from '../components/content/ContentCard';
 import { Library, ArrowLeft, Loader2, ClockFading, Plus, Trash2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import CreateLibraryModal from '../components/library/CreateLibraryModal';
-import { ContentCard } from '../components/search/ContentCard';
+import { ContentCard } from '../components/content/ContentCard';
 
 export default function LibraryPage() {
     const [searchParams, setSearchParams] = useSearchParams();
