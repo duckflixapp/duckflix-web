@@ -1,13 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
 import { useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import type { SearchResultDTO } from '@duckflix/shared';
 import { NotificationBox } from './Notifications';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchUnified } from '../../hooks/useSearch';
 import { useDebounce } from 'use-debounce';
+import type { ContentDTO } from '@duckflix/shared';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -55,7 +55,7 @@ export default function Navbar() {
 
 function SearchBar() {
     const [search, setSearch] = useState('');
-    const [results, setResults] = useState<SearchResultDTO[]>([]);
+    const [results, setResults] = useState<ContentDTO[]>([]);
     const [totalResults, setTotalResults] = useState<number>(0);
     const [loading, setLoading] = useState(false);
 
@@ -148,7 +148,7 @@ function SearchResultBox({
     onExternalSearch: externalSearch,
     onOpenDetails: openDetails,
 }: {
-    results: SearchResultDTO[];
+    results: ContentDTO[];
     moreResults: boolean;
     hidden: boolean;
     onExternalSearch: () => unknown;

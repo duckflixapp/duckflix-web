@@ -9,9 +9,11 @@ export const libraryApi = {
     getLibrary: (id: string) => api.get<{ library: LibraryDTO }>(`/library/${id}`),
     removeLibrary: (id: string) => api.delete<void>(`/library/${id}`),
 
-    getLibraryMovies: (id: string) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${id}/movies`),
-    addMovie: (libId: string, movieId: string) => api.post<void>(`/library/${libId}/movies/${movieId}`),
-    removeMovie: (libId: string, movieId: string) => api.delete<void>(`/library/${libId}/movies/${movieId}`),
+    getLibraryItems: (id: string) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${id}/items`),
+    addContent: (libId: string, contentId: string, contentType: string) =>
+        api.post<void>(`/library/${libId}/items/${contentId}?type=${contentType}`),
+    removeContent: (libId: string, contentId: string, contentType: string) =>
+        api.delete<void>(`/library/${libId}/items/${contentId}?type=${contentType}`),
 };
 
 export const useLibrary = (libraryId?: string) => {
@@ -30,9 +32,9 @@ export const useLibrary = (libraryId?: string) => {
         enabled: !!libraryId,
     });
 
-    const libraryMovies = useInfiniteQuery({
-        queryKey: ['library', libraryId, 'movies'],
-        queryFn: ({ pageParam = 1 }) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${libraryId}/movies?page=${pageParam}`),
+    const libraryItems = useInfiniteQuery({
+        queryKey: ['library', libraryId, 'items'],
+        queryFn: ({ pageParam = 1 }) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${libraryId}/items?page=${pageParam}`),
         getNextPageParam: (lastPage) => {
             const next = lastPage.meta.currentPage + 1;
             return next <= lastPage.meta.totalPages ? next : undefined;
@@ -42,19 +44,23 @@ export const useLibrary = (libraryId?: string) => {
     });
 
     // --- MUTATIONS ---
-    const addMovieMutation = useMutation({
-        mutationFn: ({ libId, movieId }: { libId: string; movieId: string }) => libraryApi.addMovie(libId, movieId),
+    const addContentMutation = useMutation({
+        mutationFn: ({ libId, contentId, contentType }: { libId: string; contentId: string; contentType: string }) =>
+            libraryApi.addContent(libId, contentId, contentType),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['library', libraryId, 'movies'] });
-            queryClient.invalidateQueries({ queryKey: ['movie', variables.movieId] });
+            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', variables.contentId] });
+            else queryClient.invalidateQueries({ queryKey: ['series', variables.contentId] });
         },
     });
 
-    const removeMovieMutation = useMutation({
-        mutationFn: ({ libId, movieId }: { libId: string; movieId: string }) => libraryApi.removeMovie(libId, movieId),
+    const removeContentMutation = useMutation({
+        mutationFn: ({ libId, contentId, contentType }: { libId: string; contentId: string; contentType: string }) =>
+            libraryApi.removeContent(libId, contentId, contentType),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['library', libraryId, 'movies'] });
-            queryClient.invalidateQueries({ queryKey: ['movie', variables.movieId] });
+            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', variables.contentId] });
+            else queryClient.invalidateQueries({ queryKey: ['series', variables.contentId] });
         },
     });
 
@@ -85,9 +91,9 @@ export const useLibrary = (libraryId?: string) => {
     return {
         libraries,
         libraryDetails,
-        libraryMovies,
-        addMovie: addMovieMutation.mutate,
-        removeMovie: removeMovieMutation.mutate,
+        libraryItems,
+        addContent: addContentMutation.mutate,
+        removeContent: removeContentMutation.mutate,
         createLibrary: createLibrary.mutate,
         isCreating: createLibrary.isPending,
         deleteLibrary: deleteLibrary.mutate,

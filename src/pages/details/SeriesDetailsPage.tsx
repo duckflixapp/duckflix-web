@@ -7,10 +7,13 @@ import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import WatchlistButton from '../../components/buttons/WatchlistButton';
 import VideoOverview from '../../components/details/VideoOverview';
+import { useLibrary } from '../../hooks/useLibrary';
 
 export default function SeriesDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+
+    const { addContent, removeContent } = useLibrary();
 
     const { series, isLoading, isNotFound } = useSeriesDetailed(id);
 
@@ -20,7 +23,10 @@ export default function SeriesDetailsPage() {
 
     const releaseYear = series.firstAirDate ? new Date(series.firstAirDate).getFullYear() : null;
 
-    const handleToWatchlist = () => {};
+    const handleToWatchlist = () => {
+        if (series.inUserLibrary) removeContent({ libId: 'watchlist', contentId: series.id, contentType: 'series' });
+        else addContent({ libId: 'watchlist', contentId: series.id, contentType: 'series' });
+    };
 
     const openSeasonDetails = (seasonId: string) => navigate(`/details/season/${seasonId}`);
     const handleGenreClick = (genre: SeriesGenreDTO) => navigate('/search?genres=' + encodeURIComponent(genre.name));

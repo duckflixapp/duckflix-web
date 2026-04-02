@@ -26,7 +26,7 @@ export default function MovieDetailsPage() {
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
     const { versions } = useVideoVersions(movie?.videoId);
     const navigate = useNavigate();
-    const { addMovie, removeMovie } = useLibrary();
+    const { addContent, removeContent } = useLibrary();
     const settingsParam = searchParams.get('settings');
     const [showSettings, setShowSettings] = useState(!!settingsParam);
     const [initialTab, setInitialTab] = useState<SettingsTab | null>(settingsParam === 'versions' ? 'versions' : null);
@@ -65,8 +65,8 @@ export default function MovieDetailsPage() {
         });
 
     const handleToWatchlist = () => {
-        if (movie.inUserLibrary) removeMovie({ libId: 'watchlist', movieId: movie.id });
-        else addMovie({ libId: 'watchlist', movieId: movie.id });
+        if (movie.inUserLibrary) removeContent({ libId: 'watchlist', contentId: movie.id, contentType: 'movie' });
+        else addContent({ libId: 'watchlist', contentId: movie.id, contentType: 'movie' });
     };
 
     const status = movie.video.status;

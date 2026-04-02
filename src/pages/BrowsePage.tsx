@@ -1,4 +1,4 @@
-import type { MovieDTO, SearchResultDTO, VideoType } from '@duckflix/shared';
+import type { ContentDTO, MovieDTO, VideoType } from '@duckflix/shared';
 import { Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';
@@ -7,7 +7,7 @@ import { useEffect, useRef } from 'react';
 import { useFeaturedMovie } from '../hooks/useMovieDetailed';
 import PlayButton from '../components/buttons/PlayButton';
 import { useBestRatedUnified, useInfiniteSearch, useRecentUnified } from '../hooks/useSearch';
-import { SearchCard } from '../components/search/SearchCard';
+import { ContentCard } from '../components/search/ContentCard';
 import { capitalize } from '../utils/string';
 
 const SHOW_BEST_RATED_THRESHOLD = 7;
@@ -66,13 +66,13 @@ export default function BrowsePage() {
 
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
                             {allUnified.map((result) => (
-                                <SearchCard key={result.id} result={result} onClick={() => openDetails(result.type, result.id)} />
+                                <ContentCard key={result.id} content={result} onClick={() => openDetails(result.type, result.id)} />
                             ))}
 
                             {isFetchingNextPage &&
                                 Array(6)
                                     .fill(0)
-                                    .map((_, i) => <MovieSkeleton key={i} />)}
+                                    .map((_, i) => <CardSkeleton key={i} />)}
                         </div>
 
                         <div ref={ref} className="h-20 w-full" />
@@ -90,7 +90,7 @@ function ResultListSection({
     onOpenDetails: openDetails,
 }: {
     title: string;
-    results: SearchResultDTO[];
+    results: ContentDTO[];
     loading: boolean;
     onOpenDetails: (type: string, id: string) => void;
 }) {
@@ -112,10 +112,10 @@ function ResultListSection({
                 <div className="h-1 w-12 bg-primary rounded-full" />
             </div>
 
-            <div className="relative group/movie-section">
+            <div className="relative group/content-section">
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute -left-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/movie-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
+                    className="absolute -left-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -128,7 +128,7 @@ function ResultListSection({
                 </div>
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute -right-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/movie-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
+                    className="absolute -right-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
                 >
                     <ChevronRight size={24} />
                 </button>
@@ -145,17 +145,17 @@ function ResultList({
     onOpenDetails: openDetails,
 }: {
     loading: boolean;
-    results: SearchResultDTO[];
+    results: ContentDTO[];
     onOpenDetails: (type: string, id: string) => void;
 }) {
     if (isLoading)
         return Array(12)
             .fill(0)
-            .map((_, i) => <MovieSkeleton key={i} />);
+            .map((_, i) => <CardSkeleton key={i} />);
 
     return results.map((result) => (
         <div key={result.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
-            <SearchCard result={result} onClick={() => openDetails(result.type, result.id)} />
+            <ContentCard content={result} onClick={() => openDetails(result.type, result.id)} />
         </div>
     ));
 }
@@ -213,7 +213,7 @@ export function HeroSection({
     );
 }
 
-export function MovieSkeleton() {
+export function CardSkeleton() {
     return (
         <div className="flex flex-col gap-4 animate-pulse">
             <div className="aspect-2/3 w-full bg-secondary/10 rounded-2xl border border-white/5" />
@@ -254,7 +254,7 @@ function EmptyState({ canUpload, onNavigate }: { canUpload: boolean; onNavigate:
                     </h3>
                     <p className="text-sm text-text/40 leading-relaxed px-4">
                         {canUpload
-                            ? "It looks like you haven't uploaded any movies yet. Start building your collection today!"
+                            ? "It looks like you haven't uploaded any videos yet. Start building your collection today!"
                             : "The administrators haven't uploaded any content to the library. Please check back later."}
                     </p>
                 </div>

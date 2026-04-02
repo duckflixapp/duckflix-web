@@ -1,10 +1,10 @@
-import type { SearchResultDTO } from '@duckflix/shared';
+import type { ContentDTO } from '@duckflix/shared';
 import { useState } from 'react';
 
-export function SearchCard({ result, onClick: handleClick }: { result: SearchResultDTO; onClick?: () => unknown }) {
+export function ContentCard({ content, onClick: handleClick }: { content: ContentDTO; onClick?: () => unknown }) {
     const [imgError, setImgError] = useState(false);
 
-    const showPlaceholder = !result.image || imgError;
+    const showPlaceholder = !content.image || imgError;
 
     return (
         <div className="group/movie-card cursor-pointer relative transition-all duration-300" onClick={handleClick}>
@@ -15,8 +15,8 @@ export function SearchCard({ result, onClick: handleClick }: { result: SearchRes
             >
                 {!showPlaceholder ? (
                     <img
-                        src={result.image!}
-                        alt={result.title}
+                        src={content.image!}
+                        alt={content.title}
                         loading="lazy"
                         decoding="async"
                         onError={() => setImgError(true)}
@@ -33,9 +33,11 @@ export function SearchCard({ result, onClick: handleClick }: { result: SearchRes
 
             <div className="px-1">
                 <h3 className="font-bold text-sm truncate text-text/90 group-hover/movie-card:text-primary transition-colors duration-300">
-                    {result.title}
+                    {content.title}
                 </h3>
-                {result.release && <p className="text-[10px] font-black text-text/30 uppercase tracking-widest mt-0.5">{result.release}</p>}
+                {content.release && (
+                    <p className="text-[10px] font-black text-text/30 uppercase tracking-widest mt-0.5">{content.release}</p>
+                )}
             </div>
         </div>
     );

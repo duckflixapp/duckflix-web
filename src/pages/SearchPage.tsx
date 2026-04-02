@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SlidersHorizontal, Film, Clock, ArrowDownAz, Star, CalendarArrowDown } from 'lucide-react';
 import { CardSkeleton } from '../components/movies/MovieCard';
-import type { SearchResultDTO } from '@duckflix/shared';
 import { useInView } from 'react-intersection-observer';
 import { useMovieGenres } from '../hooks/use-genres';
 import { useInfiniteSearch, type SortField, type SortOrder } from '../hooks/useSearch';
-import { SearchCard } from '../components/search/SearchCard';
+import { ContentCard } from '../components/search/ContentCard';
+import type { ContentDTO } from '@duckflix/shared';
 
 const countFilters = (...args: (unknown | undefined | null)[]): number => {
     return args.reduce<number>((p, val) => p + (val != null && val != undefined ? 1 : 0), 0);
@@ -53,7 +53,7 @@ export default function SearchPage() {
 
     const changeSort = (sort: string) => updateParams({ sort: sort ?? null });
     const changeGenres = (genres: string[]) => updateParams({ genres: genres.filter(Boolean).join(',') });
-    const openDetails = (result: SearchResultDTO) => navigate(`/details/${result.type}/${result.id}`);
+    const openDetails = (result: ContentDTO) => navigate(`/details/${result.type}/${result.id}`);
 
     const results = infiniteData?.pages.flatMap((page) => page.data) ?? [];
     const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
@@ -105,7 +105,7 @@ export default function SearchPage() {
                     <div className="space-y-12">
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                             {results.map((result) => (
-                                <SearchCard key={result.id} result={result} onClick={() => openDetails(result)} />
+                                <ContentCard key={result.id} content={result} onClick={() => openDetails(result)} />
                             ))}
 
                             {isFetchingNextPage &&

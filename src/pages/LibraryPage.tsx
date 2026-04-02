@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useLibrary } from '../hooks/useLibrary';
-import { MovieCard, CardSkeleton } from '../components/movies/MovieCard';
+import { CardSkeleton } from '../components/movies/MovieCard';
 import { Library, ArrowLeft, Loader2, ClockFading, Plus, Trash2 } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import CreateLibraryModal from '../components/library/CreateLibraryModal';
+import { ContentCard } from '../components/search/ContentCard';
 
 export default function LibraryPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -14,7 +15,7 @@ export default function LibraryPage() {
     const selectedLibId = searchParams.get('id');
     const {
         libraries: librariesQuery,
-        libraryMovies,
+        libraryItems,
         libraryDetails,
         createLibrary,
         deleteLibrary,
@@ -22,14 +23,14 @@ export default function LibraryPage() {
 
     const { ref, inView } = useInView();
 
-    const movies = libraryMovies.data?.pages.flatMap((page) => page.data) ?? [];
+    const content = libraryItems.data?.pages.flatMap((page) => page.data) ?? [];
     const libraries = librariesQuery.data?.libraries ?? [];
 
     useEffect(() => {
-        if (inView && libraryMovies.hasNextPage && !libraryMovies.isFetchingNextPage) {
-            libraryMovies.fetchNextPage();
+        if (inView && libraryItems.hasNextPage && !libraryItems.isFetchingNextPage) {
+            libraryItems.fetchNextPage();
         }
-    }, [inView, libraryMovies]);
+    }, [inView, libraryItems]);
 
     const selectLibrary = (id: string | null) => {
         if (id) setSearchParams({ id });
@@ -87,9 +88,9 @@ export default function LibraryPage() {
         );
     }
 
-    const totalItems = libraryMovies.data?.pages[0]?.meta.totalItems ?? 0;
+    const totalItems = libraryItems.data?.pages[0]?.meta.totalItems ?? 0;
     const libType = libraryDetails.data?.library.type;
-    const isInitialLoading = libraryMovies.isLoading;
+    const isInitialLoading = libraryItems.isLoading;
 
     return (
         <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -108,7 +109,7 @@ export default function LibraryPage() {
                         >
                             {libraryDetails.data?.library.name}
                         </h1>
-                        {libraryMovies.isFetching && <Loader2 size={20} className="animate-spin text-primary" />}
+                        {libraryItems.isFetching && <Loader2 size={20} className="animate-spin text-primary" />}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="h-1 w-8 bg-primary rounded-full" />
@@ -119,7 +120,7 @@ export default function LibraryPage() {
                 </div>
             </div>
 
-            {!isInitialLoading && movies.length === 0 ? (
+            {!isInitialLoading && content.length === 0 ? (
                 <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in zoom-in-95 duration-500">
                     <div className="p-6 bg-white/5 rounded-full mb-6">
                         {libType === 'watchlist' ? (
@@ -138,16 +139,16 @@ export default function LibraryPage() {
                         onClick={() => navigate('/browse')}
                         className="mt-8 px-6 py-3 bg-primary text-background font-black text-xs uppercase tracking-widest rounded-2xl hover:scale-105 transition-all cursor-pointer"
                     >
-                        Browse Movies
+                        Browse
                     </button>
                 </div>
             ) : (
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
-                    {movies.map((item) => (
-                        <MovieCard key={item.movieId} movie={item.movie} onClick={() => navigate(`/details/movie/${item.movie.id}`)} />
+                    {content.map(({ id, content }) => (
+                        <ContentCard key={id} content={content} onClick={() => navigate(`/details/${content.type}/${content.id}`)} />
                     ))}
 
-                    {(isInitialLoading || libraryMovies.isFetchingNextPage) &&
+                    {(isInitialLoading || libraryItems.isFetchingNextPage) &&
                         Array(6)
                             .fill(0)
                             .map((_, i) => <CardSkeleton key={`skeleton-${i}`} />)}
@@ -155,10 +156,10 @@ export default function LibraryPage() {
             )}
 
             <div ref={ref} className="h-20 w-full flex items-center justify-center mt-8">
-                {libraryMovies.isFetchingNextPage && (
+                {libraryItems.isFetchingNextPage && (
                     <p className="text-text/20 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Loading more content...</p>
                 )}
-                {!libraryMovies.hasNextPage && movies.length > 0 && (
+                {!libraryItems.hasNextPage && content.length > 0 && (
                     <p className="text-text/20 text-[10px] font-black uppercase tracking-[0.3em]">
                         End of {libraryDetails.data?.library.name}
                     </p>
