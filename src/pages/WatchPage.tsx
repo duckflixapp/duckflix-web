@@ -36,9 +36,17 @@ const formatTime = (seconds: number) => {
     return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
 
+const appendSession = (url: string, sessionId: string): string => {
+    const u = new URL(url);
+    u.searchParams.set('session', sessionId);
+    return u.toString();
+};
+
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
     const { video, isLoading, videoResolved } = useVideo(id);
+    const [sessionId, setSessionId] = useState<string | null>(null);
+
     const navigate = useNavigate();
 
     const [showControls, setShowControls] = useState(true);
@@ -60,55 +68,67 @@ export default function WatchPage() {
     const [hlsLevels, setHlsLevels] = useState<Hls['levels']>([]);
     const [currentHlsLevel, setCurrentHlsLevel] = useState<number>(-1);
     const [manualVersion, setManualVersion] = useState<VideoVersionDTO | null>(null);
-    const [sessionizedVersions, setSessionizedVersions] = useState<VideoVersionDTO[]>([]);
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
+
+    useEffect(() => {
+        if (!id) return;
+        api.post<{ sessionId: string }>(`/media/session`, { videoId: id })
+            .then((data) => {
+                setSessionId(data.sessionId);
+            })
+            .catch(() => {});
+    }, [id]);
 
     const title = videoResolved?.name;
 
     const availableVersions = useMemo(() => {
-        if (!video) return [];
+        if (!video || !sessionId) return [];
         return [...video.versions, ...(video.generatedVersions ?? [])]
             .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
-            .sort((a, b) => b.height - a.height);
-    }, [video]);
+            .sort((a, b) => b.height - a.height)
+            .map((v) => ({ ...v, streamUrl: appendSession(v.streamUrl, sessionId) }));
+    }, [video, sessionId]);
 
-    const autoVersion: VideoVersionDTO = useMemo(
+    const autoVersion: VideoVersionDTO | null = useMemo(
         () => ({
             id: 'auto',
             height: 0,
             width: 0,
             mimeType: 'application/x-mpegURL',
-            streamUrl: `${import.meta.env.VITE_API_URL}/media/live/${id}/master.m3u8`,
+            streamUrl: `${import.meta.env.VITE_API_URL}/media/live/${id}/master.m3u8${sessionId ? `?session=${sessionId}` : ''}`,
             status: 'ready',
             isOriginal: false,
             fileSize: null,
         }),
-        [id]
+        [id, sessionId]
     );
 
     const allVersions = useMemo(() => [...availableVersions, autoVersion], [autoVersion, availableVersions]);
-    const versionsForSettings = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
+    const versionsForSettings = allVersions;
     const activeVersion = useMemo(() => manualVersion ?? autoVersion, [manualVersion, autoVersion]);
+
+    const availableSubtitles = useMemo(() => {
+        if (!video || !sessionId) return [];
+        return video.subtitles.map((s) => ({ ...s, subtitleUrl: appendSession(s.subtitleUrl, sessionId) }));
+    }, [video, sessionId]);
 
     const actualVersionForTopBar = useMemo(() => {
         if (hlsLevels.length > 0 && currentHlsLevel >= 0) {
             const level = hlsLevels[currentHlsLevel];
-            const versions = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
-            return versions.find((v) => v.height === level?.height) ?? autoVersion;
+            return allVersions.find((v) => v.height === level?.height) ?? autoVersion;
         }
         return autoVersion;
-    }, [currentHlsLevel, hlsLevels, sessionizedVersions, allVersions, autoVersion]);
+    }, [currentHlsLevel, hlsLevels, allVersions, autoVersion]);
 
     const activeVersionForDisplay = useMemo(() => {
         if (hlsLevels.length > 0) {
             if (requestedHlsLevel === 'auto') return autoVersion;
             const level = hlsLevels[requestedHlsLevel];
-            const versions = sessionizedVersions.length > 0 ? sessionizedVersions : allVersions;
-            return versions.find((v) => v.height === level?.height) ?? autoVersion;
+            return allVersions.find((v) => v.height === level?.height) ?? autoVersion;
         }
         return activeVersion;
-    }, [requestedHlsLevel, hlsLevels, sessionizedVersions, allVersions, activeVersion, autoVersion]);
+    }, [requestedHlsLevel, hlsLevels, allVersions, activeVersion, autoVersion]);
 
     const actionCallback = () => {
         lastActionTimeRef.current = Date.now();
@@ -228,19 +248,19 @@ export default function WatchPage() {
 
     const toggleSubtitles = useCallback(() => {
         if (subtitle) setSubtitle(null);
-        else if (video && (video.subtitles.length > 0 || localSubs.length > 0)) {
+        else if (video && (availableSubtitles.length > 0 || localSubs.length > 0)) {
             const code = localStorage.getItem('prefered-subtitle-lang');
             const filter =
                 lastActiveSubtitleIdRef.current != null
                     ? (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current
                     : (t: SubtitleDTO) => t.language === code;
 
-            const s = video.subtitles.find(filter) ?? localSubs.find(filter);
+            const s = availableSubtitles.find(filter) ?? localSubs.find(filter);
             if (s) setSubtitle(s);
             else if (localSubs.length > 0) setSubtitle(localSubs[0]);
-            else setSubtitle(video.subtitles[0]);
+            else setSubtitle(availableSubtitles[0]);
         }
-    }, [localSubs, video, subtitle]);
+    }, [localSubs, availableSubtitles, video, subtitle]);
 
     const changeSubtitle = (s: SubtitleDTO | null) => {
         setSubtitle(s);
@@ -271,7 +291,7 @@ export default function WatchPage() {
     }, [isSettingsOpen, showControls, toggleSubtitles]);
 
     useEffect(() => {
-        if (!videoElement || !activeVersion) return;
+        if (!videoElement || !activeVersion || !sessionId) return;
 
         let hls: Hls | null = null;
 
@@ -310,15 +330,6 @@ export default function WatchPage() {
             hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
                 setRequestedHlsLevel('auto');
                 setHlsLevels(data.levels);
-
-                const firstUrl = data.levels[0]?.url[0] ?? '';
-                const session = new URL(firstUrl, window.location.origin).searchParams.get('session');
-
-                if (!session) return;
-
-                setSessionizedVersions(
-                    allVersions.map((v) => (v.id.startsWith('live-') ? { ...v, streamUrl: `${v.streamUrl}?session=${session}` } : v))
-                );
             });
         } else {
             hlsRef.current = null;
@@ -338,7 +349,7 @@ export default function WatchPage() {
             videoElement.load();
             hls?.destroy();
         };
-    }, [activeVersion, allVersions, id, videoElement]);
+    }, [activeVersion, allVersions, id, videoElement, sessionId]);
 
     const handleChangeResolution = useCallback(
         (v: VideoVersionDTO) => {
@@ -394,7 +405,7 @@ export default function WatchPage() {
 
     const castVideo = useCallback(() => {
         if (!activeVersion || !video) return;
-        const subtitles = appendSubtitleName(video.subtitles);
+        const subtitles = appendSubtitleName(availableSubtitles);
         player.cast({
             src: activeVersion.streamUrl,
             contentType: activeVersion.mimeType,
@@ -605,7 +616,7 @@ export default function WatchPage() {
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
-                                subtitles={[...video.subtitles, ...localSubs]}
+                                subtitles={[...availableSubtitles, ...localSubs]}
                                 activeSubtitle={subtitle}
                                 setSubtitle={changeSubtitle}
                                 onUploadLocal={() => fileInputRef.current?.click()}
