@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { API_URL } from '../config';
 
 declare module 'axios' {
     export interface AxiosInstance {
@@ -16,7 +17,7 @@ declare module 'axios' {
 }
 
 export const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1',
+    baseURL: API_URL || 'http://localhost:3000/api/v1',
     withCredentials: true,
     xsrfCookieName: 'csrf_token',
     xsrfHeaderName: 'x-csrf-token',

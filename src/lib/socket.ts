@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '../config';
 
-const apiUrl = new URL(import.meta.env.VITE_API_URL);
+const apiUrl = new URL(API_URL);
 const socketUrl = apiUrl.origin;
 
 export const socket: Socket = io(socketUrl, {

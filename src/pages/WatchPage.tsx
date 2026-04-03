@@ -1,3 +1,4 @@
+import { API_URL } from '../config';
 import { useState, useRef, useEffect, useCallback, type ButtonHTMLAttributes, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -96,7 +97,7 @@ export default function WatchPage() {
             height: 0,
             width: 0,
             mimeType: 'application/x-mpegURL',
-            streamUrl: `${import.meta.env.VITE_API_URL}/media/live/${id}/master.m3u8${sessionId ? `?session=${sessionId}` : ''}`,
+            streamUrl: `${API_URL}/media/live/${id}/master.m3u8${sessionId ? `?session=${sessionId}` : ''}`,
             status: 'ready',
             isOriginal: false,
             fileSize: null,
