@@ -1,4 +1,4 @@
-import type { PaginatedResponse, SearchResultDTO } from '@duckflixapp/shared';
+import type { PaginatedResponse, ContentDTO } from '@duckflixapp/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 
@@ -20,8 +20,7 @@ const formatParams = (params: SearchParams) => ({
 });
 
 // ----- Unified -----
-export const fetchUnified = (options: SearchParams) =>
-    api.get<PaginatedResponse<SearchResultDTO>>(`/search`, { params: formatParams(options) });
+export const fetchUnified = (options: SearchParams) => api.get<PaginatedResponse<ContentDTO>>(`/search`, { params: formatParams(options) });
 
 export const useInfiniteSearch = (options: Omit<SearchParams, 'page'>) => {
     return useInfiniteQuery({
