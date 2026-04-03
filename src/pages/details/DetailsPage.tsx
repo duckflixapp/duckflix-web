@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Loader2 } from 'lucide-react';
-import type { VideoResolved } from '@duckflix/shared';
+import type { VideoResolved } from '@duckflixapp/shared';
 import MovieNotFound from '../../components/details/VideoNotFound';
 
 export default function DetailsResolver() {

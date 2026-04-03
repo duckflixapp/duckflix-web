@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { SystemSettingsDTO, SystemStatisticsDTO } from '@duckflix/shared';
+import type { SystemSettingsDTO, SystemStatisticsDTO } from '@duckflixapp/shared';
 
 export const useAdmin = () => {
     const systemQuery = useQuery({

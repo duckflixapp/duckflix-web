@@ -1,5 +1,5 @@
 import { Loader2, Layers, HardDrive, FileVideo } from 'lucide-react';
-import type { VideoVersionDTO } from '@duckflix/shared';
+import type { VideoVersionDTO } from '@duckflixapp/shared';
 import { formatBytes } from '../../utils/format';
 
 export function VideoProcessing({ title, originalVersion }: { title: string; originalVersion: VideoVersionDTO | null }) {

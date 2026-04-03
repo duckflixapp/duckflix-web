@@ -1,4 +1,4 @@
-import type { VideoVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import type { VideoVersionDTO, SubtitleDTO } from '@duckflixapp/shared';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getMimeExtension } from '../../utils/format';
 import { useEffect, useState } from 'react';

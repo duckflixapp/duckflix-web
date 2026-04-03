@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Star, Calendar, ChevronLeft, Clock } from 'lucide-react';
 
 import { useSeasonDetailed } from '../../hooks/useSeasonDetails';
-import type { EpisodeMinDTO } from '@duckflix/shared';
+import type { EpisodeMinDTO } from '@duckflixapp/shared';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import VideoOverview from '../../components/details/VideoOverview';

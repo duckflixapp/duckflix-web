@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useCallback } from 'react';
 import { useNotificationSocket, type NotificationSocketData } from './useNotificationSocket';
-import type { VideoVersionDTO } from '@duckflix/shared';
+import type { VideoVersionDTO } from '@duckflixapp/shared';
 
 const getVersionPriority = (v: VideoVersionDTO) => {
     if (v.isOriginal) return 0;

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { MovieGenreDTO } from '@duckflix/shared';
+import type { MovieGenreDTO } from '@duckflixapp/shared';
 
 export const useMovieGenres = () => {
     const query = useQuery({

@@ -1,4 +1,4 @@
-import type { JobProgress, VideoVersionDTO } from '@duckflix/shared';
+import type { JobProgress, VideoVersionDTO } from '@duckflixapp/shared';
 import { formatBytes, getQualityLabel } from '../../utils/format';
 import { X } from 'lucide-react';
 

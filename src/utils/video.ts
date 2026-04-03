@@ -1,4 +1,4 @@
-import type { VideoVersionDTO } from '@duckflix/shared';
+import type { VideoVersionDTO } from '@duckflixapp/shared';
 
 export const getTagFromVersions = (versions: VideoVersionDTO[]) => {
     if (versions.length == 0) return null;

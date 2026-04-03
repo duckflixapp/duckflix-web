@@ -1,4 +1,4 @@
-import type { VideoMinDTO } from '@duckflix/shared';
+import type { VideoMinDTO } from '@duckflixapp/shared';
 import { ChevronLeft, Loader2, Trash2, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

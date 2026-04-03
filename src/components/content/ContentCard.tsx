@@ -1,4 +1,4 @@
-import type { ContentDTO } from '@duckflix/shared';
+import type { ContentDTO } from '@duckflixapp/shared';
 import { useState } from 'react';
 
 export function ContentCard({ content, onClick: handleClick }: { content: ContentDTO; onClick?: () => unknown }) {

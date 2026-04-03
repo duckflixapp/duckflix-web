@@ -8,7 +8,7 @@ import { createMovieSchema, type MovieFormValues } from '../schemas/movie';
 import { useMovieGenres } from '../hooks/use-genres';
 import { api } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
-import type { VideoMinDTO } from '@duckflix/shared';
+import type { VideoMinDTO } from '@duckflixapp/shared';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 

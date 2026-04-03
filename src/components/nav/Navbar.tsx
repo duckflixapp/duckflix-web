@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchUnified } from '../../hooks/useSearch';
 import { useDebounce } from 'use-debounce';
-import type { ContentDTO } from '@duckflix/shared';
+import type { ContentDTO } from '@duckflixapp/shared';
 
 export default function Navbar() {
     const auth = useAuthContext();

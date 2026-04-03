@@ -1,4 +1,4 @@
-import type { MovieDetailedDTO } from '@duckflix/shared';
+import type { MovieDetailedDTO } from '@duckflixapp/shared';
 import type { MovieUpdateFormValues } from '../../schemas/movie';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';

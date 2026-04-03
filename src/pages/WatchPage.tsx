@@ -22,7 +22,7 @@ import { PlayerOverlay } from '../components/player/PlayerOverlay';
 import { ProgressBar } from '../components/player/ProgressBar';
 import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
-import type { VideoVersionDTO, SubtitleDTO } from '@duckflix/shared';
+import type { VideoVersionDTO, SubtitleDTO } from '@duckflixapp/shared';
 import Hls from 'hls.js';
 import { appendSubtitleName } from '../utils/subtitles';
 import { api } from '../lib/api';

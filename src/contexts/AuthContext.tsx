@@ -1,4 +1,4 @@
-import type { UserDTO, UserRole } from '@duckflix/shared';
+import type { UserDTO, UserRole } from '@duckflixapp/shared';
 import { createContext, useContext } from 'react';
 
 export interface AuthContextType {

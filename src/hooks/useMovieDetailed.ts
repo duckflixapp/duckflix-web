@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { MovieDetailedDTO } from '@duckflix/shared';
+import type { MovieDetailedDTO } from '@duckflixapp/shared';
 import type { MovieUpdateFormValues } from '../schemas/movie';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';

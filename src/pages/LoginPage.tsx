@@ -4,7 +4,7 @@ import { api } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import axios from 'axios';
-import type { UserDTO } from '@duckflix/shared';
+import type { UserDTO } from '@duckflixapp/shared';
 import { useAuthContext } from '../contexts/AuthContext';
 
 export default function LoginPage() {

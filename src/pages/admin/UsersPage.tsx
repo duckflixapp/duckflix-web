@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { UserPlus, Shield, Mail, Loader2, Edit2, UserLock, Trash2 } from 'lucide-react';
-import type { UserRole } from '@duckflix/shared';
+import type { UserRole } from '@duckflixapp/shared';
 import { useAdminUsers } from '../../hooks/useAdminUser';
 import AdminSection from '../../components/admin/AdminSection';
 import InputGroup from '../../components/admin/InputGroup';

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, Info, AlertTriangle, History, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNotifications } from '../../hooks/use-notifications';
-import type { NotificationDTO } from '@duckflix/shared';
+import type { NotificationDTO } from '@duckflixapp/shared';
 import { timeAgo } from '../../utils/format';
 import { useNotificationSocket } from '../../hooks/useNotificationSocket';
 import { useNavigate } from 'react-router-dom';

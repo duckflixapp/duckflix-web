@@ -1,4 +1,4 @@
-import type { PaginatedResponse, SearchResultDTO } from '@duckflix/shared';
+import type { PaginatedResponse, SearchResultDTO } from '@duckflixapp/shared';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 

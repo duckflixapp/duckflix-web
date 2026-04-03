@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { UserDTO, UserRole } from '@duckflix/shared';
+import type { UserDTO, UserRole } from '@duckflixapp/shared';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 

@@ -6,7 +6,7 @@ import { useForm, useWatch, type FieldError } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAdmin } from '../../hooks/useAdmin';
 import { toast } from 'sonner';
-import type { SystemSettingsDTO } from '@duckflix/shared';
+import type { SystemSettingsDTO } from '@duckflixapp/shared';
 import axios from 'axios';
 import AdminSection from '../../components/admin/AdminSection';
 import InputGroup from '../../components/admin/InputGroup';

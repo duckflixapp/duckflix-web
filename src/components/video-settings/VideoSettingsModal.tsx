@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X, Film, Subtitles, Settings, Trash2, Plus, Loader2, type LucideIcon } from 'lucide-react';
-import type { SubtitleDTO, VideoDTO, VideoVersionDTO } from '@duckflix/shared';
+import type { SubtitleDTO, VideoDTO, VideoVersionDTO } from '@duckflixapp/shared';
 import { formatBytes, getMimeExtension } from '../../utils/format';
 import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { motion, AnimatePresence } from 'framer-motion';

@@ -6,7 +6,7 @@ import { useInView } from 'react-intersection-observer';
 import { useMovieGenres } from '../hooks/use-genres';
 import { useInfiniteSearch, type SortField, type SortOrder } from '../hooks/useSearch';
 import { ContentCard } from '../components/content/ContentCard';
-import type { ContentDTO } from '@duckflix/shared';
+import type { ContentDTO } from '@duckflixapp/shared';
 
 const countFilters = (...args: (unknown | undefined | null)[]): number => {
     return args.reduce<number>((p, val) => p + (val != null && val != undefined ? 1 : 0), 0);

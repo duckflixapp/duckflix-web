@@ -1,4 +1,4 @@
-import { VIDEO_TYPES } from '@duckflix/shared';
+import { VIDEO_TYPES } from '@duckflixapp/shared';
 import * as z from 'zod';
 
 export const createMovieSchema = z.object({

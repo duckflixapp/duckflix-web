@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { NotificationDTO } from '@duckflix/shared';
+import type { NotificationDTO } from '@duckflixapp/shared';
 
 export const useNotifications = () => {
     const queryClient = useQueryClient();

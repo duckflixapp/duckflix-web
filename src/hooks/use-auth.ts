@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { roleHierarchy, type UserDTO, type UserRole } from '@duckflix/shared';
+import { roleHierarchy, type UserDTO, type UserRole } from '@duckflixapp/shared';
 // import { useEffect } from 'react';
 
 export const useAuth = () => {

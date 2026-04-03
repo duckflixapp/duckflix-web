@@ -1,4 +1,4 @@
-import type { ContentDTO, MovieDTO, VideoType } from '@duckflix/shared';
+import type { ContentDTO, MovieDTO, VideoType } from '@duckflixapp/shared';
 import { Info, Star, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../contexts/AuthContext';

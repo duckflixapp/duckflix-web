@@ -1,4 +1,4 @@
-import type { UserMinDTO, VideoVersionDTO } from '@duckflix/shared';
+import type { UserMinDTO, VideoVersionDTO } from '@duckflixapp/shared';
 import { VersionBadge } from './VersionBadge';
 import { api } from '../../lib/api';
 import { AxiosError } from 'axios';

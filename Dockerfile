@@ -1,19 +1,18 @@
-FROM oven/bun:latest AS build
-RUN apt-get update && apt-get install -y python3 make g++ 
-
+FROM oven/bun:latest AS builder
 WORKDIR /app
 
-COPY package.json bun.lockb* ./
-COPY packages/shared ./packages/shared
-COPY packages/frontend ./packages/frontend
+ARG NODE_AUTH_TOKEN
+ENV NODE_AUTH_TOKEN=$NODE_AUTH_TOKEN
 
-RUN bun install
+COPY package.json bun.lock* .npmrc ./
+RUN bun install --frozen-lockfile
 
-WORKDIR /app/packages/frontend
+COPY . .
 RUN bun run build
 
 FROM nginx:stable-alpine
-COPY --from=build /app/packages/frontend/dist /usr/share/nginx/html
-COPY packages/frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

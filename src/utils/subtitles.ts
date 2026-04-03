@@ -1,4 +1,4 @@
-import type { SubtitleDTO } from '@duckflix/shared';
+import type { SubtitleDTO } from '@duckflixapp/shared';
 import { getLanguageName } from './format';
 
 export const appendSubtitleName = (subs: SubtitleDTO[]) => {

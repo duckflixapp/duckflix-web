@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { socket, connectSocket } from '../lib/socket';
-import type { DownloadProgress, JobProgress } from '@duckflix/shared';
+import type { DownloadProgress, JobProgress } from '@duckflixapp/shared';
 
 export interface MovieSocketData {
     status: 'downloading' | 'processing' | 'error';
