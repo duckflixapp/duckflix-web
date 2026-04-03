@@ -24,8 +24,8 @@ jobs:
               with:
                   push: true
                   tags: |
-                      ghcr.io/duckflixapp/frontend:${{ github.ref_name }}
-                      ghcr.io/duckflixapp/frontend:latest
+                      ghcr.io/duckflixapp/duckflix-web:${{ github.ref_name }}
+                      ghcr.io/duckflixapp/duckflix-web:latest
                   build-args: |
                       NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             - name: Create GitHub Release

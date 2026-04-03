@@ -418,7 +418,7 @@ export default function WatchPage() {
             })),
             activeSubtitle: subtitles.findIndex((s) => s.id === subtitle?.id),
         });
-    }, [activeVersion, video, player, title, subtitle?.id]);
+    }, [activeVersion, video, availableSubtitles, player, title, subtitle?.id]);
 
     if (isLoading || !video)
         return (
