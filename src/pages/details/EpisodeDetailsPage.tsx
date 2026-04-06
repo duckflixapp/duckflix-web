@@ -142,7 +142,7 @@ export default function EpisodeDetailsPage() {
             {/* Settings Modal */}
             {showSettings && (
                 <VideoSettingsModal
-                    video={video}
+                    videoId={video.id}
                     title={episode.name}
                     onClose={() => setShowSettings(false)}
                     onDelete={() => navigate(`/details/season/${episode.seasonId}`)}

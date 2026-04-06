@@ -25,8 +25,8 @@ export default function MovieDetailsPage() {
     const auth = useAuthContext();
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
     const { versions } = useVideoVersions(movie?.videoId);
-    const navigate = useNavigate();
     const { addContent, removeContent } = useLibrary();
+    const navigate = useNavigate();
     const settingsParam = searchParams.get('settings');
     const [showSettings, setShowSettings] = useState(!!settingsParam);
     const [initialTab, setInitialTab] = useState<SettingsTab | null>(settingsParam === 'versions' ? 'versions' : null);
@@ -79,6 +79,8 @@ export default function MovieDetailsPage() {
     if (status !== 'ready') return <VideoError title={movie.title} video={movie.video} />;
 
     const canPlay = movie.video.versions.length > 0;
+
+    // const addSearchSubtitle = (result: unknown, config: { onSettled: () => void }) => {};
 
     return (
         <div className="min-h-screen pb-20">
@@ -185,7 +187,7 @@ export default function MovieDetailsPage() {
             </div>
             {showSettings && (
                 <VideoSettingsModal
-                    video={video}
+                    videoId={video.id}
                     title={movie.title}
                     onClose={() => setShowSettings(false)}
                     onDelete={() => navigate('/browse')}

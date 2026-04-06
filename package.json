@@ -10,7 +10,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@duckflixapp/shared": "^0.3.0",
+        "@duckflixapp/shared": "^0.4.3",
         "@hookform/resolvers": "^5.2.2",
         "@tanstack/react-query": "^5.90.20",
         "axios": "^1.13.5",
@@ -19,6 +19,7 @@
         "clsx": "^2.1.1",
         "framer-motion": "^12.34.0",
         "hls.js": "^1.6.15",
+        "iso-639-1": "^3.1.5",
         "js-sha1": "^0.7.0",
         "lucide-react": "^0.563.0",
         "parse-torrent": "^11.0.19",

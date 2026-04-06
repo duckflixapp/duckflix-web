@@ -25,7 +25,6 @@ import { playerShortcuts } from '../config/player';
 import { ResumeNotification } from '../components/player/ResumeNotification';
 import type { VideoVersionDTO, SubtitleDTO } from '@duckflixapp/shared';
 import Hls from 'hls.js';
-import { appendSubtitleName } from '../utils/subtitles';
 import { api } from '../lib/api';
 import { useVideo } from '../hooks/useVideo';
 
@@ -406,7 +405,7 @@ export default function WatchPage() {
 
     const castVideo = useCallback(() => {
         if (!activeVersion || !video) return;
-        const subtitles = appendSubtitleName(availableSubtitles);
+        const subtitles = availableSubtitles;
         player.cast({
             src: activeVersion.streamUrl,
             contentType: activeVersion.mimeType,
@@ -458,10 +457,11 @@ export default function WatchPage() {
                 id: `local-${Date.now()}`,
                 language: 'local',
                 name: file.name.slice(0, 20),
+                externalId: null,
                 subtitleUrl: blobUrl,
                 videoId: video.id || '',
                 createdAt: new Date().toISOString(),
-            };
+            } satisfies SubtitleDTO;
 
             setLocalSubs([localSub]);
             setSubtitle(localSub);

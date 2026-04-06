@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getMimeExtension } from '../../utils/format';
 import { useEffect, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, FileUp, Gauge, Layers, Subtitles } from 'lucide-react';
-import { appendSubtitleName } from '../../utils/subtitles';
 
 type MenuState = 'main' | 'quality' | 'speed' | 'subtitles';
 
@@ -15,7 +14,7 @@ export function SettingsBox({
     onChangeResolution,
     playbackSpeed,
     onChangeSpeed,
-    subtitles: _subtitles,
+    subtitles,
     setSubtitle,
     activeSubtitle: _activeSubtitle,
     onUploadLocal,
@@ -34,7 +33,6 @@ export function SettingsBox({
 }) {
     const [[menu, direction], setMenu] = useState<[MenuState, number]>(['main', 0]);
 
-    const subtitles = appendSubtitleName(_subtitles);
     const activeSubtitle = subtitles.find((s) => s.id === _activeSubtitle?.id) ?? null;
 
     useEffect(() => {
