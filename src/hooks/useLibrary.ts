@@ -4,16 +4,16 @@ import type { LibraryDTO, LibraryItemDTO, LibraryMinDTO, PaginatedResponse } fro
 import { toast } from 'sonner';
 
 export const libraryApi = {
-    getUserLibraries: () => api.get<{ libraries: LibraryMinDTO[] }>('/library/'),
-    createLibrary: (data: { name: string }) => api.post<{ library: LibraryMinDTO }>('/library/', data),
-    getLibrary: (id: string) => api.get<{ library: LibraryDTO }>(`/library/${id}`),
-    removeLibrary: (id: string) => api.delete<void>(`/library/${id}`),
+    getUserLibraries: () => api.get<{ libraries: LibraryMinDTO[] }>('/libraries/'),
+    createLibrary: (data: { name: string }) => api.post<{ library: LibraryMinDTO }>('/libraries/', data),
+    getLibrary: (id: string) => api.get<{ library: LibraryDTO }>(`/libraries/${id}`),
+    removeLibrary: (id: string) => api.delete<void>(`/libraries/${id}`),
 
-    getLibraryItems: (id: string) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${id}/items`),
+    getLibraryItems: (id: string) => api.get<PaginatedResponse<LibraryItemDTO>>(`/libraries/${id}/items`),
     addContent: (libId: string, contentId: string, contentType: string) =>
-        api.post<void>(`/library/${libId}/items/${contentId}?type=${contentType}`),
+        api.post<void>(`/libraries/${libId}/items/${contentId}?type=${contentType}`),
     removeContent: (libId: string, contentId: string, contentType: string) =>
-        api.delete<void>(`/library/${libId}/items/${contentId}?type=${contentType}`),
+        api.delete<void>(`/libraries/${libId}/items/${contentId}?type=${contentType}`),
 };
 
 export const useLibrary = (libraryId?: string) => {
@@ -34,7 +34,7 @@ export const useLibrary = (libraryId?: string) => {
 
     const libraryItems = useInfiniteQuery({
         queryKey: ['library', libraryId, 'items'],
-        queryFn: ({ pageParam = 1 }) => api.get<PaginatedResponse<LibraryItemDTO>>(`/library/${libraryId}/items?page=${pageParam}`),
+        queryFn: ({ pageParam = 1 }) => api.get<PaginatedResponse<LibraryItemDTO>>(`/libraries/${libraryId}/items?page=${pageParam}`),
         getNextPageParam: (lastPage) => {
             const next = lastPage.meta.currentPage + 1;
             return next <= lastPage.meta.totalPages ? next : undefined;
@@ -77,7 +77,7 @@ export const useLibrary = (libraryId?: string) => {
     });
 
     const deleteLibrary = useMutation({
-        mutationFn: async (id: string) => await api.delete(`/library/${id}`),
+        mutationFn: async (id: string) => await api.delete(`/libraries/${id}`),
         onSuccess: () => {
             toast.success('Collection deleted');
             invalidate();
