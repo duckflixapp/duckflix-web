@@ -5,24 +5,26 @@ import LoginPage from './pages/LoginPage';
 import { AdminRoute, ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
 import BrowsePage from './pages/BrowsePage';
 import Sidebar from './components/sidebar/Sidebar';
-import UploadPage from './pages/UploadPage';
 import SearchPage from './pages/SearchPage';
 import MovieDetailsPage from './pages/details/MovieDetailsPage';
 import DetailsResolver from './pages/details/DetailsPage';
-import WatchPage from './pages/WatchPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LibraryPage from './pages/LibraryPage';
 import { Toaster } from 'sonner';
 import { AuthProvider } from './providers/AuthProvider';
 import RegisterPage from './pages/RegisterPage';
 import VerifyEmailPage from './pages/VerifyEmail';
-import AdminSystemPage from './pages/admin/SystemPage';
-import AdminUsersPage from './pages/admin/UsersPage';
 import { useLocalStorage } from './hooks/useLocalStorage';
-import AdminOverviewPage from './pages/admin/OverviewPage';
 import SeriesDetailsPage from './pages/details/SeriesDetailsPage';
 import SeriesSeasonDetailsPage from './pages/details/SeriesSeasonDetailsPage';
 import EpisodeDetailsPage from './pages/details/EpisodeDetailsPage';
+import { lazy, Suspense } from 'react';
+
+const UploadPage = lazy(() => import('./pages/UploadPage'));
+const WatchPage = lazy(() => import('./pages/WatchPage'));
+const AdminOverviewPage = lazy(() => import('./pages/admin/OverviewPage'));
+const AdminSystemPage = lazy(() => import('./pages/admin/SystemPage'));
+const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 
 function App() {
     return (
@@ -46,49 +48,58 @@ function App() {
                         },
                     }}
                 />
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Suspense fallback={null}>
+                    <Routes>
+                        <Route path="/" element={<HomePage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/verify-email" element={<VerifyEmailPage />} />
 
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/watch/:id" element={<WatchPage />} />
+                        <Route element={<ProtectedRoute />}>
+                            <Route
+                                path="/watch/:id"
+                                element={
+                                    <Suspense fallback={null}>
+                                        <WatchPage />
+                                    </Suspense>
+                                }
+                            />
 
-                        <Route element={<Layout />}>
-                            <Route index path="/browse" element={<BrowsePage />} />
-                            <Route path="/library" element={<LibraryPage />} />
-                            <Route path="/search" element={<SearchPage />} />
-                            <Route path="/details/:id" element={<DetailsResolver />} />
-                            <Route path="/details/movie/:id" element={<MovieDetailsPage />} />
-                            <Route path="/details/series/:id" element={<SeriesDetailsPage />} />
-                            <Route path="/details/season/:id" element={<SeriesSeasonDetailsPage />} />
-                            <Route path="/details/episode/:id" element={<EpisodeDetailsPage />} />
+                            <Route element={<Layout />}>
+                                <Route index path="/browse" element={<BrowsePage />} />
+                                <Route path="/library" element={<LibraryPage />} />
+                                <Route path="/search" element={<SearchPage />} />
+                                <Route path="/details/:id" element={<DetailsResolver />} />
+                                <Route path="/details/movie/:id" element={<MovieDetailsPage />} />
+                                <Route path="/details/series/:id" element={<SeriesDetailsPage />} />
+                                <Route path="/details/season/:id" element={<SeriesSeasonDetailsPage />} />
+                                <Route path="/details/episode/:id" element={<EpisodeDetailsPage />} />
 
-                            {/* Contributor Only */}
-                            <Route element={<ContributorRoute />}>
-                                <Route path="/upload" element={<UploadPage />} />
+                                {/* Contributor Only */}
+                                <Route element={<ContributorRoute />}>
+                                    <Route path="/upload" element={<UploadPage />} />
+                                </Route>
+
+                                {/* Auto-redirects */}
+                                {['details', 'watch'].map((path) => (
+                                    <Route key={path} path={path} element={<Navigate to="/browse" replace />} />
+                                ))}
                             </Route>
 
-                            {/* Auto-redirects */}
-                            {['details', 'watch'].map((path) => (
-                                <Route key={path} path={path} element={<Navigate to="/browse" replace />} />
-                            ))}
-                        </Route>
-
-                        <Route path="/admin" element={<AdminRoute />}>
-                            <Route element={<Layout admin={true} />}>
-                                <Route index element={<AdminOverviewPage />} />
-                                <Route path="system" element={<AdminSystemPage />} />
-                                <Route path="roles" element={<AdminUsersPage />} />
+                            <Route path="/admin" element={<AdminRoute />}>
+                                <Route element={<Layout admin={true} />}>
+                                    <Route index element={<AdminOverviewPage />} />
+                                    <Route path="system" element={<AdminSystemPage />} />
+                                    <Route path="roles" element={<AdminUsersPage />} />
+                                </Route>
                             </Route>
+
+                            <Route path="/account"></Route>
                         </Route>
 
-                        <Route path="/account"></Route>
-                    </Route>
-
-                    <Route path="*" element={<NotFoundPage />} />
-                </Routes>
+                        <Route path="*" element={<NotFoundPage />} />
+                    </Routes>
+                </Suspense>
             </AuthProvider>
         </BrowserRouter>
     );

@@ -1,55 +1,36 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion'; // Ako koristiš framer-motion za animacije
-import { Play, RotateCcw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, X } from 'lucide-react';
 import { formatTime } from '../../utils/format';
+import type { WatchHistoryDTO } from '@duckflixapp/shared';
 
 interface ResumeNotificationProps {
-    videoId: string;
-    videoRef: React.RefObject<HTMLVideoElement | null>;
-    onClose?: () => void;
+    watchProgress: WatchHistoryDTO | null;
+    onResume: (time: number) => unknown;
+    onClose?: () => unknown;
 }
 
-export function ResumeNotification({ videoId, videoRef, onClose }: ResumeNotificationProps) {
-    const [resumeTime, setResumeTime] = useState<number | null>(null);
+export function ResumeNotification({ watchProgress, onResume, onClose }: ResumeNotificationProps) {
+    const [visible, setVisibility] = useState(!!watchProgress?.lastPosition && watchProgress.lastPosition > 10);
 
     useEffect(() => {
-        const video = videoRef.current;
-        if (!video) return;
+        const timer = setTimeout(() => setVisibility(false), 10000);
+        return () => clearTimeout(timer);
+    }, []);
 
-        const checkProgress = () => {
-            const savedTime = localStorage.getItem(`watch-progress-${videoId}`);
-            const time = savedTime ? parseFloat(savedTime) : 0;
-
-            if (time > 10 && time < video.duration - 30) setResumeTime(time);
-        };
-
-        video.addEventListener('loadedmetadata', checkProgress);
-        return () => video.removeEventListener('loadedmetadata', checkProgress);
-    }, [videoId, videoRef]);
-
-    useEffect(() => {
-        if (resumeTime) {
-            const timer = setTimeout(() => setResumeTime(null), 10000);
-            return () => clearTimeout(timer);
-        }
-    }, [resumeTime]);
-
-    if (!resumeTime) return null;
+    if (!watchProgress) return null;
 
     const handleResume = () => {
-        if (videoRef.current) {
-            videoRef.current.currentTime = resumeTime;
-            videoRef.current.play();
-        }
-        setResumeTime(null);
+        onResume(watchProgress.lastPosition);
+        handleClose();
+    };
+
+    const handleClose = () => {
+        setVisibility(false);
         onClose?.();
     };
 
-    const handleStartOver = () => {
-        localStorage.removeItem(`watch-progress-${videoId}`);
-        setResumeTime(null);
-        onClose?.();
-    };
+    if (!visible) return;
 
     return (
         <AnimatePresence>
@@ -63,7 +44,7 @@ export function ResumeNotification({ videoId, videoRef, onClose }: ResumeNotific
                     <div className="flex flex-col gap-1">
                         <span className="text-white text-[10px] uppercase font-black tracking-[0.2em]">Continue Watching?</span>
                         <span className="text-white/70 text-sm">
-                            You stopped at <span className="text-primary/80">{formatTime(resumeTime)}</span>
+                            You stopped at <span className="text-primary/80">{formatTime(watchProgress.lastPosition)}</span>
                         </span>
                     </div>
 
@@ -75,10 +56,10 @@ export function ResumeNotification({ videoId, videoRef, onClose }: ResumeNotific
                             <Play size={14} fill="currentColor" /> Resume
                         </button>
                         <button
-                            onClick={handleStartOver}
+                            onClick={handleClose}
                             className="flex-1 bg-white/5 hover:bg-white/10 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-all flex items-center justify-center gap-2 border border-white/10 cursor-pointer"
                         >
-                            <RotateCcw size={14} /> Start Over
+                            <X size={14} /> Close
                         </button>
                     </div>
                 </div>
