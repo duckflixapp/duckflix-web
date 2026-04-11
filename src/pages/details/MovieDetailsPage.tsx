@@ -7,7 +7,6 @@ import { VideoProcessing } from '../../components/details/VideoProcessing';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useLibrary } from '../../hooks/useLibrary';
 import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
-import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { VideoError } from '../../components/details/VideoError';
 import { MovieDetailsTab } from '../../components/video-settings/VideoSettingsMovieDetails';
 import { getTagFromVersions } from '../../utils/video';

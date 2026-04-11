@@ -143,11 +143,12 @@ export default function WatchPage() {
     const playingVersion = useMemo(() => {
         if (hlsLevels.length > 0 && currentHlsLevel >= 0) {
             const level = hlsLevels[currentHlsLevel];
-            return allVersions.find((v) => v.height === level?.height) ?? autoVersion;
+            const found = availableVersions.find((v) => v.height === level?.height);
+            return found ?? autoVersion;
         }
         if (selection.type === 'direct') return selection.version;
         return autoVersion;
-    }, [currentHlsLevel, hlsLevels, allVersions, autoVersion, selection]);
+    }, [currentHlsLevel, hlsLevels, availableVersions, autoVersion, selection]);
 
     // ----- Player -----
     const actionCallback = useCallback(() => {
@@ -206,14 +207,14 @@ export default function WatchPage() {
             el.removeEventListener('timeupdate', updateTime);
             el.removeEventListener('loadedmetadata', updateTime);
         };
-    }, [videoElement, activeVersion]);
+    }, [videoElement]);
 
     // ----- Controls autohide -----
 
     const registerAction = useCallback(() => {
         lastActionTimeRef.current = Date.now();
         if (!showControls) setShowControls(true);
-    }, [showControls]);
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -222,7 +223,7 @@ export default function WatchPage() {
             }
         }, 1000);
         return () => clearInterval(interval);
-    }, [player.paused, isSettingsOpen, showControls]);
+    }, [player.paused, isSettingsOpen]);
 
     // ----- Scrubbing -----
 
