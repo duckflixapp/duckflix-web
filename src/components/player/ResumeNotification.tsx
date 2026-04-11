@@ -5,23 +5,22 @@ import { formatTime } from '../../utils/format';
 import type { WatchHistoryDTO } from '@duckflixapp/shared';
 
 interface ResumeNotificationProps {
-    watchProgress: WatchHistoryDTO | null;
+    watchProgress: WatchHistoryDTO;
     onResume: (time: number) => unknown;
     onClose?: () => unknown;
 }
 
 export function ResumeNotification({ watchProgress, onResume, onClose }: ResumeNotificationProps) {
-    const [visible, setVisibility] = useState(!!watchProgress?.lastPosition && watchProgress.lastPosition > 10);
+    const [lastPosition] = useState(watchProgress.lastPosition);
+    const [visible, setVisibility] = useState(!!lastPosition && lastPosition > 10);
 
     useEffect(() => {
         const timer = setTimeout(() => setVisibility(false), 10000);
         return () => clearTimeout(timer);
     }, []);
 
-    if (!watchProgress) return null;
-
     const handleResume = () => {
-        onResume(watchProgress.lastPosition);
+        onResume(lastPosition);
         handleClose();
     };
 
@@ -44,7 +43,7 @@ export function ResumeNotification({ watchProgress, onResume, onClose }: ResumeN
                     <div className="flex flex-col gap-1">
                         <span className="text-white text-[10px] uppercase font-black tracking-[0.2em]">Continue Watching?</span>
                         <span className="text-white/70 text-sm">
-                            You stopped at <span className="text-primary/80">{formatTime(watchProgress.lastPosition)}</span>
+                            You stopped at <span className="text-primary/80">{formatTime(lastPosition)}</span>
                         </span>
                     </div>
 
