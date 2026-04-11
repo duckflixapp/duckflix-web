@@ -49,7 +49,11 @@ class SocketManager {
         this.handlers.get(event)?.push(handler);
     }
 
-    off(event: string, handler: (data: never) => void) {
+    off(event: string, handler: null | ((data: never) => void) = null) {
+        if (handler === null) {
+            this.handlers.delete(event);
+            return;
+        }
         const eventHandlers = this.handlers.get(event);
         if (eventHandlers) {
             this.handlers.set(
