@@ -761,6 +761,7 @@ export default function WatchPage() {
                                 onChangeSubtitleConfig={setSubtitleConfig}
                                 subtitleDelay={subtitleDelay}
                                 onChangeDelay={handleChangeSubtitleDelay}
+                                isDelayChangeDisabled={!subtitle}
                             />
                         </div>
 

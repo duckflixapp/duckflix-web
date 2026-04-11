@@ -53,6 +53,7 @@ interface SettingsProps {
     onChangeSubtitleConfig: (config: SubtitleConfig) => void;
     subtitleDelay: number;
     onChangeDelay: (v: number) => void;
+    isDelayChangeDisabled: boolean;
 }
 
 // ─── Reusable option list ────────────────────────────────────────────────────
@@ -153,6 +154,7 @@ export function SettingsBox({
     onChangeSubtitleConfig,
     subtitleDelay,
     onChangeDelay,
+    isDelayChangeDisabled,
 }: SettingsProps) {
     const [[menu, direction], setMenu] = useState<[MenuState, number]>(['main', 0]);
 
@@ -178,6 +180,13 @@ export function SettingsBox({
         center: { x: 0, opacity: 1 },
         exit: (dir: number) => ({ x: dir > 0 ? -50 : 50, opacity: 0 }),
     };
+
+    const adjustDelay = (delta: number) => {
+        const value = Number((subtitleDelay + delta).toFixed(2));
+        onChangeDelay(value);
+    };
+
+    const delayButtonStyle = `px-3 py-1.5 rounded-xl bg-white/5 text-white/60 text-[12px] transition-all flex-1 ${!isDelayChangeDisabled ? 'hover:bg-white/10 cursor-pointer' : ''}`;
 
     return (
         <>
@@ -409,21 +418,37 @@ export function SettingsBox({
                                             <span className="text-[12px] text-white/60">Delay</span>
                                             <span className="text-[12px] text-white/40 font-mono">
                                                 {subtitleDelay > 0 ? '+' : ''}
-                                                {subtitleDelay.toFixed(1)}s
+                                                {subtitleDelay.toFixed(2)}s
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <button
-                                                onClick={() => onChangeDelay(Math.round((subtitleDelay - 0.5) * 10) / 10)}
-                                                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-[12px] transition-all cursor-pointer flex-1"
+                                                disabled={isDelayChangeDisabled}
+                                                onClick={() => adjustDelay(-1)}
+                                                className={delayButtonStyle}
                                             >
-                                                -0.5s
+                                                -1
                                             </button>
                                             <button
-                                                onClick={() => onChangeDelay(Math.round((subtitleDelay + 0.5) * 10) / 10)}
-                                                className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-[12px] transition-all cursor-pointer flex-1"
+                                                disabled={isDelayChangeDisabled}
+                                                onClick={() => adjustDelay(-0.25)}
+                                                className={delayButtonStyle}
                                             >
-                                                +0.5s
+                                                -0.25
+                                            </button>
+                                            <button
+                                                disabled={isDelayChangeDisabled}
+                                                onClick={() => adjustDelay(0.25)}
+                                                className={delayButtonStyle}
+                                            >
+                                                +0.25
+                                            </button>
+                                            <button
+                                                disabled={isDelayChangeDisabled}
+                                                onClick={() => adjustDelay(1)}
+                                                className={delayButtonStyle}
+                                            >
+                                                +1
                                             </button>
                                         </div>
                                         {subtitleDelay !== 0 && (
