@@ -24,7 +24,6 @@ export default function MovieDetailsPage() {
 
     const auth = useAuthContext();
     const { movie, isLoading, updateMovie, isUpdating, isNotFound } = useMovieDetailed(id);
-    const { versions } = useVideoVersions(movie?.videoId);
     const { addContent, removeContent } = useLibrary();
     const navigate = useNavigate();
     const settingsParam = searchParams.get('settings');
@@ -54,6 +53,7 @@ export default function MovieDetailsPage() {
     if (!movie) return null;
 
     const video = movie.video;
+    const versions = video.versions;
     const uploader = video.uploader;
     const tag = getTagFromVersions(video.versions);
     const availableVersions = versions
