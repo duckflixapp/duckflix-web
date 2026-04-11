@@ -17,7 +17,7 @@ import {
     Cast,
 } from 'lucide-react';
 import { srtToVtt } from '../utils/format';
-import { SettingsBox } from '../components/player/WatchSettings';
+import { DEFAULT_SUBTITLE_CONFIG, SettingsBox, type SubtitleConfig } from '../components/player/WatchSettings';
 import { useVideoPlayer } from '../hooks/useVideoPlayer';
 import { PlayerOverlay } from '../components/player/PlayerOverlay';
 import { ProgressBar } from '../components/player/ProgressBar';
@@ -28,6 +28,7 @@ import Hls from 'hls.js';
 import { api } from '../lib/api';
 import { useVideo } from '../hooks/useVideo';
 import { useWatchProgress } from '../hooks/useWatchProgress';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 // Single source of truth for what the user has selected
 type VersionSelection =
@@ -42,6 +43,8 @@ const formatTime = (seconds: number) => {
     const s = Math.floor(seconds % 60);
     return `${h > 0 ? h + ':' : ''}${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
 };
+
+const SUBTITLE_CONFIG_KEY = 'subtitle-delay#';
 
 const appendSession = (url: string, sessionId: string): string => {
     const u = new URL(url);
@@ -61,6 +64,10 @@ export default function WatchPage() {
     const [subtitle, setSubtitle] = useState<SubtitleDTO | null>(null);
     const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [isScrubbing, setIsScrubbing] = useState(false);
+
+    // Subtitle configuration
+    const [subtitleConfig, setSubtitleConfig] = useLocalStorage<SubtitleConfig>('subtitle-config', DEFAULT_SUBTITLE_CONFIG);
+    const [subtitleDelay, setSubtitleDelay] = useState(0);
 
     // Version selection — replaces manualVersion + requestedHlsLevel
     const [selection, setSelection] = useState<VersionSelection>({ type: 'auto' });
@@ -175,7 +182,7 @@ export default function WatchPage() {
 
     useEffect(() => {
         if (player.paused) return;
-        const interval = setInterval(handleSaveProgress, 5000);
+        const interval = setInterval(handleSaveProgress, 10000);
         return () => clearInterval(interval);
     }, [player.paused, handleSaveProgress]);
 
@@ -501,8 +508,100 @@ export default function WatchPage() {
         reader.readAsArrayBuffer(file);
     };
 
-    // ----- Render -----
+    useEffect(() => {
+        const { fontFamily, fontColor, fontOpacity, fontSize, bgColor, bgOpacity } = subtitleConfig;
 
+        const colorMap = {
+            white: '255, 255, 255',
+            black: '0, 0, 0',
+            yellow: '255, 220, 0',
+            cyan: '0, 255, 255',
+            none: null,
+        };
+
+        const familyMap = {
+            default: 'inherit',
+            roboto: "'Roboto', sans-serif",
+            arial: 'Arial, sans-serif',
+            helvetica: 'Helvetica, sans-serif',
+            monospace: 'monospace',
+        };
+
+        const color = colorMap[fontColor] ? `rgba(${colorMap[fontColor]}, ${fontOpacity / 100})` : 'white';
+        const bg = colorMap[bgColor] ? `rgba(${colorMap[bgColor]}, ${bgOpacity / 100})` : 'transparent';
+        const family = familyMap[fontFamily] || 'inherit';
+
+        const style = document.createElement('style');
+        style.id = 'subtitle-style';
+        style.textContent = `
+            video::cue {
+                color: ${color} !important;
+                background-color: ${bg} !important;
+                font-family: ${family} !important;
+                font-size: ${fontSize * 0.9}% !important;
+                text-shadow: 0 0 4px rgba(0,0,0,0.8);
+            }
+        `;
+        document.getElementById('subtitle-style')?.remove();
+        document.head.appendChild(style);
+        return () => {
+            document.getElementById('subtitle-style')?.remove();
+        };
+    }, [subtitleConfig]);
+
+    const applyDelay = useCallback(
+        (delaySeconds: number) => {
+            if (!videoElement || delaySeconds === 0) return;
+
+            const tryApply = () => {
+                const track = videoElement.textTracks[0];
+                if (!track?.cues?.length) return false;
+
+                Array.from(track.cues).forEach((cue) => {
+                    cue.startTime += delaySeconds;
+                    cue.endTime += delaySeconds;
+                });
+                return true;
+            };
+
+            if (tryApply()) return;
+
+            const interval = setInterval(() => {
+                if (tryApply()) clearInterval(interval);
+            }, 100);
+
+            const timeout = setTimeout(() => clearInterval(interval), 5000);
+
+            return () => {
+                clearInterval(interval);
+                clearTimeout(timeout);
+            };
+        },
+        [videoElement, subtitle]
+    );
+
+    useEffect(() => {
+        if (!subtitle) return;
+        const delay = parseFloat(localStorage.getItem(SUBTITLE_CONFIG_KEY + subtitle.id) ?? '0');
+        setSubtitleDelay(delay);
+    }, [subtitle]);
+
+    useEffect(() => applyDelay(subtitleDelay), [subtitleDelay]);
+
+    const handleChangeSubtitleDelay = useCallback(
+        (delay: number) => {
+            if (!subtitle) return;
+
+            const key = SUBTITLE_CONFIG_KEY + subtitle.id;
+            if (delay === 0) localStorage.removeItem(key);
+            else localStorage.setItem(key, String(delay));
+
+            setSubtitleDelay(delay);
+        },
+        [subtitle]
+    );
+
+    // ----- Render -----
     if (isLoading || !video) {
         return (
             <div className="h-screen bg-black flex items-center justify-center text-primary">
@@ -658,6 +757,10 @@ export default function WatchPage() {
                                 activeSubtitle={subtitle}
                                 setSubtitle={changeSubtitle}
                                 onUploadLocal={() => fileInputRef.current?.click()}
+                                subtitleConfig={subtitleConfig}
+                                onChangeSubtitleConfig={setSubtitleConfig}
+                                subtitleDelay={subtitleDelay}
+                                onChangeDelay={handleChangeSubtitleDelay}
                             />
                         </div>
 
