@@ -257,7 +257,7 @@ export function SettingsBox({
                                             <span className="font-bold">{v.height ? v.height + 'p' : 'Auto'}</span>
                                             <div className="flex items-center gap-2">
                                                 {activeVersion?.id === v.id && <Check size={14} />}
-                                                {v.height && (
+                                                {v.height ? (
                                                     <>
                                                         {v.streamUrl.includes('/live/') && (
                                                             <span className="text-[9px] opacity-30 uppercase">live</span>
@@ -268,7 +268,7 @@ export function SettingsBox({
                                                             </span>
                                                         )}
                                                     </>
-                                                )}
+                                                ) : null}
                                             </div>
                                         </button>
                                     ))}
