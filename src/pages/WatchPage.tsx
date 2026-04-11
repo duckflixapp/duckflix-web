@@ -27,6 +27,13 @@ import type { VideoVersionDTO, SubtitleDTO } from '@duckflixapp/shared';
 import Hls from 'hls.js';
 import { api } from '../lib/api';
 import { useVideo } from '../hooks/useVideo';
+import { useWatchProgress } from '../hooks/useWatchProgress';
+
+// Single source of truth for what the user has selected
+type VersionSelection =
+    | { type: 'auto' } // HLS adaptive bitrate
+    | { type: 'hls'; height: number } // HLS locked to specific level
+    | { type: 'direct'; version: VideoVersionDTO }; // Direct MP4/stream src
 
 const formatTime = (seconds: number) => {
     if (!seconds) return '00:00';
@@ -45,52 +52,52 @@ const appendSession = (url: string, sessionId: string): string => {
 export default function WatchPage() {
     const { id } = useParams<{ id: string }>();
     const { video, isLoading, videoResolved } = useVideo(id);
-    const [sessionId, setSessionId] = useState<string | null>(null);
-
+    const { progress: watchProgress, save: saveWatchProgress } = useWatchProgress(id);
     const navigate = useNavigate();
 
+    const [sessionId, setSessionId] = useState<string | null>(null);
     const [showControls, setShowControls] = useState(true);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [subtitle, setSubtitle] = useState<SubtitleDTO | null>(null);
+    const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
     const [isScrubbing, setIsScrubbing] = useState(false);
-    const progressBarRef = useRef<HTMLDivElement>(null);
-    const timeDisplayRef = useRef<HTMLSpanElement>(null);
-    const videoStateRef = useRef<boolean>(false);
 
-    const lastActionTimeRef = useRef<number>(0);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const scrubPercentRef = useRef<number | null>(null);
-    const lastActiveSubtitleIdRef = useRef<string>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    // Version selection — replaces manualVersion + requestedHlsLevel
+    const [selection, setSelection] = useState<VersionSelection>({ type: 'auto' });
+    const selectionRef = useRef<VersionSelection>({ type: 'auto' });
 
+    // HLS runtime state
     const hlsRef = useRef<Hls | null>(null);
     const [hlsLevels, setHlsLevels] = useState<Hls['levels']>([]);
-    const [currentHlsLevel, setCurrentHlsLevel] = useState<number>(-1);
-    const [manualVersion, setManualVersion] = useState<VideoVersionDTO | null>(null);
-    const [localSubs, setLocalSubs] = useState<SubtitleDTO[]>([]);
-    const [requestedHlsLevel, setRequestedHlsLevel] = useState<number | 'auto'>('auto');
+    const [currentHlsLevel, setCurrentHlsLevel] = useState<number>(-1); // what ABR actually switched to
+
+    // Misc refs
+    const lastSavedPositionRef = useRef<number | null>(null);
+    const lastActionTimeRef = useRef<number>(0);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const progressBarRef = useRef<HTMLDivElement>(null);
+    const timeDisplayRef = useRef<HTMLSpanElement>(null);
+    const seekTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const scrubPercentRef = useRef<number | null>(null);
+    const videoStateRef = useRef<boolean>(false);
+    const lastActiveSubtitleIdRef = useRef<string>(null);
+    const pendingRestoreRef = useRef<{ time: number; playing: boolean } | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const initializedRef = useRef(false);
+
+    useEffect(() => {
+        selectionRef.current = selection;
+    }, [selection]);
 
     useEffect(() => {
         if (!id) return;
-        api.post<{ sessionId: string }>(`/media/session`, { videoId: id })
-            .then((data) => {
-                setSessionId(data.sessionId);
-            })
+        api.post<{ sessionId: string }>('/media/session', { videoId: id })
+            .then((data) => setSessionId(data.sessionId))
             .catch(() => {});
     }, [id]);
 
-    const title = videoResolved?.name;
-
-    const availableVersions = useMemo(() => {
-        if (!video || !sessionId) return [];
-        return [...video.versions, ...(video.generatedVersions ?? [])]
-            .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
-            .sort((a, b) => b.height - a.height)
-            .map((v) => ({ ...v, streamUrl: appendSession(v.streamUrl, sessionId) }));
-    }, [video, sessionId]);
-
-    const autoVersion: VideoVersionDTO | null = useMemo(
+    // ----- Version derivation -----
+    const autoVersion = useMemo<VideoVersionDTO>(
         () => ({
             id: 'auto',
             height: 0,
@@ -104,90 +111,110 @@ export default function WatchPage() {
         [id, sessionId]
     );
 
-    const allVersions = useMemo(() => [...availableVersions, autoVersion], [autoVersion, availableVersions]);
-    const versionsForSettings = allVersions;
-    const activeVersion = useMemo(() => manualVersion ?? autoVersion, [manualVersion, autoVersion]);
+    const availableVersions = useMemo(() => {
+        if (!video || !sessionId) return [];
+        return [...video.versions, ...(video.generatedVersions ?? [])]
+            .filter((v) => v.mimeType && ['video/mp4', 'application/x-mpegURL'].includes(v.mimeType) && v.status === 'ready')
+            .sort((a, b) => b.height - a.height)
+            .map((v) => ({ ...v, streamUrl: appendSession(v.streamUrl, sessionId) }));
+    }, [video, sessionId]);
 
     const availableSubtitles = useMemo(() => {
         if (!video || !sessionId) return [];
         return video.subtitles.map((s) => ({ ...s, subtitleUrl: appendSession(s.subtitleUrl, sessionId) }));
     }, [video, sessionId]);
 
-    const actualVersionForTopBar = useMemo(() => {
+    const allVersions = useMemo(() => [...availableVersions, autoVersion], [availableVersions, autoVersion]);
+
+    // What src to actually load — 'auto' and 'hls' both use master.m3u8
+    const activeVersion = useMemo(() => {
+        if (selection.type === 'direct') return selection.version;
+        return autoVersion;
+    }, [selection, autoVersion]);
+
+    // What to highlight in Settings UI (user intent)
+    const selectedVersionForUI = useMemo(() => {
+        if (selection.type === 'direct') return selection.version;
+        if (selection.type === 'hls') return allVersions.find((v) => v.height === selection.height) ?? autoVersion;
+        return autoVersion;
+    }, [selection, allVersions, autoVersion]);
+
+    // What to show in top bar (what ABR actually switched to)
+    const playingVersion = useMemo(() => {
         if (hlsLevels.length > 0 && currentHlsLevel >= 0) {
             const level = hlsLevels[currentHlsLevel];
             return allVersions.find((v) => v.height === level?.height) ?? autoVersion;
         }
+        if (selection.type === 'direct') return selection.version;
         return autoVersion;
-    }, [currentHlsLevel, hlsLevels, allVersions, autoVersion]);
+    }, [currentHlsLevel, hlsLevels, allVersions, autoVersion, selection]);
 
-    const activeVersionForDisplay = useMemo(() => {
-        if (hlsLevels.length > 0) {
-            if (requestedHlsLevel === 'auto') return autoVersion;
-            const level = hlsLevels[requestedHlsLevel];
-            return allVersions.find((v) => v.height === level?.height) ?? autoVersion;
-        }
-        return activeVersion;
-    }, [requestedHlsLevel, hlsLevels, allVersions, activeVersion, autoVersion]);
-
-    const actionCallback = () => {
+    // ----- Player -----
+    const actionCallback = useCallback(() => {
         lastActionTimeRef.current = Date.now();
         setShowControls(true);
-    };
+    }, []);
 
     const player = useVideoPlayer(actionCallback);
     const { videoRef, videoElement, videoCallbackRef } = player;
 
-    // progress memory
-    const saveProgress = useCallback(async () => {
+    // ----- Progress saving -----
+
+    useEffect(() => {
+        if (watchProgress) lastSavedPositionRef.current = watchProgress.lastPosition;
+    }, [watchProgress]);
+
+    const handleSaveProgress = useCallback(async () => {
         if (!videoElement) return;
-
-        await api.post(`/videos/${id}/progress`, {
-            positionSec: parseInt(videoElement.currentTime.toString()),
-        });
-    }, [id, videoElement]);
+        const progress = parseInt(videoElement.currentTime.toString());
+        if (progress === lastSavedPositionRef.current) return;
+        lastSavedPositionRef.current = progress;
+        saveWatchProgress(progress);
+    }, [videoElement, saveWatchProgress]);
 
     useEffect(() => {
-        if (!videoElement || player.paused) return;
-
-        const interval = setInterval(() => {
-            saveProgress();
-        }, 15000);
-
+        if (player.paused) return;
+        const interval = setInterval(handleSaveProgress, 5000);
         return () => clearInterval(interval);
-    }, [videoElement, player.paused, saveProgress]);
+    }, [player.paused, handleSaveProgress]);
 
-    // UI Effects
     useEffect(() => {
-        const video = videoElement;
-        if (!video) return;
+        const element = videoElement;
+        if (!element) return;
+        return () => {
+            const progress = parseInt(element.currentTime.toString());
+            if (progress) saveWatchProgress(progress);
+        };
+    }, [videoElement, saveWatchProgress]);
+
+    // ----- Time display -----
+
+    useEffect(() => {
+        const el = videoElement;
+        if (!el) return;
 
         const updateTime = () => {
             if (timeDisplayRef.current) {
-                const current = formatTime(video.currentTime);
-                const total = formatTime(video.duration || 0);
-                timeDisplayRef.current.innerText = `${current} / ${total}`;
+                timeDisplayRef.current.innerText = `${formatTime(el.currentTime)} / ${formatTime(el.duration || 0)}`;
             }
         };
 
-        video.addEventListener('timeupdate', updateTime);
-        video.addEventListener('loadedmetadata', updateTime);
-
+        el.addEventListener('timeupdate', updateTime);
+        el.addEventListener('loadedmetadata', updateTime);
         updateTime();
         return () => {
-            video.removeEventListener('timeupdate', updateTime);
-            video.removeEventListener('loadedmetadata', updateTime);
-            saveProgress();
+            el.removeEventListener('timeupdate', updateTime);
+            el.removeEventListener('loadedmetadata', updateTime);
         };
-    }, [videoElement, activeVersion, saveProgress]);
+    }, [videoElement, activeVersion]);
 
-    // Autohide controls
+    // ----- Controls autohide -----
+
     const registerAction = useCallback(() => {
         lastActionTimeRef.current = Date.now();
         if (!showControls) setShowControls(true);
     }, [showControls]);
 
-    // watchdog for controlls
     useEffect(() => {
         const interval = setInterval(() => {
             if (showControls && Date.now() - lastActionTimeRef.current > 3000 && !player.paused && !isSettingsOpen) {
@@ -197,16 +224,14 @@ export default function WatchPage() {
         return () => clearInterval(interval);
     }, [player.paused, isSettingsOpen, showControls]);
 
-    // Scrubbing Logic
+    // ----- Scrubbing -----
+
     const handleSeek = useCallback(
         (e: React.MouseEvent | MouseEvent) => {
             if (!videoElement || !progressBarRef.current) return;
             const rect = progressBarRef.current.getBoundingClientRect();
-            const clientX = e.clientX;
-            const pos = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-
+            const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
             scrubPercentRef.current = pos * 100;
-
             const newTime = pos * videoElement.duration;
 
             if (timeDisplayRef.current) {
@@ -217,14 +242,17 @@ export default function WatchPage() {
             seekTimeoutRef.current = setTimeout(() => {
                 if (videoElement) {
                     videoElement.currentTime = newTime;
+                    handleSaveProgress();
                 }
             }, 100);
         },
-        [videoElement]
+        [videoElement, handleSaveProgress]
     );
 
     const onScrubEnd = useCallback(() => {
-        if (!videoStateRef.current && videoElement && videoElement.currentTime !== videoElement.duration) videoElement.play();
+        if (!videoStateRef.current && videoElement && videoElement.currentTime !== videoElement.duration) {
+            videoElement.play();
+        }
     }, [videoElement]);
 
     useEffect(() => {
@@ -244,53 +272,55 @@ export default function WatchPage() {
         };
     }, [isScrubbing, handleSeek, videoElement, onScrubEnd]);
 
-    const toggleSettings = () => {
-        setIsSettingsOpen((p) => !p);
-    };
+    const handleTogglePlay = useCallback(() => {
+        player.togglePlay();
+        handleSaveProgress();
+    }, [handleSaveProgress, player.togglePlay]);
+
+    // ----- Subtitles -----
 
     const toggleSubtitles = useCallback(() => {
-        if (subtitle) setSubtitle(null);
-        else if (video && (availableSubtitles.length > 0 || localSubs.length > 0)) {
-            const code = localStorage.getItem('prefered-subtitle-lang');
-            const filter =
-                lastActiveSubtitleIdRef.current != null
-                    ? (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current
-                    : (t: SubtitleDTO) => t.language === code;
-
-            const s = availableSubtitles.find(filter) ?? localSubs.find(filter);
-            if (s) setSubtitle(s);
-            else if (localSubs.length > 0) setSubtitle(localSubs[0]);
-            else setSubtitle(availableSubtitles[0]);
+        if (subtitle) {
+            setSubtitle(null);
+            return;
         }
+        if (!video || (availableSubtitles.length === 0 && localSubs.length === 0)) return;
+
+        const code = localStorage.getItem('prefered-subtitle-lang');
+        const byId = (t: SubtitleDTO) => t.id === lastActiveSubtitleIdRef.current;
+        const byLang = (t: SubtitleDTO) => t.language === code;
+        const filter = lastActiveSubtitleIdRef.current != null ? byId : byLang;
+
+        const found = availableSubtitles.find(filter) ?? localSubs.find(filter);
+        setSubtitle(found ?? localSubs[0] ?? availableSubtitles[0]);
     }, [localSubs, availableSubtitles, video, subtitle]);
 
     const changeSubtitle = (s: SubtitleDTO | null) => {
         setSubtitle(s);
         if (!s) return;
         lastActiveSubtitleIdRef.current = s.id;
-        if (s.language.startsWith('local')) return;
-        localStorage.setItem('prefered-subtitle-lang', s.language);
+        if (!s.language.startsWith('local')) localStorage.setItem('prefered-subtitle-lang', s.language);
     };
 
-    // Keyboard shortcuts
+    // ----- Keyboard shortcuts -----
+
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
             playerShortcuts.forEach((shortcut) => {
                 if (!shortcut.keys.includes(e.key.toLowerCase())) return;
-
                 if (shortcut.func === 'closeOpenMenu') {
                     if (isSettingsOpen) setIsSettingsOpen(false);
                     else if (showControls) setShowControls(false);
                 }
-
                 if (shortcut.func === 'toggleSubtitles') toggleSubtitles();
             });
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isSettingsOpen, showControls, toggleSubtitles]);
+
+    // ----- HLS / video source effect -----
 
     useEffect(() => {
         if (!videoElement || !activeVersion || !sessionId) return;
@@ -299,179 +329,187 @@ export default function WatchPage() {
 
         if (activeVersion.mimeType === 'application/x-mpegURL') {
             if (!Hls.isSupported()) {
-                if (videoElement.canPlayType('application/vnd.apple.mpegurl'))
-                    videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
-                else {
-                    alert('unsupported');
+                if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                    videoElement.setAttribute('src', activeVersion.streamUrl);
+                } else {
+                    alert('HLS not supported');
                     return;
                 }
+            } else {
+                hls = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: false,
+                    maxBufferLength: 24,
+                    maxMaxBufferLength: 48,
+                    startFragPrefetch: false,
+                    autoStartLoad: true,
+                    capLevelToPlayerSize: false,
+                    startLevel: -1,
+                    abrEwmaDefaultEstimate: 5_000_000,
+                });
+                hlsRef.current = hls;
+
+                hls.loadSource(activeVersion.streamUrl);
+                hls.attachMedia(videoElement);
+
+                hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
+                    setHlsLevels(data.levels);
+
+                    const sel = selectionRef.current;
+                    if (sel.type === 'hls') {
+                        const idx = data.levels.findIndex((l) => l.height === sel.height);
+                        if (idx !== -1) hls!.currentLevel = idx;
+                    } else {
+                        hls!.currentLevel = -1;
+                    }
+
+                    const restore = pendingRestoreRef.current;
+                    if (restore) {
+                        pendingRestoreRef.current = null;
+                        videoElement.currentTime = restore.time;
+                        if (restore.playing) videoElement.play().catch(console.error);
+                    }
+                });
+
+                hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => setCurrentHlsLevel(data.level));
+                hls.on(Hls.Events.ERROR, (_, data) => {
+                    if (data.fatal) console.error('Fatal HLS error:', data.type);
+                });
             }
-            hls = new Hls({
-                enableWorker: true,
-                lowLatencyMode: false,
-                maxBufferLength: 24,
-                maxMaxBufferLength: 48,
-                startFragPrefetch: false,
-                autoStartLoad: true,
-                capLevelToPlayerSize: false,
-                startLevel: -1,
-                abrEwmaDefaultEstimate: 5000000,
-            });
-            hlsRef.current = hls;
-
-            hls.loadSource(activeVersion.streamUrl);
-            hls.attachMedia(videoElement);
-
-            hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => {
-                setCurrentHlsLevel(data.level);
-            });
-
-            hls.on(Hls.Events.ERROR, (_, data) => {
-                if (data.fatal) console.error('Fatal HLS error:', data.type);
-            });
-            hls.on(Hls.Events.MANIFEST_PARSED, (_, data) => {
-                setRequestedHlsLevel('auto');
-                setHlsLevels(data.levels);
-            });
         } else {
             hlsRef.current = null;
-            setCurrentHlsLevel(-1);
-            videoElement.setAttribute('src', activeVersion?.streamUrl ?? null);
+            videoElement.setAttribute('src', activeVersion.streamUrl);
         }
 
         videoElement.load();
 
         return () => {
+            hls?.destroy();
             hlsRef.current = null;
             setCurrentHlsLevel(-1);
             setHlsLevels([]);
             videoElement.pause();
             videoElement.removeAttribute('src');
             videoElement.load();
-            hls?.destroy();
         };
-    }, [activeVersion, allVersions, id, videoElement, sessionId]);
+    }, [activeVersion, videoElement, sessionId]);
+
+    // ----- Resolution change -----
 
     const handleChangeResolution = useCallback(
         (v: VideoVersionDTO) => {
-            const video = videoElement;
-            if (!video) return;
-
             const isAuto = v.id === 'auto' || v.height === 0;
-            const isHlsVersion = v.mimeType === 'application/x-mpegURL';
+            const isHls = v.mimeType === 'application/x-mpegURL';
 
-            if (hlsRef.current && (isAuto || isHlsVersion)) {
-                if (isAuto) {
-                    hlsRef.current.currentLevel = -1;
-                    setRequestedHlsLevel('auto');
-                } else {
-                    const idx = hlsLevels.findIndex((l) => l.height === v.height);
-                    if (idx !== -1) {
-                        hlsRef.current.currentLevel = idx;
-                        setRequestedHlsLevel(idx);
-                    }
+            if (isAuto || isHls) {
+                if (hlsRef.current) {
+                    hlsRef.current.currentLevel = isAuto ? -1 : hlsLevels.findIndex((l) => l.height === v.height);
+                } else if (videoElement) {
+                    pendingRestoreRef.current = {
+                        time: videoElement.currentTime,
+                        playing: !videoElement.paused,
+                    };
                 }
+                setSelection(isAuto ? { type: 'auto' } : { type: 'hls', height: v.height });
                 return;
             }
 
-            if (isAuto) {
-                setManualVersion(null);
-                return;
-            }
-
-            const t = video.currentTime;
-            const wasPlaying = !video.paused;
-
+            // Direct MP4 — preserve position
+            const el = videoElement;
+            if (!el) return;
+            const t = el.currentTime;
+            const wasPlaying = !el.paused;
             const onLoaded = () => {
-                video.currentTime = t;
-                if (wasPlaying) {
-                    video.play().catch((e) => console.error('Auto-play failed:', e));
-                }
-                video.removeEventListener('loadedmetadata', onLoaded);
+                el.currentTime = t;
+                if (wasPlaying) el.play().catch(console.error);
+                el.removeEventListener('loadedmetadata', onLoaded);
             };
-
-            video.addEventListener('loadedmetadata', onLoaded);
-            setManualVersion(v);
+            el.addEventListener('loadedmetadata', onLoaded);
+            setSelection({ type: 'direct', version: v });
         },
         [hlsLevels, videoElement]
     );
 
+    // Auto-select best ready version on initial load
     useEffect(() => {
-        if (!availableVersions.length) return;
-
-        // Pick best Ready version as default
-        const readyVersion = availableVersions.find((v) => v.streamUrl.includes('/media/stream/'));
-        if (readyVersion) handleChangeResolution(readyVersion);
+        if (!availableVersions.length || initializedRef.current) return;
+        const best = availableVersions.find((v) => v.streamUrl.includes('/media/stream/'));
+        if (best) {
+            initializedRef.current = true;
+            handleChangeResolution(best);
+        }
     }, [availableVersions, handleChangeResolution]);
+
+    // ----- Cast -----
 
     const castVideo = useCallback(() => {
         if (!activeVersion || !video) return;
-        const subtitles = availableSubtitles;
         player.cast({
             src: activeVersion.streamUrl,
             contentType: activeVersion.mimeType,
-            title: title ?? '',
-            subtitles: subtitles.map((s, idx) => ({
+            title: videoResolved?.name ?? '',
+            subtitles: availableSubtitles.map((s, idx) => ({
                 id: idx,
                 url: s.subtitleUrl,
                 language: s.language,
                 label: s.name,
             })),
-            activeSubtitle: subtitles.findIndex((s) => s.id === subtitle?.id),
+            activeSubtitle: availableSubtitles.findIndex((s) => s.id === subtitle?.id),
         });
-    }, [activeVersion, video, availableSubtitles, player, title, subtitle?.id]);
+    }, [activeVersion, video, availableSubtitles, player, videoResolved, subtitle?.id]);
 
-    if (isLoading || !video)
-        return (
-            <div className="h-screen bg-black flex items-center justify-center text-primary">
-                <Loader2 className="animate-spin" />
-            </div>
-        );
+    const handleResume = useCallback(
+        (time: number) => {
+            if (!videoRef.current) return;
+            videoRef.current.currentTime = time;
+            videoRef.current.play();
+        },
+        [videoRef]
+    );
+
+    // ----- Local subtitle upload -----
 
     const handleLocalSubtitleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         const reader = new FileReader();
-
-        reader.onload = async (event) => {
-            const result = event.target?.result as ArrayBuffer;
-
-            const buffer = result; // Sada TS zna da je ovo ArrayBuffer
+        reader.onload = (event) => {
+            const buffer = event.target?.result as ArrayBuffer;
             let decoder = new TextDecoder('utf-8');
             let content = decoder.decode(buffer);
-
             if (content.includes('')) {
-                // on fail
                 decoder = new TextDecoder('windows-1250');
                 content = decoder.decode(buffer);
             }
+            if (file.name.toLowerCase().endsWith('.srt')) content = srtToVtt(content);
 
-            if (file.name.toLowerCase().endsWith('.srt')) {
-                content = srtToVtt(content);
-            }
-
-            const blob = new Blob([content], { type: 'text/vtt' });
-            const blobUrl = URL.createObjectURL(blob);
-
-            const localSub = {
+            const blobUrl = URL.createObjectURL(new Blob([content], { type: 'text/vtt' }));
+            const localSub: SubtitleDTO = {
                 id: `local-${Date.now()}`,
                 language: 'local',
                 name: file.name.slice(0, 20),
                 externalId: null,
                 subtitleUrl: blobUrl,
-                videoId: video.id || '',
+                videoId: video!.id || '',
                 createdAt: new Date().toISOString(),
-            } satisfies SubtitleDTO;
-
+            };
             setLocalSubs([localSub]);
             setSubtitle(localSub);
         };
-
         reader.readAsArrayBuffer(file);
     };
 
-    // Helper icons
+    // ----- Render -----
+
+    if (isLoading || !video) {
+        return (
+            <div className="h-screen bg-black flex items-center justify-center text-primary">
+                <Loader2 className="animate-spin" />
+            </div>
+        );
+    }
+
     const PlayIcon = player.paused ? Play : Pause;
     const FullScrnIcon = player.fullScreen ? Minimize : Maximize;
     const VolumeIcon = player.muted ? VolumeOff : player.volume === 0 ? Volume : player.volume < 5 ? Volume1 : Volume2;
@@ -479,7 +517,7 @@ export default function WatchPage() {
     return (
         <div
             ref={containerRef}
-            className={`h-screen w-screen bg-black relative group overflow-hidden ${showControls ? 'cursor-default' : 'cursor-none'} ${isScrubbing ? 'select-none' : ''}`}
+            className={`h-screen w-screen bg-black relative overflow-hidden ${showControls ? 'cursor-default' : 'cursor-none'} ${isScrubbing ? 'select-none' : ''}`}
             onMouseMove={registerAction}
             onClick={registerAction}
         >
@@ -489,12 +527,12 @@ export default function WatchPage() {
                 preload="metadata"
                 crossOrigin="use-credentials"
                 className={`w-full h-full max-h-screen object-contain ${showControls && 'subtitles-up'}`}
-                onClick={() => !isScrubbing && player.togglePlay()}
+                onClick={() => !isScrubbing && handleTogglePlay()}
                 onWaiting={() => player.setIsBuffering(true)}
                 onPlaying={() => player.setIsBuffering(false)}
                 onCanPlay={() => player.setIsBuffering(false)}
                 onEnded={() => player.setPaused(true)}
-                onPause={() => player.setPaused(true)} // e.g. os can pause player
+                onPause={() => player.setPaused(true)}
                 onPlay={() => player.setPaused(false)}
             >
                 {subtitle && (
@@ -522,15 +560,15 @@ export default function WatchPage() {
                             <ChevronLeft size={24} className="text-white" />
                         </button>
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-none">{title}</h1>
-                            {actualVersionForTopBar && actualVersionForTopBar.height ? (
+                            <h1 className="text-white font-bold text-lg leading-none">{videoResolved?.name}</h1>
+                            {playingVersion.height > 0 && (
                                 <div className="flex items-center gap-2">
-                                    <p className="text-white/40 text-xs font-bold uppercase mt-1">{actualVersionForTopBar.height}p</p>
-                                    {actualVersionForTopBar.streamUrl.includes('/live/') ? (
+                                    <p className="text-white/40 text-xs font-bold uppercase mt-1">{playingVersion.height}p</p>
+                                    {playingVersion.streamUrl.includes('/live/') && (
                                         <p className="text-white/40 text-xs font-bold uppercase mt-1">LIVE</p>
-                                    ) : null}
+                                    )}
                                 </div>
-                            ) : null}
+                            )}
                         </div>
                     </div>
                     {player.isCastAvailable && (
@@ -542,8 +580,7 @@ export default function WatchPage() {
             </div>
 
             <PlayerOverlay paused={isScrubbing ? false : player.paused} isBuffering={player.isBuffering} />
-
-            {id && <ResumeNotification videoId={video.id} videoRef={videoRef} />}
+            {id && <ResumeNotification watchProgress={watchProgress} onResume={handleResume} />}
 
             {/* BOTTOM CONTROLS */}
             <div
@@ -567,7 +604,7 @@ export default function WatchPage() {
 
                 <div className="flex items-center justify-between mt-4">
                     <div className="flex items-center gap-6">
-                        <button onClick={player.togglePlay} className="text-white transition-colors cursor-pointer">
+                        <button onClick={handleTogglePlay} className="text-white transition-colors cursor-pointer">
                             <PlayIcon size={28} fill="currentColor" />
                         </button>
 
@@ -600,21 +637,19 @@ export default function WatchPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Button onClick={toggleSubtitles} active={subtitle != null}>
-                                <Subtitles size={21} />
-                            </Button>
-                        </div>
+                        <Button onClick={toggleSubtitles} active={subtitle != null}>
+                            <Subtitles size={21} />
+                        </Button>
 
                         <div className="relative">
-                            <Button onClick={toggleSettings} active={isSettingsOpen}>
+                            <Button onClick={() => setIsSettingsOpen((p) => !p)} active={isSettingsOpen}>
                                 <Settings size={21} className={`transition-all ${isSettingsOpen && 'rotate-90'}`} />
                             </Button>
                             <SettingsBox
                                 isOpen={isSettingsOpen}
                                 onClose={() => setIsSettingsOpen(false)}
-                                versions={versionsForSettings}
-                                activeVersion={activeVersionForDisplay}
+                                versions={allVersions}
+                                activeVersion={selectedVersionForUI}
                                 onChangeResolution={handleChangeResolution}
                                 playbackSpeed={player.playbackSpeed}
                                 onChangeSpeed={player.setPlaybackSpeed}
@@ -625,20 +660,14 @@ export default function WatchPage() {
                             />
                         </div>
 
-                        <div>
-                            <Button
-                                onClick={() => {
-                                    // setIsSettingsOpen(false);
-                                    player.toggleFullScreen();
-                                }}
-                            >
-                                <FullScrnIcon size={21} />
-                            </Button>
-                        </div>
+                        <Button onClick={player.toggleFullScreen}>
+                            <FullScrnIcon size={21} />
+                        </Button>
                     </div>
                 </div>
             </div>
-            <input type="file" ref={fileInputRef} onChange={(e) => handleLocalSubtitleUpload(e)} accept=".vtt,.srt" className="hidden" />
+
+            <input type="file" ref={fileInputRef} onChange={handleLocalSubtitleUpload} accept=".vtt,.srt" className="hidden" />
         </div>
     );
 }

@@ -3,7 +3,6 @@ import { Clock, Calendar, ChevronLeft, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 import { useEpisodeDetailed } from '../../hooks/useEpisodeDetails';
-import { useVideoVersions } from '../../hooks/useVideoVersions';
 import { useAuthContext } from '../../contexts/AuthContext';
 
 import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
@@ -25,7 +24,6 @@ export default function EpisodeDetailsPage() {
     const auth = useAuthContext();
 
     const { episode, isNotFound, isLoading } = useEpisodeDetailed(id);
-    const { versions } = useVideoVersions(episode?.videoId);
 
     const settingsParam = searchParams.get('settings');
     const [showSettings, setShowSettings] = useState(!!settingsParam);
@@ -45,6 +43,7 @@ export default function EpisodeDetailsPage() {
     if (!episode || !episode.video) return null;
 
     const video = episode.video;
+    const versions = video.versions;
     const tag = getTagFromVersions(video?.versions || []);
     const availableVersions = versions.filter((v) => v.status === 'ready' || v.status === 'processing').sort((a, b) => b.height - a.height);
 
