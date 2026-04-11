@@ -139,31 +139,34 @@ export default function WatchPage() {
     const { videoRef, videoElement, videoCallbackRef } = player;
 
     // progress memory
-    const saveProgress = useCallback(() => {
+    const saveProgress = useCallback(async () => {
         if (!videoElement) return;
 
-        if (!videoElement.paused && videoElement.currentTime > 10 && videoElement.currentTime < videoElement.duration - 10)
-            localStorage.setItem(`watch-progress-${id}`, videoElement.currentTime.toString());
-
-        if (videoElement.currentTime > videoElement.duration - 10) localStorage.removeItem(`watch-progress-${id}`);
+        await api.post(`/videos/${id}/progress`, {
+            positionSec: parseInt(videoElement.currentTime.toString()),
+        });
     }, [id, videoElement]);
+
+    useEffect(() => {
+        if (!videoElement || player.paused) return;
+
+        const interval = setInterval(() => {
+            saveProgress();
+        }, 15000);
+
+        return () => clearInterval(interval);
+    }, [videoElement, player.paused, saveProgress]);
 
     // UI Effects
     useEffect(() => {
         const video = videoElement;
         if (!video) return;
 
-        let updates = 0;
         const updateTime = () => {
             if (timeDisplayRef.current) {
                 const current = formatTime(video.currentTime);
                 const total = formatTime(video.duration || 0);
                 timeDisplayRef.current.innerText = `${current} / ${total}`;
-                updates++;
-            }
-            if (updates > 10) {
-                updates = 0;
-                saveProgress();
             }
         };
 
@@ -171,7 +174,6 @@ export default function WatchPage() {
         video.addEventListener('loadedmetadata', updateTime);
 
         updateTime();
-        saveProgress();
         return () => {
             video.removeEventListener('timeupdate', updateTime);
             video.removeEventListener('loadedmetadata', updateTime);
@@ -338,7 +340,6 @@ export default function WatchPage() {
         }
 
         videoElement.load();
-        api.post(`/movies/${id}/watch`).catch(() => {});
 
         return () => {
             hlsRef.current = null;

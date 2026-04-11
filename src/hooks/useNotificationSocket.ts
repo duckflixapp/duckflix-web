@@ -15,7 +15,7 @@ export const useNotificationSocket = (callback: (data: NotificationSocketData) =
 
         const handler = (data: NotificationSocketData) => callback(data);
 
-        socket.on('notification', handler);
+        socket.on<NotificationSocketData>('notification', handler);
 
         return () => {
             socket.off('notification', handler);

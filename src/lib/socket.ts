@@ -1,23 +1,82 @@
-import { io, Socket } from 'socket.io-client';
 import { API_URL } from '../config';
 
-const apiUrl = new URL(API_URL);
-const socketUrl = apiUrl.origin;
-
-export const socket: Socket = io(socketUrl, {
-    autoConnect: false,
-    reconnection: true,
-    reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    withCredentials: true,
-    transports: ['websocket'],
-    upgrade: false,
-});
-
-export const connectSocket = () => {
-    if (!socket.connected) socket.connect();
+const getWsUrl = () => {
+    const url = new URL(API_URL);
+    const protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${url.host}/ws`;
 };
 
-export const disconnectSocket = () => {
-    if (socket.connected) socket.disconnect();
-};
+const wsUrl = getWsUrl();
+
+class SocketManager {
+    private ws: WebSocket | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private handlers: Map<string, ((data: any) => void)[]> = new Map();
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 5;
+
+    connect() {
+        if (this.ws?.readyState === WebSocket.OPEN) return;
+
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onmessage = (event) => {
+            try {
+                const { event: evName, data } = JSON.parse(event.data);
+                this.handlers.get(evName)?.forEach((handler) => handler(data));
+            } catch (err) {
+                console.error('WS Parse Error:', err);
+            }
+        };
+
+        this.ws.onclose = () => {
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                setTimeout(() => {
+                    this.reconnectAttempts++;
+                    this.connect();
+                }, 1000);
+            }
+        };
+
+        this.ws.onopen = () => {
+            this.reconnectAttempts = 0;
+            console.log('WS Connected');
+        };
+    }
+
+    on<T>(event: string, handler: (data: T) => void) {
+        if (!this.handlers.has(event)) this.handlers.set(event, []);
+        this.handlers.get(event)?.push(handler);
+    }
+
+    off(event: string, handler: (data: never) => void) {
+        const eventHandlers = this.handlers.get(event);
+        if (eventHandlers) {
+            this.handlers.set(
+                event,
+                eventHandlers.filter((h) => h !== handler)
+            );
+        }
+    }
+
+    emit(event: string, data: unknown) {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ event, data }));
+        } else {
+            setTimeout(() => this.emit(event, data), 500);
+        }
+    }
+
+    disconnect() {
+        this.ws?.close();
+        this.ws = null;
+    }
+
+    get connected() {
+        return this.ws?.readyState === WebSocket.OPEN;
+    }
+}
+
+export const socket = new SocketManager();
+export const connectSocket = () => socket.connect();
+export const disconnectSocket = () => socket.disconnect();
