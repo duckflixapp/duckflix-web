@@ -468,9 +468,25 @@ export default function WatchPage() {
 
     const handleResume = useCallback(
         (time: number) => {
-            if (!videoRef.current) return;
-            videoRef.current.currentTime = time;
-            videoRef.current.play();
+            const video = videoRef.current;
+            if (!video) return;
+
+            const performSeek = () => {
+                video.currentTime = time;
+                video.play().catch((err) => {
+                    console.warn('Autoplay was prevented:', err);
+                });
+            };
+
+            if (video.readyState >= 3) {
+                performSeek();
+            } else {
+                const onCanPlay = () => {
+                    performSeek();
+                    video.removeEventListener('canplay', onCanPlay);
+                };
+                video.addEventListener('canplay', onCanPlay);
+            }
         },
         [videoRef]
     );
