@@ -38,9 +38,7 @@ export default function Navbar() {
         <nav className="relative h-18 z-50">
             <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
                 <Link to="/browse" className="flex sm:hidden items-center shrink-0">
-                    <div className="w-9 h-9 bg-primary rounded-3xl flex items-center justify-center font-black text-black shadow-lg shadow-primary/20">
-                        D
-                    </div>
+                    <div className="w-9 h-9 flex items-center justify-center font-black text-3xl text-text">D</div>
                 </Link>
 
                 <SearchBar />

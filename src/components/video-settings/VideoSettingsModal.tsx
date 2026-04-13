@@ -264,7 +264,7 @@ function VersionsTab({
                                     <button
                                         onClick={() => handleDelete(v.id)}
                                         disabled={deletingId === v.id}
-                                        className="p-2 rounded-full hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all cursor-pointer opacity-0 group-hover:opacity-100 -mr-9.5 group-hover:mr-0"
+                                        className="p-2 rounded-full hover:bg-red-500/10 text-white/20 hover:text-red-400 transition-all cursor-pointer md:opacity-0 group-hover:opacity-100 sm:-mr-9.5 group-hover:mr-0"
                                     >
                                         {deletingId === v.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                     </button>
