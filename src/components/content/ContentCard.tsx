@@ -6,7 +6,13 @@ export function ContentCard({ content, onClick: handleClick }: { content: Conten
     const showPlaceholder = !content.image || imgError;
 
     return (
-        <div className="group/movie-card cursor-pointer relative transition-all duration-300" onClick={handleClick}>
+        <button
+            type="button"
+            disabled={!handleClick}
+            aria-label={`Open ${content.title}${content.release ? ` (${content.release})` : ''}`}
+            className="group/movie-card relative w-full text-left transition-all duration-300 cursor-pointer rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 disabled:cursor-default"
+            onClick={() => handleClick?.()}
+        >
             <div
                 className="relative aspect-2/3 rounded-xl sm:rounded-2xl overflow-hidden mb-2 sm:mb-3 border border-white/5 transition-all duration-500 
             shadow-[0_8px_30px_rgb(255,255,255,0.04)] group-hover/movie-card:border-primary/50 group-hover/movie-card:shadow-primary/20 group-hover/movie-card:shadow-2xl"
@@ -36,7 +42,7 @@ export function ContentCard({ content, onClick: handleClick }: { content: Conten
                     <p className="text-[9px] sm:text-[10px] font-black text-text/30 uppercase tracking-widest mt-0.5">{content.release}</p>
                 )}
             </div>
-        </div>
+        </button>
     );
 }
 

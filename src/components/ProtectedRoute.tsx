@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import FullscreenLoader from './FullscreenLoader';
 import { useAuthContext } from '../contexts/AuthContext';
 
 export const ProtectedRoute = () => {
@@ -33,12 +33,4 @@ export const AdminRoute = () => {
     return <Outlet />;
 };
 
-const Loading = () => (
-    <div className="absolute left-0 top-0 flex flex-col items-center justify-center w-screen h-screen">
-        <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl" />
-
-            <Loader2 className="animate-spin text-primary z-10" size={64} strokeWidth={1} />
-        </div>
-    </div>
-);
+const Loading = () => <FullscreenLoader label="Loading your session" />;

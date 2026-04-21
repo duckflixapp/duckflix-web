@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Navbar from './components/nav/Navbar';
+import FullscreenLoader from './components/FullscreenLoader';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import { AdminRoute, ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -26,6 +27,7 @@ const WatchPage = lazy(() => import('./pages/WatchPage'));
 const AdminOverviewPage = lazy(() => import('./pages/admin/OverviewPage'));
 const AdminSystemPage = lazy(() => import('./pages/admin/SystemPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const AccountSettingsPage = lazy(() => import('./pages/account/SettingsPage'));
 
 function App() {
     return (
@@ -49,7 +51,7 @@ function App() {
                         },
                     }}
                 />
-                <Suspense fallback={null}>
+                <Suspense fallback={<FullscreenLoader />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
@@ -60,7 +62,7 @@ function App() {
                             <Route
                                 path="/watch/:id"
                                 element={
-                                    <Suspense fallback={null}>
+                                    <Suspense fallback={<FullscreenLoader label="Loading player" />}>
                                         <WatchPage />
                                     </Suspense>
                                 }
@@ -75,10 +77,26 @@ function App() {
                                 <Route path="/details/series/:id" element={<SeriesDetailsPage />} />
                                 <Route path="/details/season/:id" element={<SeriesSeasonDetailsPage />} />
                                 <Route path="/details/episode/:id" element={<EpisodeDetailsPage />} />
+                                <Route path="/account" element={<Navigate to="/account/settings" replace />} />
+                                <Route
+                                    path="/account/settings"
+                                    element={
+                                        <Suspense fallback={<FullscreenLoader label="Loading account settings" />}>
+                                            <AccountSettingsPage />
+                                        </Suspense>
+                                    }
+                                />
 
                                 {/* Contributor Only */}
                                 <Route element={<ContributorRoute />}>
-                                    <Route path="/upload" element={<UploadPage />} />
+                                    <Route
+                                        path="/upload"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading upload tools" />}>
+                                                <UploadPage />
+                                            </Suspense>
+                                        }
+                                    />
                                 </Route>
 
                                 {/* Auto-redirects */}
@@ -89,13 +107,32 @@ function App() {
 
                             <Route path="/admin" element={<AdminRoute />}>
                                 <Route element={<Layout admin={true} />}>
-                                    <Route index element={<AdminOverviewPage />} />
-                                    <Route path="system" element={<AdminSystemPage />} />
-                                    <Route path="roles" element={<AdminUsersPage />} />
+                                    <Route
+                                        index
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading admin overview" />}>
+                                                <AdminOverviewPage />
+                                            </Suspense>
+                                        }
+                                    />
+                                    <Route
+                                        path="system"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading system settings" />}>
+                                                <AdminSystemPage />
+                                            </Suspense>
+                                        }
+                                    />
+                                    <Route
+                                        path="roles"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading role manager" />}>
+                                                <AdminUsersPage />
+                                            </Suspense>
+                                        }
+                                    />
                                 </Route>
                             </Route>
-
-                            <Route path="/account"></Route>
                         </Route>
 
                         <Route path="*" element={<NotFoundPage />} />
