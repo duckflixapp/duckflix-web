@@ -1,13 +1,14 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import type { ContentDTO } from '@duckflixapp/shared';
 import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
-import { useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import { NotificationBox } from './Notifications';
-import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
-import { toast } from 'sonner';
+import { useDeferredValue, useEffect, useId, useRef, useState, type KeyboardEvent, type PropsWithChildren } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDebounce } from 'use-debounce';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchUnified } from '../../hooks/useSearch';
-import { useDebounce } from 'use-debounce';
-import type { ContentDTO } from '@duckflixapp/shared';
+import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
+import { toast } from 'sonner';
+import { NotificationBox } from './Notifications';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -36,7 +37,11 @@ export default function Navbar() {
 
     return (
         <nav className="relative h-18 z-50">
-            <div className="px-4 md:px-6 lg:px-8 h-full flex items-center justify-between">
+            <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
+                <Link to="/browse" className="flex sm:hidden items-center shrink-0">
+                    <div className="w-9 h-9 flex items-center justify-center font-black text-3xl text-text">D</div>
+                </Link>
+
                 <SearchBar />
                 <div className="flex flex-row items-center gap-2 md:gap-4">
                     {!auth.user ? (
@@ -55,49 +60,47 @@ export default function Navbar() {
 
 function SearchBar() {
     const [search, setSearch] = useState('');
-    const [results, setResults] = useState<ContentDTO[]>([]);
-    const [totalResults, setTotalResults] = useState<number>(0);
-    const [loading, setLoading] = useState(false);
-
     const [showResults, setShowResults] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
     const inputRef = useRef<HTMLInputElement>(null);
     const searchContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
-    const [debouncedSearch] = useDebounce(search, 350);
+    const listboxId = useId();
+    const deferredSearch = useDeferredValue(search);
+    const [debouncedSearch] = useDebounce(deferredSearch, 250);
+    const trimmedSearch = debouncedSearch.trim();
+
+    const searchQuery = useQuery({
+        queryKey: ['search', 'quick', trimmedSearch],
+        enabled: trimmedSearch.length > 0,
+        retry: false,
+        staleTime: 30_000,
+        queryFn: ({ signal }) => fetchUnified({ limit: 5, q: trimmedSearch }, { signal }),
+    });
+
+    const results = searchQuery.data?.data ?? [];
+    const totalResults = searchQuery.data?.meta.totalItems ?? 0;
+    const loading = searchQuery.isFetching;
+    const moreResults = results.length < totalResults;
+    const hasQuery = search.trim().length > 0;
+    const optionCount = results.length + (moreResults ? 1 : 0);
+    const isDropdownOpen = showResults && hasQuery;
 
     useEffect(() => {
-        const fetch = async () => {
-            if (debouncedSearch.length > 0) {
-                setLoading(true);
-                setShowResults(true);
-                const query = await fetchUnified({ limit: 5, q: debouncedSearch.trim() });
-                setLoading(false);
-                setShowResults(true);
-                setResults(query.data);
-                setTotalResults(query.meta.totalItems);
-            } else {
-                setResults([]);
-                setShowResults(false);
-            }
-        };
-        fetch();
-    }, [debouncedSearch]);
-
-    const externalSearch = () => {
-        inputRef.current?.blur();
-        navigate('/search?query=' + encodeURIComponent(search));
-        setShowResults(false);
-    };
-
-    const openDetails = (type: string, id: string) => {
-        inputRef.current?.blur();
-        navigate(`/details/${type}/${id}`);
-        setShowResults(false);
-    };
+        if (trimmedSearch.length > 0) {
+            setShowResults(true);
+        } else {
+            setShowResults(false);
+        }
+        setActiveIndex(-1);
+    }, [trimmedSearch]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) setShowResults(false);
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setShowResults(false);
+                setActiveIndex(-1);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -106,20 +109,99 @@ function SearchBar() {
         };
     }, []);
 
-    const onFocus = () => search.length > 0 && setShowResults(true);
+    const externalSearch = () => {
+        const query = search.trim();
+        if (!query) return;
+
+        inputRef.current?.blur();
+        navigate('/search?query=' + encodeURIComponent(query));
+        setShowResults(false);
+        setActiveIndex(-1);
+    };
+
+    const openDetails = (type: string, id: string) => {
+        inputRef.current?.blur();
+        navigate(`/details/${type}/${id}`);
+        setShowResults(false);
+        setActiveIndex(-1);
+    };
+
+    const onFocus = () => {
+        if (search.trim().length > 0) {
+            setShowResults(true);
+        }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (!hasQuery) return;
+
+        if (event.key === 'Escape') {
+            setShowResults(false);
+            setActiveIndex(-1);
+            inputRef.current?.blur();
+            return;
+        }
+
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            setShowResults(true);
+            if (optionCount > 0) {
+                setActiveIndex((previous) => (previous + 1 + optionCount) % optionCount);
+            }
+            return;
+        }
+
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            setShowResults(true);
+            if (optionCount > 0) {
+                setActiveIndex((previous) => (previous <= 0 ? optionCount - 1 : previous - 1));
+            }
+            return;
+        }
+
+        if (event.key !== 'Enter') return;
+
+        event.preventDefault();
+
+        if (activeIndex >= 0 && activeIndex < results.length) {
+            const result = results[activeIndex];
+            openDetails(result.type, result.id);
+            return;
+        }
+
+        externalSearch();
+    };
+
     return (
         <div className="relative" ref={searchContainerRef}>
             <GlassyBox>
                 <div className="flex items-center py-3" onClick={() => inputRef.current?.focus()}>
-                    <Search size={18} className="mx-4 text-text/40 cursor-pointer" onClick={externalSearch} />
+                    <button
+                        type="button"
+                        aria-label="Open full search results"
+                        className="mx-4 text-text/40 cursor-pointer transition-colors hover:text-text/80 focus-visible:text-text/80 focus-visible:outline-none"
+                        onClick={(event) => {
+                            event.stopPropagation();
+                            externalSearch();
+                        }}
+                    >
+                        <Search size={18} />
+                    </button>
                     <input
                         value={search}
                         ref={inputRef}
                         onChange={(e) => setSearch(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && externalSearch()}
+                        onKeyDown={handleKeyDown}
                         onFocus={onFocus}
                         type="search"
-                        className="border-0 outline-0 pr-8 text-[13px] w-52 md:w-72 lg:w-96 bg-transparent text-text"
+                        role="combobox"
+                        aria-label="Search movies and series"
+                        aria-expanded={isDropdownOpen}
+                        aria-controls={listboxId}
+                        aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
+                        aria-autocomplete="list"
+                        className="border-0 outline-0 pr-8 text-[13px] w-full sm:w-52 md:w-72 lg:w-96 bg-transparent text-text placeholder:text-text/30 focus:placeholder:text-transparent"
                         placeholder="Search movies and series..."
                     />
                     {loading && (
@@ -131,10 +213,14 @@ function SearchBar() {
             </GlassyBox>
 
             <SearchResultBox
-                hidden={!showResults || search.length == 0}
+                hidden={!isDropdownOpen}
+                listboxId={listboxId}
                 results={results}
-                moreResults={results.length < totalResults}
+                activeIndex={activeIndex}
+                loading={loading}
+                moreResults={moreResults}
                 onExternalSearch={externalSearch}
+                onHoverIndex={setActiveIndex}
                 onOpenDetails={openDetails}
             />
         </div>
@@ -142,23 +228,44 @@ function SearchBar() {
 }
 
 function SearchResultBox({
+    activeIndex,
     results,
+    listboxId,
+    loading,
     moreResults,
     hidden: isHidden,
     onExternalSearch: externalSearch,
+    onHoverIndex,
     onOpenDetails: openDetails,
 }: {
+    activeIndex: number;
     results: ContentDTO[];
+    listboxId: string;
+    loading: boolean;
     moreResults: boolean;
     hidden: boolean;
     onExternalSearch: () => unknown;
+    onHoverIndex: (index: number) => void;
     onOpenDetails: (type: string, id: string) => unknown;
 }) {
     if (isHidden) return null;
 
     return (
-        <div className="absolute top-full left-0 right-0 mt-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl overflow-hidden z-60 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
-            {results.length === 0 ? (
+        <div
+            className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-0 sm:right-0 
+                mt-2 sm:mt-3 bg-secondary/15 backdrop-blur-3xl border border-white/10 
+                rounded-2xl sm:rounded-3xl overflow-hidden z-60 shadow-2xl 
+                animate-in fade-in slide-in-from-top-2 duration-200"
+        >
+            {loading && results.length === 0 ? (
+                <div className="p-10 flex flex-col items-center justify-center gap-3">
+                    <Loader2 size={28} className="animate-spin text-primary" />
+                    <div className="text-center">
+                        <p className="text-sm font-bold text-text/80">Searching library</p>
+                        <p className="text-[11px] text-text/40 mt-1">Fetching the best matches for you</p>
+                    </div>
+                </div>
+            ) : results.length === 0 ? (
                 <div className="p-10 flex flex-col items-center justify-center gap-3">
                     <div className="p-4 bg-white/5 rounded-full text-primary/80">
                         <Search size={28} strokeWidth={1.5} />
@@ -169,12 +276,19 @@ function SearchResultBox({
                     </div>
                 </div>
             ) : (
-                <div className="p-2 flex flex-col gap-1">
-                    {results.map((result) => (
-                        <div
+                <div id={listboxId} role="listbox" className="p-2 flex flex-col gap-1">
+                    {results.map((result, index) => (
+                        <button
                             key={result.id}
-                            className="p-2 hover:bg-white/5 rounded-2xl cursor-pointer flex items-center gap-4 group transition-all"
+                            id={`${listboxId}-option-${index}`}
+                            role="option"
+                            aria-selected={activeIndex === index}
+                            type="button"
+                            className={`p-2 rounded-2xl cursor-pointer flex items-center gap-4 group transition-all text-left ${
+                                activeIndex === index ? 'bg-white/8 ring-1 ring-primary/30' : 'hover:bg-white/5'
+                            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
                             onClick={() => openDetails(result.type, result.id)}
+                            onMouseEnter={() => onHoverIndex(index)}
                         >
                             <div className="relative w-12 h-12 bg-secondary/20 rounded-lg overflow-hidden shrink-0 border border-white/5">
                                 {result.image ? (
@@ -200,17 +314,24 @@ function SearchResultBox({
                                     <ChevronRight size={18} />
                                 </div>
                             </div>
-                        </div>
+                        </button>
                     ))}
                     {moreResults && (
                         <>
                             <div className="h-px w-full bg-white/10"></div>
-                            <div
-                                className="p-3 pb-2 text-center text-[11px] text-text/40 hover:text-primary transition-colors cursor-pointer font-bold uppercase tracking-widest"
+                            <button
+                                id={`${listboxId}-option-${results.length}`}
+                                role="option"
+                                aria-selected={activeIndex === results.length}
+                                type="button"
+                                className={`p-3 pb-2 text-center text-[11px] transition-colors cursor-pointer font-bold uppercase tracking-widest rounded-2xl ${
+                                    activeIndex === results.length ? 'text-primary bg-white/5' : 'text-text/40 hover:text-primary'
+                                } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50`}
                                 onClick={externalSearch}
+                                onMouseEnter={() => onHoverIndex(results.length)}
                             >
                                 View all results
-                            </div>
+                            </button>
                         </>
                     )}
                 </div>
@@ -250,11 +371,15 @@ function UserBox({ logout }: { logout: () => unknown }) {
         },
     ];
 
-    if (!auth) return;
+    if (!auth) return null;
 
     return (
         <div className="relative" ref={containerRef}>
             <button
+                type="button"
+                aria-label="Open account menu"
+                aria-expanded={isOpen}
+                aria-haspopup="menu"
                 className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
@@ -265,7 +390,12 @@ function UserBox({ logout }: { logout: () => unknown }) {
             </button>
 
             {isOpen && (
-                <div className="absolute top-full right-0 mt-4 w-64 max-w-screen bg-background/40 backdrop-blur-3xl border border-white/10 rounded-3xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                <div
+                    className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-auto sm:right-0 
+                    mt-2 sm:mt-4 sm:w-64 bg-background/60 backdrop-blur-3xl 
+                    border border-white/10 rounded-4xl
+                    shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
+                >
                     <div className="p-2 flex flex-col gap-1">
                         <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
                             <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>
@@ -276,6 +406,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                             .filter((item) => item.show)
                             .map((item, idx) => (
                                 <button
+                                    type="button"
                                     key={idx}
                                     onClick={() => {
                                         item.onClick();
@@ -291,6 +422,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                         <div className="h-px bg-white/5 my-1" />
 
                         <button
+                            type="button"
                             onClick={() => {
                                 logout();
                                 setIsOpen(false);

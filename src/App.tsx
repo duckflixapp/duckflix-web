@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import Navbar from './components/nav/Navbar';
+import FullscreenLoader from './components/FullscreenLoader';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import { AdminRoute, ContributorRoute, ProtectedRoute } from './components/ProtectedRoute';
@@ -19,12 +20,14 @@ import SeriesDetailsPage from './pages/details/SeriesDetailsPage';
 import SeriesSeasonDetailsPage from './pages/details/SeriesSeasonDetailsPage';
 import EpisodeDetailsPage from './pages/details/EpisodeDetailsPage';
 import { lazy, Suspense } from 'react';
+import BottomNav from './components/nav/BottomNav';
 
 const UploadPage = lazy(() => import('./pages/UploadPage'));
 const WatchPage = lazy(() => import('./pages/WatchPage'));
 const AdminOverviewPage = lazy(() => import('./pages/admin/OverviewPage'));
 const AdminSystemPage = lazy(() => import('./pages/admin/SystemPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
+const AccountSettingsPage = lazy(() => import('./pages/account/SettingsPage'));
 
 function App() {
     return (
@@ -48,7 +51,7 @@ function App() {
                         },
                     }}
                 />
-                <Suspense fallback={null}>
+                <Suspense fallback={<FullscreenLoader />}>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
@@ -59,7 +62,7 @@ function App() {
                             <Route
                                 path="/watch/:id"
                                 element={
-                                    <Suspense fallback={null}>
+                                    <Suspense fallback={<FullscreenLoader label="Loading player" />}>
                                         <WatchPage />
                                     </Suspense>
                                 }
@@ -74,10 +77,26 @@ function App() {
                                 <Route path="/details/series/:id" element={<SeriesDetailsPage />} />
                                 <Route path="/details/season/:id" element={<SeriesSeasonDetailsPage />} />
                                 <Route path="/details/episode/:id" element={<EpisodeDetailsPage />} />
+                                <Route path="/account" element={<Navigate to="/account/settings" replace />} />
+                                <Route
+                                    path="/account/settings"
+                                    element={
+                                        <Suspense fallback={<FullscreenLoader label="Loading account settings" />}>
+                                            <AccountSettingsPage />
+                                        </Suspense>
+                                    }
+                                />
 
                                 {/* Contributor Only */}
                                 <Route element={<ContributorRoute />}>
-                                    <Route path="/upload" element={<UploadPage />} />
+                                    <Route
+                                        path="/upload"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading upload tools" />}>
+                                                <UploadPage />
+                                            </Suspense>
+                                        }
+                                    />
                                 </Route>
 
                                 {/* Auto-redirects */}
@@ -88,13 +107,32 @@ function App() {
 
                             <Route path="/admin" element={<AdminRoute />}>
                                 <Route element={<Layout admin={true} />}>
-                                    <Route index element={<AdminOverviewPage />} />
-                                    <Route path="system" element={<AdminSystemPage />} />
-                                    <Route path="roles" element={<AdminUsersPage />} />
+                                    <Route
+                                        index
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading admin overview" />}>
+                                                <AdminOverviewPage />
+                                            </Suspense>
+                                        }
+                                    />
+                                    <Route
+                                        path="system"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading system settings" />}>
+                                                <AdminSystemPage />
+                                            </Suspense>
+                                        }
+                                    />
+                                    <Route
+                                        path="roles"
+                                        element={
+                                            <Suspense fallback={<FullscreenLoader label="Loading role manager" />}>
+                                                <AdminUsersPage />
+                                            </Suspense>
+                                        }
+                                    />
                                 </Route>
                             </Route>
-
-                            <Route path="/account"></Route>
                         </Route>
 
                         <Route path="*" element={<NotFoundPage />} />
@@ -114,19 +152,22 @@ const Layout = ({ admin }: { admin?: boolean }) => {
         <div className="relative flex h-screen w-full bg-background text-text font-sans overflow-hidden">
             <div className="absolute top-[-10%] left-[10%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
-
-            <Sidebar admin={admin} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+            <div className="hidden sm:block">
+                <Sidebar admin={admin} isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+            </div>
             <div
                 className={`
                     relative flex-1 flex flex-col min-w-0 overflow-hidden 
                     transition-all duration-300 ease-in-out
-                    ${isCollapsed ? 'pl-20' : 'pl-56 lg:pl-64'}
+                    ${isCollapsed ? 'sm:pl-20' : 'sm:pl-56 lg:pl-64'}
                 `}
             >
                 <Navbar />
-                <main className="flex-1 overflow-y-auto custom-scrollbar">
+                <main className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar pb-16 sm:pb-0">
                     <Outlet />
                 </main>
+
+                <BottomNav />
             </div>
         </div>
     );

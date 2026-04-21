@@ -16,8 +16,11 @@ class SocketManager {
     private maxReconnectAttempts = 5;
 
     connect() {
-        if (this.ws?.readyState === WebSocket.OPEN) return;
-
+        if (this.ws) {
+            if (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING) {
+                return;
+            }
+        }
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onmessage = (event) => {

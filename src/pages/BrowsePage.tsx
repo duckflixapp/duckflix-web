@@ -41,7 +41,7 @@ export default function BrowsePage() {
     const hasContent = allUnified.length > 0;
 
     return (
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full">
+        <div className="flex-1 sm:overflow-y-auto custom-scrollbar relative w-full h-full">
             <div
                 className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
                 style={{ animationDuration: '8s' }}
@@ -64,11 +64,12 @@ export default function BrowsePage() {
                             <div className="h-1 w-12 bg-primary rounded-full" />
                         </div>
 
-                        <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-x-4 gap-y-8">
                             {allUnified.map((result) => (
-                                <ContentCard key={result.id} content={result} onClick={() => openDetails(result.type, result.id)} />
+                                <div key={result.id} className="px-2 sm:px-0">
+                                    <ContentCard content={result} onClick={() => openDetails(result.type, result.id)} />
+                                </div>
                             ))}
-
                             {isFetchingNextPage &&
                                 Array(6)
                                     .fill(0)
@@ -115,7 +116,7 @@ function ResultListSection({
             <div className="relative group/content-section">
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute -left-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
+                    className="absolute -left-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden sm:block hover:bg-secondary/30"
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -128,7 +129,7 @@ function ResultListSection({
                 </div>
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute -right-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden md:block hover:bg-secondary/30"
+                    className="absolute -right-5 top-1/2 -translate-y-1/2 z-30 p-2 bg-secondary/20 backdrop-blur-xl border border-white/10 rounded-full text-white opacity-0 group-hover/content-section:opacity-100 transition-all cursor-pointer hidden sm:block hover:bg-secondary/30"
                 >
                     <ChevronRight size={24} />
                 </button>
@@ -154,7 +155,7 @@ function ResultList({
             .map((_, i) => <CardSkeleton key={i} />);
 
     return results.map((result) => (
-        <div key={result.id} className="flex-none w-40 md:w-48 snap-start transition-all py-4">
+        <div key={result.id} className="flex-none w-64 sm:w-48 snap-start transition-all py-4">
             <ContentCard content={result} onClick={() => openDetails(result.type, result.id)} />
         </div>
     ));
@@ -173,12 +174,12 @@ export function HeroSection({
     if (!movie) return null;
     const canPlay = movie.runtime && movie.video.status == 'ready';
     return (
-        <section className="relative w-full aspect-21/9 min-h-120 max-h-screen px-8 pt-6 z-10">
-            <div className="relative w-full h-full rounded-4xl overflow-hidden shadow-2xl border border-white/5">
+        <section className="relative w-full aspect-video sm:aspect-21/9 min-h-100 sm:min-h-120 px-4 sm:px-8 pt-4 sm:pt-6 z-10">
+            <div className="relative w-full h-full rounded-3xl sm:rounded-4xl overflow-hidden shadow-2xl border border-white/5">
                 <img src={movie.bannerUrl ?? ''} className="w-full h-full object-cover brightness-[0.65]" alt="Hero Banner" />
 
-                <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-black/20 flex flex-col justify-end p-12">
-                    <h1 className="text-6xl font-black mb-4 max-w-3xl font-poppins tracking-tighter text-text leading-[1.1]">
+                <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-black/20 flex flex-col justify-end p-6 sm:p-12">
+                    <h1 className="text-3xl sm:text-6xl font-black mb-3 sm:mb-4 max-w-3xl font-poppins tracking-tighter text-text leading-tight">
                         {movie.title}
                     </h1>
                     <div className="flex flex-wrap gap-2 mb-6">
@@ -198,14 +199,16 @@ export function HeroSection({
                         ))}
                     </div>
 
-                    <div className="flex flex-wrap gap-4">
-                        {canPlay && <PlayButton videoId={movie.videoId} />}
-                        <button
-                            onClick={() => openDetails('movie', movie.id)}
-                            className="flex items-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 hover:bg-secondary/30 text-text px-8 py-3.5 rounded-4xl font-medium transition-all cursor-pointer"
-                        >
-                            <Info size={20} /> Details
-                        </button>
+                    <div className="flex flex-wrap gap-3">
+                        <div className="flex w-full sm:w-auto gap-3">
+                            {canPlay && <PlayButton videoId={movie.videoId} className="flex-1 sm:flex-initial" />}
+                            <button
+                                onClick={() => openDetails('movie', movie.id)}
+                                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 text-text px-6 py-3 rounded-3xl font-medium transition-all"
+                            >
+                                <Info size={20} /> <span className="sm:inline">Details</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

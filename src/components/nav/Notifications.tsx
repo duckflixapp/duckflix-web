@@ -45,7 +45,12 @@ export function NotificationBox() {
 
             {/* Dropdown Box */}
             {isOpen && (
-                <div className="absolute top-full right-0 mt-4 w-95 bg-background/40 backdrop-blur-3xl border border-white/10 rounded-4xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
+                <div
+                    className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-auto sm:right-0 
+                    mt-2 sm:mt-4 sm:w-95 bg-background/60 backdrop-blur-3xl 
+                    border border-white/10 rounded-4xl sm:rounded-3xl 
+                    shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
+                >
                     <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/2">
                         <div>
                             <h3 className="text-sm font-bold text-text tracking-tight">Activity Center</h3>
