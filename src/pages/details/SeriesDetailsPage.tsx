@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Calendar, ChevronLeft, Layers } from 'lucide-react';
+import { ChevronLeft, Layers } from 'lucide-react';
 import { useSeriesDetailed } from '../../hooks/useSeriesDetailed';
 
 import type { SeriesGenreDTO } from '@duckflixapp/shared';
@@ -8,6 +8,7 @@ import VideoNotFound from '../../components/details/VideoNotFound';
 import WatchlistButton from '../../components/buttons/WatchlistButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { useLibrary } from '../../hooks/useLibrary';
+import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 
 export default function SeriesDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -21,7 +22,7 @@ export default function SeriesDetailsPage() {
     if (isNotFound) return <VideoNotFound />;
     if (!series) return null;
 
-    const releaseYear = series.firstAirDate ? new Date(series.firstAirDate).getFullYear() : null;
+    const releaseYear = series.firstAirDate ? String(new Date(series.firstAirDate).getFullYear()) : null;
 
     const handleToWatchlist = () => {
         if (series.inUserLibrary) removeContent({ libId: 'watchlist', contentId: series.id, contentType: 'series' });
@@ -62,25 +63,12 @@ export default function SeriesDetailsPage() {
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
-                        <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
-                            {series.rating && (
-                                <div className="flex items-center gap-1.5 text-yellow-500 bg-yellow-500/10 px-3 py-1 rounded-3xl border border-yellow-500/20">
-                                    <Star size={15} fill="currentColor" />
-                                    <span>{series.rating}</span>
-                                </div>
-                            )}
-                            {releaseYear && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Calendar size={16} />
-                                    <span>{releaseYear}</span>
-                                </div>
-                            )}
-                            {series.status && (
-                                <span className="px-2 py-0.5 border border-white/20 rounded-xl text-[10px] uppercase tracking-widest text-white/40">
-                                    {series.status.replace('_', ' ')}
-                                </span>
-                            )}
-                        </div>
+                        <DetailsMetadata rating={series.rating} release={releaseYear} tmdbUrl={series.tmdbUrl} />
+                        {/* {series.status && (
+                            <span className="px-2 py-0.5 border border-white/20 rounded-xl text-[10px] uppercase tracking-widest text-white/40">
+                                {series.status.replace('_', ' ')}
+                            </span>
+                        )} */}
 
                         <h1 className="text-5xl md:text-7xl font-black text-white text-shadow-2xs text-shadow-black tracking-tight leading-none">
                             {series.title}

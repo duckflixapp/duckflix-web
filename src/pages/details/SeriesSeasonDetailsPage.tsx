@@ -6,6 +6,7 @@ import type { EpisodeMinDTO } from '@duckflixapp/shared';
 import VideoNotFound from '../../components/details/VideoNotFound';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import VideoOverview from '../../components/details/VideoOverview';
+import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 
 export default function SeasonDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -17,7 +18,7 @@ export default function SeasonDetailsPage() {
     if (isNotFound) return <VideoNotFound />;
     if (!season) return null;
 
-    const releaseYear = season.airDate ? new Date(season.airDate).getFullYear() : null;
+    const releaseYear = season.airDate ? String(new Date(season.airDate).getFullYear()) : null;
 
     const handleGoBack = () => navigate(`/details/series/${season.seriesId}`);
     const handleEpisodeClick = (episodeId: string) => navigate(`/details/episode/${episodeId}`);
@@ -57,17 +58,8 @@ export default function SeasonDetailsPage() {
                     )}
 
                     <div className="max-w-4xl space-y-4">
-                        <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
-                            {releaseYear && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Calendar size={16} />
-                                    <span>{releaseYear}</span>
-                                </div>
-                            )}
-                            <span className="px-2.5 py-1 border border-white/20 rounded-2xl text-[10px] uppercase tracking-widest text-white/40">
-                                Season {season.seasonNumber}
-                            </span>
-                        </div>
+                        <DetailsMetadata release={releaseYear} tmdbUrl={season.tmdbUrl} chip={`Season ${season.seasonNumber}`} />
+
                         <h2 className="text-2xl md:text-3xl font-normal text-white/65 text-shadow-2xs text-shadow-black tracking-tight leading-none">
                             {season.series.title}
                         </h2>

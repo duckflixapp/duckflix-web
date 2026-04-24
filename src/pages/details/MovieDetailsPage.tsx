@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Star, Clock, Calendar, ChevronLeft, Settings } from 'lucide-react';
+import { ChevronLeft, Settings } from 'lucide-react';
 import { useMovieDetailed } from '../../hooks/useMovieDetailed';
 import { useEffect, useState } from 'react';
 import { VideoDownloadProgress } from '../../components/details/VideoDownloadProgress';
@@ -17,6 +17,7 @@ import WatchlistButton from '../../components/buttons/WatchlistButton';
 import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { DetailsCast } from '../../components/details/DetailsCast';
+import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 
 export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -80,8 +81,6 @@ export default function MovieDetailsPage() {
 
     const canPlay = movie.video.versions.length > 0;
 
-    // const addSearchSubtitle = (result: unknown, config: { onSettled: () => void }) => {};
-
     return (
         <div className="min-h-screen pb-20">
             <div className="relative w-full aspect-21/9 min-h-140 overflow-hidden">
@@ -112,33 +111,13 @@ export default function MovieDetailsPage() {
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
-                        <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
-                            {movie.rating && (
-                                <div className="flex items-center gap-1.5 text-yellow-500  bg-yellow-500/10 px-3 py-1 rounded-2xl border border-yellow-500/20">
-                                    <Star size={15} fill="currentColor" />
-                                    <span>{movie.rating}</span>
-                                </div>
-                            )}
-                            {movie.releaseYear && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Calendar size={16} />
-                                    <span>{movie.releaseYear}</span>
-                                </div>
-                            )}
-                            {movie.runtime && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Clock size={16} />
-                                    <span>
-                                        {Math.floor(movie.runtime / 3600)}h {Math.ceil(movie.runtime / 60) % 60}m
-                                    </span>
-                                </div>
-                            )}
-                            {tag && (
-                                <span className="px-2.5 py-1 border border-white/20 rounded-2xl text-[10px] uppercase tracking-widest text-white/40">
-                                    {tag}
-                                </span>
-                            )}
-                        </div>
+                        <DetailsMetadata
+                            rating={movie.rating}
+                            release={String(movie.releaseYear)}
+                            runtime={movie.runtime}
+                            tmdbUrl={movie.tmdbUrl}
+                            chip={tag}
+                        />
 
                         <h1 className="text-5xl md:text-7xl font-black text-white text-shadow-2xs text-shadow-black tracking-tight leading-none">
                             {movie.title}
