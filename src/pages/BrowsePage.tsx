@@ -204,7 +204,7 @@ export function HeroSection({
                             {canPlay && <PlayButton videoId={movie.videoId} className="flex-1 sm:flex-initial" />}
                             <button
                                 onClick={() => openDetails('movie', movie.id)}
-                                className="flex-1 sm:flex-initial flex items-center justify-center gap-2 bg-secondary/20 backdrop-blur-xl border border-white/10 text-text px-6 py-3 rounded-3xl font-medium transition-all"
+                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
                             >
                                 <Info size={20} /> <span className="sm:inline">Details</span>
                             </button>

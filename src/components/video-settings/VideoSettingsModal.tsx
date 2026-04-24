@@ -89,13 +89,7 @@ export function VideoSettingsModal({ videoId, title, onClose, onDelete, initialT
 
     return createPortal(
         <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-8"
-                onClick={onClose}
-            >
+            <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-8" onClick={onClose}>
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
                 <motion.div
                     initial={{ opacity: 0, scale: 0.96, y: 10 }}
@@ -185,7 +179,7 @@ export function VideoSettingsModal({ videoId, title, onClose, onDelete, initialT
                         </AnimatePresence>
                     </div>
                 </motion.div>
-            </motion.div>
+            </div>
         </AnimatePresence>,
         document.body
     );
