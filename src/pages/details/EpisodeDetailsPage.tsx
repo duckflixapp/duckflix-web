@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Clock, Calendar, ChevronLeft, Settings } from 'lucide-react';
+import { ChevronLeft, Settings } from 'lucide-react';
 import { useState } from 'react';
 
 import { useEpisodeDetailed } from '../../hooks/useEpisodeDetails';
@@ -17,6 +17,7 @@ import { EpisodeDetailsTab } from '../../components/video-settings/VideoSettings
 import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { DetailsCast } from '../../components/details/DetailsCast';
+import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 
 export default function EpisodeDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -93,28 +94,13 @@ export default function EpisodeDetailsPage() {
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
-                        <div className="flex flex-wrap items-center gap-4 text-sm font-medium">
-                            <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-sm font-bold uppercase tracking-widest">
-                                S{episode.season.seasonNumber}.E{episode.episodeNumber}
-                            </span>
-                            {episode.airDate && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Calendar size={16} />
-                                    <span>{new Date(episode.airDate).toLocaleDateString()}</span>
-                                </div>
-                            )}
-                            {episode.runtime && (
-                                <div className="flex items-center gap-1.5 text-text/60">
-                                    <Clock size={16} />
-                                    <span>{episode.runtime}m</span>
-                                </div>
-                            )}
-                            {tag && (
-                                <span className="px-2 py-0.5 border border-white/20 rounded-xl text-[10px] uppercase text-white/40">
-                                    {tag}
-                                </span>
-                            )}
-                        </div>
+                        <DetailsMetadata
+                            tag={`S${episode.season.seasonNumber}.E${episode.episodeNumber}`}
+                            release={episode.airDate ? new Date(episode.airDate).toLocaleDateString() : null}
+                            runtime={episode.runtime}
+                            tmdbUrl={episode.tmdbUrl}
+                            chip={tag}
+                        />
 
                         <h1 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-none">{episode.name}</h1>
 
