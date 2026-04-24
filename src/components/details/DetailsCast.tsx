@@ -32,8 +32,13 @@ export function DetailsCast({ cast, limit = 10 }: { cast: CastMemberDTO[]; limit
     if (!cast.length) return null;
 
     return (
-        <div>
-            <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
+        <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+                <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
+                <a href="" className="text-sm text-white/30 font-medium mb-4">
+                    View All
+                </a>
+            </div>
             <div
                 ref={ref}
                 onMouseDown={onMouseDown}
