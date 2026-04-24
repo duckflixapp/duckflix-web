@@ -16,6 +16,7 @@ import VideoNotFound from '../../components/details/VideoNotFound';
 import WatchlistButton from '../../components/buttons/WatchlistButton';
 import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
+import { DetailsCast } from '../../components/details/DetailsCast';
 
 export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -172,10 +173,7 @@ export default function MovieDetailsPage() {
                             </div>
                         </div>
                     )}
-                    {/* <div>
-                        <h3 className="text-sm uppercase tracking-[0.2em] text-white/30 font-bold mb-4">Cast</h3>
-                        <div className="flex flex-wrap gap-3"></div>
-                    </div> */}
+                    <DetailsCast cast={movie.cast} />
                 </div>
                 <DetailsSidebar
                     videoId={video.id}

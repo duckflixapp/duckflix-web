@@ -16,6 +16,7 @@ import VideoNotFound from '../../components/details/VideoNotFound';
 import { EpisodeDetailsTab } from '../../components/video-settings/VideoSettingsEpisodeDetails';
 import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
+import { DetailsCast } from '../../components/details/DetailsCast';
 
 export default function EpisodeDetailsPage() {
     const { id } = useParams<{ id: string }>();
@@ -128,6 +129,7 @@ export default function EpisodeDetailsPage() {
             <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
                     <VideoOverview title={'Episode Overview'} overview={episode.overview} />
+                    <DetailsCast cast={episode.cast} />
                 </div>
 
                 <DetailsSidebar
