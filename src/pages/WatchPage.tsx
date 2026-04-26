@@ -220,12 +220,12 @@ export default function WatchPage() {
 
     const registerAction = useCallback(() => {
         lastActionTimeRef.current = Date.now();
-        if (!showControls) setShowControls(true);
-    }, [showControls]);
+        setShowControls(true);
+    }, []);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            if (showControls && Date.now() - lastActionTimeRef.current > 3000 && !player.paused && !isSettingsOpen) {
+            if (Date.now() - lastActionTimeRef.current > 3000 && !player.paused && !isSettingsOpen) {
                 setShowControls(false);
             }
         }, 1000);
@@ -665,7 +665,7 @@ export default function WatchPage() {
 
             {/* TOP BAR */}
             <div
-                className={`absolute top-0 left-0 w-full p-8 bg-linear-to-b from-black/80 to-transparent transition-opacity duration-300 z-50 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute top-0 left-0 w-full p-8 bg-linear-to-b from-black/80 to-transparent transition-opacity duration-300 z-50 ${showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
@@ -700,7 +700,7 @@ export default function WatchPage() {
 
             {/* BOTTOM CONTROLS */}
             <div
-                className={`absolute bottom-0 left-0 w-full p-8 bg-linear-to-t from-black/90 to-transparent transition-opacity duration-300 z-50 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+                className={`absolute bottom-0 left-0 w-full p-8 bg-linear-to-t from-black/90 to-transparent transition-opacity duration-300 z-50 ${showControls ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             >
                 <ProgressBar
                     ref={progressBarRef}
