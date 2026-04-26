@@ -34,6 +34,19 @@ export function useVideoPlayer(actionCallback: () => unknown) {
         return () => document.removeEventListener('fullscreenchange', onScreenChange);
     }, []);
 
+    useEffect(() => {
+        const video = videoRef.current;
+        if (!video) return;
+
+        const onDoubleClick = (e: MouseEvent) => {
+            e.preventDefault();
+            toggleFullScreen();
+        };
+
+        video.addEventListener('dblclick', onDoubleClick);
+        return () => video.removeEventListener('dblclick', onDoubleClick);
+    }, [videoRef.current]);
+
     // Actions
     const togglePlay = useCallback(() => {
         setIsPaused((p) => !p);

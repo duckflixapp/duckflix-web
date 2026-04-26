@@ -221,7 +221,7 @@ export default function WatchPage() {
     const registerAction = useCallback(() => {
         lastActionTimeRef.current = Date.now();
         if (!showControls) setShowControls(true);
-    }, []);
+    }, [showControls]);
 
     useEffect(() => {
         const interval = setInterval(() => {
