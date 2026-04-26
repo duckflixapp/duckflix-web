@@ -99,6 +99,7 @@ export default function EpisodeDetailsPage() {
                             release={episode.airDate ? new Date(episode.airDate).toLocaleDateString() : null}
                             runtime={episode.runtime}
                             tmdbUrl={episode.tmdbUrl}
+                            rating={episode.rating}
                             chip={tag}
                         />
 

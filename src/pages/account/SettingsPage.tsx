@@ -1,5 +1,4 @@
-import { AlertCircle, CheckCircle2, LogOut, Mail, Shield, User } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ChevronRight, LogOut, Mail, Shield, User, type LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { capitalize } from '../../utils/string';
 
@@ -9,87 +8,124 @@ export default function AccountSettingsPage() {
     if (!auth?.user) return null;
 
     return (
-        <div className="max-w-5xl w-full xl:pr-40 mx-auto p-6 md:p-10 pb-24">
-            <div className="mb-10">
-                <h1 className="text-2xl font-bold text-white flex items-center gap-3">
-                    <User className="text-primary" size={28} />
-                    Account Settings
-                </h1>
-                <p className="text-white/40 text-sm mt-1">Review your profile details and account status.</p>
-            </div>
-
-            <div className="grid grid-cols-1 xl:grid-cols-[1.3fr_0.9fr] gap-6">
-                <section className="rounded-4xl border border-white/8 bg-white/3 backdrop-blur-2xl p-6 md:p-8">
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
-                        <div>
-                            <p className="text-[11px] uppercase tracking-[0.2em] text-white/35 font-bold">Profile</p>
-                            <h2 className="mt-3 text-2xl font-bold text-white">{auth.user.name}</h2>
-                            <p className="mt-1 text-sm text-white/45">{auth.user.email}</p>
-                        </div>
-
-                        <div
-                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] ${
-                                auth.isVerified
-                                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-400/15'
-                                    : 'bg-amber-500/10 text-amber-300 border border-amber-400/15'
-                            }`}
+        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+            {/* Profile info section */}
+            <Section label="Profile">
+                <InfoRow icon={User} label="Display name" value={auth.user.name} />
+                <InfoRow
+                    icon={Mail}
+                    label="Email address"
+                    value={auth.user.email}
+                    trailing={
+                        <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-widest shrink-0 ${auth.isVerified ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-400/20' : 'bg-amber-500/10 text-amber-300 border border-amber-400/20'}`}
                         >
-                            {auth.isVerified ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
-                            {auth.isVerified ? 'Verified' : 'Verification Needed'}
-                        </div>
-                    </div>
+                            {auth.isVerified ? 'Verified' : 'Unverified'}
+                        </span>
+                    }
+                />
+                <InfoRow icon={Shield} label="Role" value={capitalize(auth.user.role)} last />
+            </Section>
 
-                    <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <InfoCard icon={User} label="Display Name" value={auth.user.name} />
-                        <InfoCard icon={Mail} label="Email Address" value={auth.user.email} />
-                        <InfoCard icon={Shield} label="Role" value={capitalize(auth.user.role)} />
-                    </div>
-                </section>
-
-                <section className="rounded-4xl border border-white/8 bg-white/3 backdrop-blur-2xl p-6 md:p-8 space-y-4">
-                    <div>
-                        <p className="text-[11px] uppercase tracking-[0.2em] text-white/35 font-bold">Actions</p>
-                        <h2 className="mt-3 text-xl font-bold text-white">Account controls</h2>
-                    </div>
-
-                    {!auth.isVerified && (
-                        <Link
-                            to="/verify-email"
-                            className="flex items-center justify-between gap-3 rounded-3xl border border-amber-400/15 bg-amber-500/8 px-4 py-4 text-left transition-colors hover:bg-amber-500/12"
-                        >
-                            <div>
-                                <p className="text-sm font-semibold text-white">Verify your email</p>
-                                <p className="text-xs text-white/45 mt-1">Unlock the full account flow and remove verification prompts.</p>
-                            </div>
-                            <AlertCircle className="shrink-0 text-amber-300" size={18} />
-                        </Link>
-                    )}
-
-                    <button
-                        type="button"
-                        onClick={auth.logout}
-                        className="w-full flex items-center justify-between gap-3 rounded-3xl border border-red-500/15 bg-red-500/8 px-4 py-4 text-left transition-colors cursor-pointer hover:bg-red-500/12 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40"
-                    >
-                        <div>
-                            <p className="text-sm font-semibold text-white">Sign out</p>
-                            <p className="text-xs text-white/45 mt-1">End the current session on this device.</p>
-                        </div>
-                        <LogOut className="shrink-0 text-red-300" size={18} />
-                    </button>
-                </section>
-            </div>
+            {/* Actions section */}
+            <Section label="Account">
+                {/* {!auth.isVerified && (
+                    <ButtonRow icon={AlertCircle} label="Verify your email" value="Unlock the full account experience" type="warn" />
+                )} */}
+                <ButtonRow icon={LogOut} label="Sign out" value="End the current session on this device" type="danger" last />
+            </Section>
         </div>
     );
 }
 
-function InfoCard({ icon: Icon, label, value }: { icon: typeof User; label: string; value: string }) {
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
     return (
-        <div className="rounded-3xl border border-white/8 bg-background/35 px-4 py-4">
-            <div className="flex items-center gap-2 text-white/35">
-                <Icon size={15} />
-                <span className="text-[11px] font-bold uppercase tracking-[0.18em]">{label}</span>
-            </div>
-            <p className="mt-3 text-sm font-semibold text-white wrap-break-word">{value}</p>
+        <div className="my-2">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">{label}</p>
+            <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">{children}</div>
         </div>
+    );
+}
+
+const rowColorScheme = {
+    danger: {
+        icon: 'text-red-400',
+        iconBg: 'bg-red-500/10',
+        title: 'text-red-400',
+    },
+    warn: {
+        icon: 'text-amber-300',
+        iconBg: 'bg-amber-500/10',
+        title: 'text-amber-400',
+    },
+    info: {
+        icon: 'text-white/50',
+        iconBg: 'bg-white/5',
+        title: 'text-white/35',
+    },
+};
+
+interface ListRowProps {
+    type: 'info' | 'warn' | 'danger';
+    icon: LucideIcon;
+    label: string;
+    value: string;
+    last?: boolean;
+    trailing?: React.ReactNode;
+}
+
+function ListRow({ type, icon: Icon, label, value, trailing }: ListRowProps) {
+    const colorScheme = rowColorScheme[type];
+    return (
+        <>
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${colorScheme.iconBg}`}>
+                <Icon size={15} className={`${colorScheme.icon}`} />
+            </div>
+            <div className="flex-1 min-w-0 text-start">
+                <p className={`text-[11px] font-medium ${colorScheme.title}`}>{label}</p>
+                <p className="text-sm font-semibold text-white mt-0.5 truncate">{value}</p>
+            </div>
+            {trailing}
+        </>
+    );
+}
+
+function InfoRow(props: Omit<ListRowProps, 'type'>) {
+    return (
+        <div className="flex items-center gap-4 px-5 py-4">
+            <ListRow {...props} type="info" />
+        </div>
+    );
+}
+
+function ButtonRow({
+    type,
+    icon: Icon,
+    label,
+    value,
+    last,
+    onClick,
+}: Omit<ListRowProps, 'trailing'> & {
+    onClick?: () => unknown;
+}) {
+    const colorScheme = rowColorScheme[type];
+    const chevronColor =
+        type === 'info' ? 'group-hover:text-white/50' : type === 'warn' ? 'group-hover:text-amber-400/50' : 'group-hover:text-red-400/50';
+
+    return (
+        <button
+            type="button"
+            className={`group w-full flex items-center gap-4 px-5 py-4 hover:bg-white/4 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 ${last ? 'rounded-b-2xl' : ''}`}
+            onClick={onClick}
+        >
+            <div className={`w-9 h-9 rounded-full  flex items-center justify-center shrink-0 ${colorScheme.iconBg}`}>
+                <Icon size={16} className={colorScheme.icon} />
+            </div>
+            <div className="flex-1 min-w-0 text-left">
+                <p className={`text-sm font-medium ${colorScheme.title}`}>{label}</p>
+                <p className="text-xs text-white/40 mt-0.5">{value}</p>
+            </div>
+            <ChevronRight size={16} className={`text-white/25 transition-colors shrink-0 ${chevronColor}`} />
+        </button>
     );
 }

@@ -17,16 +17,16 @@ export function DetailsMetadata({
 }) {
     return (
         <div className="flex flex-wrap text-shadow-2xs text-shadow-black items-center gap-4 text-sm font-medium">
-            {tag && (
-                <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-sm font-bold uppercase tracking-widest">
-                    {tag}
-                </span>
-            )}
             {rating && (
                 <div className="flex items-center gap-1.5 text-yellow-500  bg-yellow-500/10 px-3 py-1 rounded-2xl border border-yellow-500/20">
                     <Star size={15} fill="currentColor" />
                     <span>{rating}</span>
                 </div>
+            )}
+            {tag && (
+                <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 rounded-2xl text-sm font-bold uppercase tracking-widest">
+                    {tag}
+                </span>
             )}
             {release && (
                 <div className="flex items-center gap-1.5 text-text/60">
