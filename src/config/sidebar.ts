@@ -1,7 +1,7 @@
 import { Compass, Library, MonitorCog, Search, Settings, UploadCloud, UserLock, type LucideIcon } from 'lucide-react';
 
 interface SidebarItem {
-    link: string;
+    key: string;
     icon: LucideIcon;
     text: string;
 }
@@ -17,11 +17,18 @@ export const adminSidebar: SidebarGroup[] = [
         title: 'Administration',
         role: 'admin',
         items: [
-            { link: '/admin', icon: Settings, text: 'Overview' },
-            { link: '/admin/system', icon: MonitorCog, text: 'System' },
-            { link: '/admin/roles', icon: UserLock, text: 'Roles' },
+            { key: 'admin', icon: Settings, text: 'Overview' },
+            { key: 'admin.system', icon: MonitorCog, text: 'System' },
+            { key: 'admin.users', icon: UserLock, text: 'Roles' },
             // { link: '/admin/library', icon: Database, text: 'Content Manager' },
         ],
+    },
+];
+
+export const accountSidebar: SidebarGroup[] = [
+    {
+        title: 'Account',
+        items: [{ key: 'account.settings', icon: Settings, text: 'Settings' }],
     },
 ];
 
@@ -29,9 +36,9 @@ export const sidebar: SidebarGroup[] = [
     {
         title: 'Menu',
         items: [
-            { link: '/browse', icon: Compass, text: 'Browse' },
-            { link: '/search', icon: Search, text: 'Search' },
-            { link: '/library', icon: Library, text: 'My Collections' },
+            { key: 'browse', icon: Compass, text: 'Browse' },
+            { key: 'search', icon: Search, text: 'Search' },
+            { key: 'library', icon: Library, text: 'My Collections' },
         ],
     },
     // {
@@ -44,6 +51,6 @@ export const sidebar: SidebarGroup[] = [
     {
         role: 'contributor',
         title: 'Contribute',
-        items: [{ link: '/upload', icon: UploadCloud, text: 'Upload Movie' }],
+        items: [{ key: 'upload', icon: UploadCloud, text: 'Upload Movie' }],
     },
 ];

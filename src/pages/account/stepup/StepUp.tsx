@@ -40,6 +40,7 @@ export default function StepUp() {
         if (!methods) return;
         if (methods.length === 1) {
             setView(methods[0]);
+            setMethod(methods[0]);
         } else {
             setView('select');
         }

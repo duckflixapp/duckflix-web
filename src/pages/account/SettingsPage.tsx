@@ -9,6 +9,8 @@ export default function AccountSettingsPage() {
 
     if (!auth?.user) return null;
 
+    const isTwoStepEnabled = auth.user.isTotpEnabled;
+
     // const handle2Step = () => navigate('/account/settings/2step');
     const handleChangePassword = () => navigate('/account/settings/password');
     const handleAuthenticator = () => navigate('/account/settings/authenticator');
@@ -33,7 +35,7 @@ export default function AccountSettingsPage() {
             </Section>
 
             <Section label="Security">
-                <ButtonRow icon={Shield} label="2-Step Verification" value="Disabled" type="info" />
+                <ButtonRow icon={Shield} label="2-Step Verification" value={isTwoStepEnabled ? 'Enabled' : 'Disabled'} type="info" />
                 <ButtonRow
                     onClick={handleChangePassword}
                     icon={RectangleEllipsis}

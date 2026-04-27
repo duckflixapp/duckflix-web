@@ -37,6 +37,7 @@ export default function Password() {
         register,
         handleSubmit,
         formState: { errors },
+        reset,
     } = useForm<PasswordFields>({
         resolver: zodResolver(schema),
         mode: 'onTouched',
@@ -62,7 +63,10 @@ export default function Password() {
         }
     };
 
-    const handleCancel = () => navigate('/account/settings');
+    const handleCancel = () => {
+        reset();
+        navigate('/account/settings');
+    };
 
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
