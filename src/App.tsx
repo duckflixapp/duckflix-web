@@ -21,9 +21,6 @@ import SeriesSeasonDetailsPage from './pages/details/SeriesSeasonDetailsPage';
 import EpisodeDetailsPage from './pages/details/EpisodeDetailsPage';
 import { lazy, Suspense } from 'react';
 import BottomNav from './components/nav/BottomNav';
-import Password from './pages/account/Password';
-import Authenticator from './pages/account/Authenticator';
-import StepUp from './pages/account/stepup/StepUp';
 import { SuspenseRoute } from './components/SuspenseRoute';
 import { StepUpRoute } from './components/StepUpRoute';
 
@@ -33,6 +30,9 @@ const AdminOverviewPage = lazy(() => import('./pages/admin/OverviewPage'));
 const AdminSystemPage = lazy(() => import('./pages/admin/SystemPage'));
 const AdminUsersPage = lazy(() => import('./pages/admin/UsersPage'));
 const AccountSettingsPage = lazy(() => import('./pages/account/SettingsPage'));
+const Password = lazy(() => import('./pages/account/Password'));
+const Authenticator = lazy(() => import('./pages/account/Authenticator'));
+const StepUp = lazy(() => import('./pages/account/stepup/StepUp'));
 
 function App() {
     return (
