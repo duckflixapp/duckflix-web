@@ -364,9 +364,9 @@ function UserBox({ logout }: { logout: () => unknown }) {
             show: auth?.hasRole('admin'),
         },
         {
-            label: 'Settings',
+            label: 'Account',
             icon: Settings,
-            onClick: () => navigate('/account/settings'),
+            onClick: () => navigate('/account/'),
             show: true,
         },
     ];
