@@ -86,7 +86,7 @@ export default function StepUp() {
                     </div>
 
                     <div className="flex flex-col gap-6">
-                        <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden">
+                        <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden">
                             {isLoading && (
                                 <div className="flex items-center justify-center py-10">
                                     <p className="text-xs text-white/30">Finding verification methods for you...</p>

@@ -72,7 +72,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     return (
         <div className="my-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">{label}</p>
-            <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">{children}</div>
+            <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">{children}</div>
         </div>
     );
 }

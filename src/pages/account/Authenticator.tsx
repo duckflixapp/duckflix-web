@@ -9,6 +9,7 @@ import { api } from '../../lib/api';
 import { useAuth } from '../../hooks/use-auth';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import { BackButton } from '../../components/buttons/BackButton';
 
 type Step = 'scan' | 'verify' | 'backup';
 
@@ -45,10 +46,11 @@ export default function Authenticator() {
 
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+            <BackButton to="/account/settings" label="Settings" />
             {user?.isTotpEnabled ? (
                 <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Authenticator</p>
-                    <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">
+                    <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
                         <div className="flex items-center gap-4 px-5 py-4">
                             <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
                                 <ShieldCheck size={15} className="text-emerald-400" />
@@ -70,7 +72,7 @@ export default function Authenticator() {
             ) : (
                 <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Setup</p>
-                    <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">
+                    <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
                         {/* Title row */}
                         <div className="flex items-center gap-4 px-5 py-4">
                             <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
