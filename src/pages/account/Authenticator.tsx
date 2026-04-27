@@ -10,6 +10,7 @@ import { useAuth } from '../../hooks/use-auth';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { BackButton } from '../../components/buttons/BackButton';
+import { useQueryClient } from '@tanstack/react-query';
 
 type Step = 'scan' | 'verify' | 'backup';
 
@@ -19,11 +20,13 @@ export default function Authenticator() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [disabling, setDisabling] = useState(false);
     const { user, clearStepUp } = useAuth();
+    const query = useQueryClient();
 
     const handleDisable = async () => {
         setDisabling(true);
         try {
             await api.delete('/account/authenticator');
+            query.invalidateQueries({ queryKey: ['auth-user'] });
             toast.success('Authenticator disabled');
             navigate('/account/settings', { replace: true });
         } catch (e) {
