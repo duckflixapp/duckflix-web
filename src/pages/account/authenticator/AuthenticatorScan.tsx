@@ -24,7 +24,7 @@ export function AuthenticatorScan({ onNext }: Props) {
                 if (e instanceof AxiosError && e.response?.status === 403) {
                     clearStepUp();
                     navigate('/account/stepup', {
-                        state: { scope: 'account:sensitive', returnTo: '/account/settings/authenticator' },
+                        state: { scope: 'sensitive:write', returnTo: '/account/settings/authenticator' },
                         replace: true,
                     });
                 }

@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { StepUpPassword } from './StepUpPassword';
 import { api } from '../../../lib/api';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { ChevronRight, RectangleEllipsis, ScanQrCode, ShieldCheck } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../hooks/use-auth';
 import { StepUpTotp } from './StepUpTotp';
 
 type StepUpMethod = 'password' | 'totp';
+type View = 'select' | 'password' | 'totp';
 
 export default function StepUp() {
     const { state } = useLocation();
@@ -15,7 +16,8 @@ export default function StepUp() {
     const returnTo = state?.returnTo ?? '/account/settings';
     const navigate = useNavigate();
     const { applyStepUp } = useAuth();
-    const [method, setMethod] = useState<null | string>(null);
+    const [method, setMethod] = useState<null | StepUpMethod>(null);
+    const [view, setView] = useState<View>('select');
 
     // credential states
     const [passsword, setPassword] = useState('');
@@ -36,7 +38,11 @@ export default function StepUp() {
     useEffect(() => {
         const methods = data?.methods;
         if (!methods) return;
-        setMethod(methods[1]);
+        if (methods.length === 1) {
+            setView(methods[0]);
+        } else {
+            setView('select');
+        }
     }, [data?.methods]);
 
     const handleSubmit = async () => {
@@ -91,31 +97,84 @@ export default function StepUp() {
                                     <p className="text-xs text-red-400">Failed to load verification methods.</p>
                                 </div>
                             )}
-                            {method === 'password' && (
+                            {data && view === 'select' && (
+                                <MethodSelect
+                                    methods={data.methods}
+                                    onSelect={(m) => {
+                                        setView(m);
+                                        setMethod(m);
+                                    }}
+                                />
+                            )}
+                            {view === 'password' && (
                                 <StepUpPassword credential={passsword} setCredential={setPassword} error={error} onSubmit={handleSubmit} />
                             )}
-                            {method === 'totp' && <StepUpTotp value={code} onChange={setCode} error={error} onSubmit={handleSubmit} />}
+                            {view === 'totp' && <StepUpTotp value={code} onChange={setCode} error={error} onSubmit={handleSubmit} />}
                         </div>
-                        <div className="flex items-center justify-between">
-                            <button
-                                onClick={handleCancel}
-                                title="Cancel"
-                                className="px-6 py-2 rounded-3xl text-sm text-text/75 cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                title="Continue"
-                                onClick={handleSubmit}
-                                disabled={disabled}
-                                className={`px-6 py-2 rounded-3xl text-sm text-background font-medium ${!disabled ? 'cursor-pointer bg-primary' : 'bg-primary/75'}`}
-                            >
-                                {loading ? 'Verifying...' : 'Continue'}
-                            </button>
+                        <div className={`flex items-center ${view !== 'select' ? 'justify-between' : 'justify-center'}`}>
+                            {view === 'select' && (
+                                <button
+                                    onClick={handleCancel}
+                                    title="Cancel"
+                                    className="px-6 py-2 rounded-3xl text-sm text-text/75 cursor-pointer"
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                            {view !== 'select' && (
+                                <button
+                                    onClick={() => {
+                                        setView('select');
+                                        setError(null);
+                                    }}
+                                    className="px-4 py-2 rounded-3xl text-xs text-white/35 hover:text-white/55 transition-colors cursor-pointer"
+                                >
+                                    Try different method
+                                </button>
+                            )}
+                            {view !== 'select' && (
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={disabled}
+                                    className={`px-6 py-2 rounded-3xl text-sm text-background font-medium ${!disabled ? 'cursor-pointer bg-primary' : 'bg-primary/75'}`}
+                                >
+                                    {loading ? 'Verifying...' : 'Continue'}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
+    );
+}
+
+function MethodSelect({ methods, onSelect }: { methods: StepUpMethod[]; onSelect: (m: StepUpMethod) => void }) {
+    const icons = { password: RectangleEllipsis, totp: ScanQrCode };
+    const labels = { password: 'Password', totp: 'Authenticator App' };
+    const descriptions = { password: 'Use your account password', totp: 'Use a 6-digit code from your app' };
+
+    return (
+        <div className="divide-y divide-white/6">
+            {methods.map((m) => {
+                const Icon = icons[m];
+                return (
+                    <button
+                        key={m}
+                        onClick={() => onSelect(m)}
+                        className="group w-full flex items-center gap-4 px-5 py-4 hover:bg-white/4 transition-colors cursor-pointer"
+                    >
+                        <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                            <Icon size={15} className="text-white/50" />
+                        </div>
+                        <div className="flex-1 text-left">
+                            <p className="text-sm font-medium text-white/85">{labels[m]}</p>
+                            <p className="text-xs text-white/40 mt-0.5">{descriptions[m]}</p>
+                        </div>
+                        <ChevronRight size={15} className="text-white/25 group-hover:text-white/50 transition-colors shrink-0" />
+                    </button>
+                );
+            })}
         </div>
     );
 }

@@ -45,7 +45,7 @@ export default function AccountSettingsPage() {
                     onClick={handleAuthenticator}
                     icon={ScanQrCode}
                     label="Authenticator"
-                    value="Setup authenticator to protect your account"
+                    value={auth.user?.isTotpEnabled ? 'Enabled' : 'Setup authenticator to protect your account'}
                     type="info"
                     last
                 />
