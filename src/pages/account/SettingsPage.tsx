@@ -1,15 +1,20 @@
-import { ChevronRight, LogOut, Mail, Shield, User, type LucideIcon } from 'lucide-react';
+import { ChevronRight, LogOut, Mail, RectangleEllipsis, ScanQrCode, Shield, User, UserKey, type LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { capitalize } from '../../utils/string';
+import { useNavigate } from 'react-router-dom';
 
 export default function AccountSettingsPage() {
     const auth = useAuthContext();
+    const navigate = useNavigate();
 
     if (!auth?.user) return null;
 
+    // const handle2Step = () => navigate('/account/settings/2step');
+    const handleChangePassword = () => navigate('/account/settings/password');
+    const handleAuthenticator = () => navigate('/account/settings/authenticator');
+
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
-            {/* Profile info section */}
             <Section label="Profile">
                 <InfoRow icon={User} label="Display name" value={auth.user.name} />
                 <InfoRow
@@ -24,15 +29,40 @@ export default function AccountSettingsPage() {
                         </span>
                     }
                 />
-                <InfoRow icon={Shield} label="Role" value={capitalize(auth.user.role)} last />
+                <InfoRow icon={UserKey} label="Role" value={capitalize(auth.user.role)} last />
             </Section>
 
-            {/* Actions section */}
+            <Section label="Security">
+                <ButtonRow icon={Shield} label="2-Step Verification" value="Disabled" type="info" />
+                <ButtonRow
+                    onClick={handleChangePassword}
+                    icon={RectangleEllipsis}
+                    label="Password"
+                    value="Change your password"
+                    type="info"
+                />
+                <ButtonRow
+                    onClick={handleAuthenticator}
+                    icon={ScanQrCode}
+                    label="Authenticator"
+                    value="Setup authenticator to protect your account"
+                    type="info"
+                    last
+                />
+            </Section>
+
             <Section label="Account">
                 {/* {!auth.isVerified && (
                     <ButtonRow icon={AlertCircle} label="Verify your email" value="Unlock the full account experience" type="warn" />
                 )} */}
-                <ButtonRow icon={LogOut} label="Sign out" value="End the current session on this device" type="danger" last />
+                <ButtonRow
+                    onClick={auth.logout}
+                    icon={LogOut}
+                    label="Sign out"
+                    value="End the current session on this device"
+                    type="danger"
+                    last
+                />
             </Section>
         </div>
     );
@@ -43,6 +73,30 @@ function Section({ label, children }: { label: string; children: React.ReactNode
         <div className="my-2">
             <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">{label}</p>
             <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">{children}</div>
+        </div>
+    );
+}
+
+interface ListRowProps {
+    type: 'info' | 'warn' | 'danger';
+    icon: LucideIcon;
+    label: string;
+    value: string;
+    last?: boolean;
+    trailing?: React.ReactNode;
+}
+
+function InfoRow({ icon: Icon, label, value, trailing }: Omit<ListRowProps, 'type'>) {
+    return (
+        <div className="flex items-center gap-4 px-5 py-4">
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 bg-white/5`}>
+                <Icon size={15} className="text-white/50" />
+            </div>
+            <div className="flex-1 min-w-0 text-start">
+                <p className={`text-[11px] font-medium text-white/35`}>{label}</p>
+                <p className="text-sm font-semibold text-white mt-0.5 truncate">{value}</p>
+            </div>
+            {trailing}
         </div>
     );
 }
@@ -61,42 +115,9 @@ const rowColorScheme = {
     info: {
         icon: 'text-white/50',
         iconBg: 'bg-white/5',
-        title: 'text-white/35',
+        title: 'text-white/85',
     },
 };
-
-interface ListRowProps {
-    type: 'info' | 'warn' | 'danger';
-    icon: LucideIcon;
-    label: string;
-    value: string;
-    last?: boolean;
-    trailing?: React.ReactNode;
-}
-
-function ListRow({ type, icon: Icon, label, value, trailing }: ListRowProps) {
-    const colorScheme = rowColorScheme[type];
-    return (
-        <>
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${colorScheme.iconBg}`}>
-                <Icon size={15} className={`${colorScheme.icon}`} />
-            </div>
-            <div className="flex-1 min-w-0 text-start">
-                <p className={`text-[11px] font-medium ${colorScheme.title}`}>{label}</p>
-                <p className="text-sm font-semibold text-white mt-0.5 truncate">{value}</p>
-            </div>
-            {trailing}
-        </>
-    );
-}
-
-function InfoRow(props: Omit<ListRowProps, 'type'>) {
-    return (
-        <div className="flex items-center gap-4 px-5 py-4">
-            <ListRow {...props} type="info" />
-        </div>
-    );
-}
 
 function ButtonRow({
     type,

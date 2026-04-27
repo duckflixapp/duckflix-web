@@ -7,6 +7,10 @@ export interface AuthContextType {
     logout: () => void;
     hasRole: (role: UserRole | null) => boolean;
     isVerified: boolean;
+    isStepupActive: boolean;
+    hasStepUp: () => boolean;
+    applyStepUp: (token: string, expires: number) => unknown;
+    clearStepUp: () => unknown;
 }
 export const AuthContext = createContext<AuthContextType | null>(null);
 

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from '../config';
+import { stepUpStore } from './step-up-store';
 
 declare module 'axios' {
     export interface AxiosInstance {
@@ -35,6 +36,14 @@ const processQueue = (error: unknown, token: string | null = null) => {
     });
     failedQueue = [];
 };
+
+api.interceptors.request.use((config) => {
+    const stepUpToken = stepUpStore.get();
+    if (stepUpToken) {
+        config.headers['X-Step-Up-Token'] = stepUpToken;
+    }
+    return config;
+});
 
 api.interceptors.response.use(
     (response) => {

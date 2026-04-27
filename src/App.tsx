@@ -21,6 +21,11 @@ import SeriesSeasonDetailsPage from './pages/details/SeriesSeasonDetailsPage';
 import EpisodeDetailsPage from './pages/details/EpisodeDetailsPage';
 import { lazy, Suspense } from 'react';
 import BottomNav from './components/nav/BottomNav';
+import Password from './pages/account/Password';
+import Authenticator from './pages/account/Authenticator';
+import StepUp from './pages/account/stepup/StepUp';
+import { SuspenseRoute } from './components/SuspenseRoute';
+import { StepUpRoute } from './components/StepUpRoute';
 
 const UploadPage = lazy(() => import('./pages/UploadPage'));
 const WatchPage = lazy(() => import('./pages/WatchPage'));
@@ -81,11 +86,33 @@ function App() {
                                 <Route
                                     path="/account/settings"
                                     element={
-                                        <Suspense fallback={<FullscreenLoader label="Loading account settings" />}>
+                                        <SuspenseRoute label="Loading account settings">
                                             <AccountSettingsPage />
-                                        </Suspense>
+                                        </SuspenseRoute>
                                     }
                                 />
+
+                                {/* StepUp protected */}
+                                <Route element={<StepUpRoute scope="sensitive:write" />}>
+                                    <Route
+                                        path="/account/settings/password"
+                                        element={
+                                            <SuspenseRoute label="Loading password settings">
+                                                <Password />
+                                            </SuspenseRoute>
+                                        }
+                                    />
+                                    <Route
+                                        path="/account/settings/authenticator"
+                                        element={
+                                            <SuspenseRoute label="Loading authenticator">
+                                                <Authenticator />
+                                            </SuspenseRoute>
+                                        }
+                                    />
+                                </Route>
+
+                                <Route path="/account/stepup" element={<StepUp />} />
 
                                 {/* Contributor Only */}
                                 <Route element={<ContributorRoute />}>
