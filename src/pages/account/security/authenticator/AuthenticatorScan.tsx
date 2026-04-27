@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import { api } from '../../../lib/api';
 import { AxiosError } from 'axios';
-import { useAuth } from '../../../hooks/use-auth';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../../hooks/use-auth';
+import { api } from '../../../../lib/api';
 
 interface Props {
     onNext: () => void;
@@ -24,7 +24,7 @@ export function AuthenticatorScan({ onNext }: Props) {
                 if (e instanceof AxiosError && e.response?.status === 403) {
                     clearStepUp();
                     navigate('/account/stepup', {
-                        state: { scope: 'sensitive:write', returnTo: '/account/settings/authenticator' },
+                        state: { scope: 'sensitive:write', returnTo: '/account/security/authenticator' },
                         replace: true,
                     });
                 }
@@ -42,7 +42,7 @@ export function AuthenticatorScan({ onNext }: Props) {
 
     const handleCancel = async () => {
         await api.delete<void>('/account/authenticator/setup').catch(() => null);
-        navigate('/account/settings');
+        navigate('/account/security');
     };
 
     return (

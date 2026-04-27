@@ -5,12 +5,13 @@ import { AuthenticatorScan } from './authenticator/AuthenticatorScan';
 import { AuthenticatorVerify } from './authenticator/AuthenticatorVerify';
 import { AuthenticatorBackup } from './authenticator/AuthenticatorBackup';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../lib/api';
-import { useAuth } from '../../hooks/use-auth';
+import { api } from '../../../lib/api';
+import { useAuth } from '../../../hooks/use-auth';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
-import { BackButton } from '../../components/buttons/BackButton';
+import { BackButton } from '../../../components/buttons/BackButton';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAccount } from '../../../hooks/use-account';
 
 type Step = 'scan' | 'verify' | 'backup';
 
@@ -19,21 +20,22 @@ export default function Authenticator() {
     const [step, setStep] = useState<Step>('scan');
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [disabling, setDisabling] = useState(false);
-    const { user, clearStepUp } = useAuth();
+    const { clearStepUp } = useAuth();
+    const { twoFA } = useAccount();
     const query = useQueryClient();
 
     const handleDisable = async () => {
         setDisabling(true);
         try {
             await api.delete('/account/authenticator');
-            query.invalidateQueries({ queryKey: ['auth-user'] });
+            query.invalidateQueries({ queryKey: ['account', '2fa'] });
             toast.success('Authenticator disabled');
-            navigate('/account/settings', { replace: true });
+            navigate('/account/security', { replace: true });
         } catch (e) {
             if (e instanceof AxiosError && e.response?.status === 403) {
                 clearStepUp();
                 navigate('/account/stepup', {
-                    state: { scope: 'sensitive:write', returnTo: '/account/settings/authenticator' },
+                    state: { scope: 'sensitive:write', returnTo: '/account/security/authenticator' },
                     replace: true,
                 });
             } else toast.error('Failed to disable authenticator.');
@@ -44,8 +46,8 @@ export default function Authenticator() {
 
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
-            <BackButton to="/account/settings" label="Settings" />
-            {user?.isTotpEnabled ? (
+            <BackButton to="/account/security" label="Security" />
+            {twoFA?.methods.authenticator.enabled ? (
                 <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Authenticator</p>
                     <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
@@ -115,8 +117,8 @@ export default function Authenticator() {
                             <AuthenticatorBackup
                                 codes={backupCodes}
                                 onDone={() => {
-                                    navigate('/account/settings', { replace: true });
-                                    query.invalidateQueries({ queryKey: ['auth-user'] });
+                                    navigate('/account/security', { replace: true });
+                                    query.invalidateQueries({ queryKey: ['account', '2fa'] });
                                 }}
                             />
                         )}

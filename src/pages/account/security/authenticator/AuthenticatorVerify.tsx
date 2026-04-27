@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { AxiosError } from 'axios';
-import { api } from '../../../lib/api';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../hooks/use-auth';
+import { useAuth } from '../../../../hooks/use-auth';
+import { api } from '../../../../lib/api';
 
 interface Props {
     onBack: () => void;
@@ -60,7 +60,7 @@ export function AuthenticatorVerify({ onBack, onSuccess }: Props) {
             } else if (e instanceof AxiosError && e.response?.status === 403) {
                 clearStepUp();
                 navigate('/account/stepup', {
-                    state: { scope: 'sensitive:write', returnTo: '/account/settings/authenticator' },
+                    state: { scope: 'sensitive:write', returnTo: '/account/security/authenticator' },
                     replace: true,
                 });
             } else {

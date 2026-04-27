@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { api } from '../../lib/api';
+import { api } from '../../../lib/api';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { RectangleEllipsis } from 'lucide-react';
-import { useAuth } from '../../hooks/use-auth';
+import { useAuth } from '../../../hooks/use-auth';
 import { AxiosError } from 'axios';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { BackButton } from '../../components/buttons/BackButton';
+import { BackButton } from '../../../components/buttons/BackButton';
+import { ROUTES } from '../../../config/routes';
 
 const schema = z
     .object({
@@ -48,13 +49,13 @@ export default function Password() {
         try {
             await api.patch('/account/password', { password: data.password });
             toast.success('Password changed successfully');
-            navigate('/account/settings', { replace: true });
+            navigate('/account/security', { replace: true });
         } catch (e) {
             if (e instanceof AxiosError && e.response?.status === 403) {
                 clearStepUp();
                 toast('Verification expired', { description: 'Please verify again.' });
                 navigate('/account/stepup', {
-                    state: { scope: 'sensitive:write', returnTo: '/account/settings/password' },
+                    state: { scope: 'sensitive:write', returnTo: ROUTES.routeOf('account.security.password') },
                     replace: true,
                 });
             } else toast.error('Failed to change password.', { description: 'Please try again.' });
@@ -65,14 +66,14 @@ export default function Password() {
 
     const handleCancel = () => {
         reset();
-        navigate('/account/settings');
+        navigate('/account/security');
     };
 
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
-            <BackButton to="/account/settings" label="Settings" />
+            <BackButton to="/account/security" label="Security" />
             <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Security</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Password</p>
                 <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
                     <div className="flex items-center gap-4 px-5 py-4">
                         <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">

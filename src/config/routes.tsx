@@ -110,29 +110,43 @@ export const ROUTES = new RouteNode('root', '/', {
                             element: AccountLayout,
                             children: [
                                 new RouteNode('index', '', {
-                                    element: () => <Navigate to="/account/settings" replace />,
+                                    element: () => <Navigate to="/account/profile" replace />,
                                 }),
-                                new RouteNode('settings', 'settings', {
-                                    element: lazy(() => import('../pages/account/SettingsPage')),
+                                new RouteNode('profile', 'profile', {
+                                    element: lazy(() => import('../pages/account/profile/Profile')),
                                     suspenseLabel: 'Loading account settings',
                                 }),
-
-                                // STEP UP
-                                new RouteNode('stepup-protected', null, {
-                                    guard: 'stepup',
-                                    scope: 'sensitive:write',
+                                new RouteNode('settings', 'settings', {
+                                    element: lazy(() => import('../pages/account/settings/Settings')),
+                                    suspenseLabel: 'Loading account settings',
+                                }),
+                                new RouteNode('security', 'security', {
                                     children: [
-                                        new RouteNode('password', 'settings/password', {
-                                            element: lazy(() => import('../pages/account/Password')),
-                                            suspenseLabel: 'Loading password settings',
+                                        new RouteNode('index', '', {
+                                            element: lazy(() => import('../pages/account/security/Security')),
+                                            suspenseLabel: 'Loading account settings',
                                         }),
-                                        new RouteNode('authenticator', 'settings/authenticator', {
-                                            element: lazy(() => import('../pages/account/Authenticator')),
-                                            suspenseLabel: 'Loading authenticator',
+                                        new RouteNode('twosv', 'twosv', {
+                                            element: lazy(() => import('../pages/account/security/TwoStepVerif')),
+                                        }),
+
+                                        // STEP UP
+                                        new RouteNode('stepup-protected', null, {
+                                            guard: 'stepup',
+                                            scope: 'sensitive:write',
+                                            children: [
+                                                new RouteNode('password', 'password', {
+                                                    element: lazy(() => import('../pages/account/security/Password')),
+                                                    suspenseLabel: 'Loading password settings',
+                                                }),
+                                                new RouteNode('authenticator', 'authenticator', {
+                                                    element: lazy(() => import('../pages/account/security/Authenticator')),
+                                                    suspenseLabel: 'Loading authenticator',
+                                                }),
+                                            ],
                                         }),
                                     ],
                                 }),
-
                                 new RouteNode('stepup', 'stepup', {
                                     element: lazy(() => import('../pages/account/stepup/StepUp')),
                                 }),

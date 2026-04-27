@@ -13,7 +13,7 @@ type View = 'select' | 'password' | 'totp';
 export default function StepUp() {
     const { state } = useLocation();
     const scope = state?.scope ?? 'sensitive:write';
-    const returnTo = state?.returnTo ?? '/account/settings';
+    const returnTo = state?.returnTo ?? '/account/security';
     const navigate = useNavigate();
     const { applyStepUp } = useAuth();
     const [method, setMethod] = useState<null | StepUpMethod>(null);
@@ -67,7 +67,7 @@ export default function StepUp() {
     };
 
     const handleCancel = () => {
-        navigate('/account/settings');
+        navigate('/account/security');
     };
 
     const disabled = loading || !credential.length;
