@@ -42,11 +42,6 @@ export default function Authenticator() {
         }
     };
 
-    const handleCancel = async () => {
-        await api.delete<void>('/account/authenticator/setup').catch(() => null);
-        navigate('/account/settings');
-    };
-
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
             <BackButton to="/account/settings" label="Settings" />
@@ -117,14 +112,14 @@ export default function Authenticator() {
                             />
                         )}
                         {step === 'backup' && (
-                            <AuthenticatorBackup codes={backupCodes} onDone={() => navigate('/account/settings', { replace: true })} />
+                            <AuthenticatorBackup
+                                codes={backupCodes}
+                                onDone={() => {
+                                    navigate('/account/settings', { replace: true });
+                                    query.invalidateQueries({ queryKey: ['auth-user'] });
+                                }}
+                            />
                         )}
-                    </div>
-
-                    <div className="px-1 py-4">
-                        <button onClick={handleCancel} className="px-6 py-2 rounded-3xl text-sm text-text/75 cursor-pointer">
-                            Cancel
-                        </button>
                     </div>
                 </div>
             )}

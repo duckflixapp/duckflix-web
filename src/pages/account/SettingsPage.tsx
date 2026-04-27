@@ -148,7 +148,7 @@ function ButtonRow({
                 <p className={`text-sm font-medium ${colorScheme.title}`}>{label}</p>
                 <p className="text-xs text-white/40 mt-0.5">{value}</p>
             </div>
-            <ChevronRight size={16} className={`text-white/25 transition-colors shrink-0 ${chevronColor}`} />
+            {onClick != undefined && <ChevronRight size={16} className={`text-white/25 transition-colors shrink-0 ${chevronColor}`} />}
         </button>
     );
 }

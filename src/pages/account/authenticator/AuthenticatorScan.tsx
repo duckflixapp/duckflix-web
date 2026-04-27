@@ -40,6 +40,11 @@ export function AuthenticatorScan({ onNext }: Props) {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const handleCancel = async () => {
+        await api.delete<void>('/account/authenticator/setup').catch(() => null);
+        navigate('/account/settings');
+    };
+
     return (
         <div className="divide-y divide-white/6">
             <div className="p-5 flex flex-col items-center gap-4">
@@ -74,7 +79,13 @@ export function AuthenticatorScan({ onNext }: Props) {
                 )}
             </div>
 
-            <div className="px-5 py-4 flex justify-end">
+            <div className="px-5 py-4 flex justify-between">
+                <button
+                    onClick={handleCancel}
+                    className="px-6 py-2 rounded-3xl text-sm text-white/40 hover:text-white/60 transition-colors cursor-pointer"
+                >
+                    Cancel
+                </button>
                 <button
                     onClick={onNext}
                     disabled={!data}

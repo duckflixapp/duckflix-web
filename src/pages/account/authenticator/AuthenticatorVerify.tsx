@@ -3,7 +3,6 @@ import { AxiosError } from 'axios';
 import { api } from '../../../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/use-auth';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
     onBack: () => void;
@@ -17,7 +16,6 @@ export function AuthenticatorVerify({ onBack, onSuccess }: Props) {
     const inputs = useRef<(HTMLInputElement | null)[]>([]);
     const navigate = useNavigate();
     const { clearStepUp } = useAuth();
-    const query = useQueryClient();
 
     const fullCode = code.join('');
     const canSubmit = fullCode.length === 6 && !loading;
@@ -55,7 +53,6 @@ export function AuthenticatorVerify({ onBack, onSuccess }: Props) {
             const { backupCodes } = await api.post<{ backupCodes: string[] }>('/account/authenticator/setup', {
                 code: fullCode,
             });
-            query.invalidateQueries({ queryKey: ['auth-user'] });
             onSuccess(backupCodes);
         } catch (e) {
             if (e instanceof AxiosError && e.response?.status === 400) {
