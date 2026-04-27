@@ -1,3 +1,80 @@
+// pages/account/Authenticator.tsx
+import { useState } from 'react';
+import { ScanQrCode } from 'lucide-react';
+import { AuthenticatorScan } from './authenticator/AuthenticatorScan';
+import { AuthenticatorVerify } from './authenticator/AuthenticatorVerify';
+import { AuthenticatorBackup } from './authenticator/AuthenticatorBackup';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../../lib/api';
+
+type Step = 'scan' | 'verify' | 'backup';
+
 export default function Authenticator() {
-    return null;
+    const navigate = useNavigate();
+    const [step, setStep] = useState<Step>('scan');
+    const [backupCodes, setBackupCodes] = useState<string[]>([]);
+
+    const handleCancel = async () => {
+        await api.delete<void>('/account/authenticator/setup').catch(() => null);
+        navigate('/account/settings');
+    };
+
+    return (
+        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+            <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Security</p>
+                <div className="rounded-3xl border border-white/8 bg-white/3 overflow-hidden divide-y divide-white/6">
+                    {/* Title row */}
+                    <div className="flex items-center gap-4 px-5 py-4">
+                        <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                            <ScanQrCode size={15} className="text-white/50" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-white/85">Authenticator App</p>
+                            <p className="text-xs text-white/40 mt-0.5">
+                                {step === 'scan' && 'Scan the QR code with your authenticator app'}
+                                {step === 'verify' && 'Enter the 6-digit code from your app'}
+                                {step === 'backup' && 'Save your backup codes'}
+                            </p>
+                        </div>
+                        {/* Step indicator */}
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {(['scan', 'verify', 'backup'] as Step[]).map((s, i) => (
+                                <div
+                                    key={s}
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                                        step === s
+                                            ? 'w-4 bg-primary'
+                                            : ['scan', 'verify', 'backup'].indexOf(step) > i
+                                              ? 'w-1.5 bg-primary/40'
+                                              : 'w-1.5 bg-white/10'
+                                    }`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {step === 'scan' && <AuthenticatorScan onNext={() => setStep('verify')} />}
+                    {step === 'verify' && (
+                        <AuthenticatorVerify
+                            onBack={() => setStep('scan')}
+                            onSuccess={(codes) => {
+                                setBackupCodes(codes);
+                                setStep('backup');
+                            }}
+                        />
+                    )}
+                    {step === 'backup' && (
+                        <AuthenticatorBackup codes={backupCodes} onDone={() => navigate('/account/settings', { replace: true })} />
+                    )}
+                </div>
+
+                <div className="px-1 py-4">
+                    <button onClick={handleCancel} className="px-6 py-2 rounded-3xl text-sm text-text/75 cursor-pointer">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
 }

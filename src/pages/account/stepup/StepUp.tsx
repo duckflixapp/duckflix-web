@@ -3,8 +3,9 @@ import { StepUpPassword } from './StepUpPassword';
 import { api } from '../../../lib/api';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ShieldCheck } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../../hooks/use-auth';
+import { StepUpTotp } from './StepUpTotp';
 
 type StepUpMethod = 'password' | 'totp';
 
@@ -17,9 +18,15 @@ export default function StepUp() {
     const [method, setMethod] = useState<null | string>(null);
 
     // credential states
-    const [credential, setCredential] = useState('');
+    const [passsword, setPassword] = useState('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<null | string>(null);
+    const [code, setCode] = useState(['', '', '', '', '', '']);
+    const credential = useMemo(() => {
+        if (method === 'password') return passsword;
+        if (method === 'totp') return code.join('');
+        return '';
+    }, [passsword, code, method]);
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['step-up-methods'],
@@ -29,7 +36,7 @@ export default function StepUp() {
     useEffect(() => {
         const methods = data?.methods;
         if (!methods) return;
-        setMethod(methods[0]);
+        setMethod(methods[1]);
     }, [data?.methods]);
 
     const handleSubmit = async () => {
@@ -39,13 +46,14 @@ export default function StepUp() {
         try {
             const { token, expiresIn } = await api.post<{ token: string; expiresIn: number }>('/auth/step-up', {
                 scope,
-                method: 'password',
+                method,
                 credential,
             });
             applyStepUp(token, expiresIn);
             navigate(returnTo, { replace: true });
         } catch {
-            setError('Incorrect password. Please try again.');
+            const valueType = method === 'totp' ? 'code' : method;
+            setError(`Incorrect ${valueType}. Please try again.`);
         } finally {
             setLoading(false);
         }
@@ -84,13 +92,9 @@ export default function StepUp() {
                                 </div>
                             )}
                             {method === 'password' && (
-                                <StepUpPassword
-                                    credential={credential}
-                                    setCredential={setCredential}
-                                    error={error}
-                                    onSubmit={handleSubmit}
-                                />
+                                <StepUpPassword credential={passsword} setCredential={setPassword} error={error} onSubmit={handleSubmit} />
                             )}
+                            {method === 'totp' && <StepUpTotp value={code} onChange={setCode} error={error} onSubmit={handleSubmit} />}
                         </div>
                         <div className="flex items-center justify-between">
                             <button
