@@ -12,7 +12,7 @@ export default function ProfilePage() {
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
             <Header title="My Profile" />
 
-            <Section label="Profile">
+            <Section label="Profile" desc="View and edit your Duckflix profile.">
                 <InfoRow icon={User} label="Display name" value={auth.user.name} />
                 <InfoRow
                     icon={Mail}

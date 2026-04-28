@@ -1,4 +1,4 @@
-import { Compass, Library, MonitorCog, Search, Settings, UploadCloud, UserCog, UserLock, UserPen, type LucideIcon } from 'lucide-react';
+import { Compass, Library, Lock, MonitorCog, Search, Settings, UploadCloud, UserLock, UserPen, type LucideIcon } from 'lucide-react';
 
 interface SidebarItem {
     key: string;
@@ -30,8 +30,8 @@ export const accountSidebar: SidebarGroup[] = [
         title: 'Account',
         items: [
             { key: 'account.profile', icon: UserPen, text: 'Profile' },
-            { key: 'account.security', icon: UserLock, text: 'Security' },
-            { key: 'account.settings', icon: UserCog, text: 'Settings' },
+            { key: 'account.security', icon: Lock, text: 'Security' },
+            { key: 'account.settings', icon: Settings, text: 'Settings' },
         ],
     },
 ];
