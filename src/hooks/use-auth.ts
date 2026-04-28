@@ -1,10 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { roleHierarchy, type UserDTO, type UserRole } from '@duckflixapp/shared';
+import { stepUpStore } from '../lib/step-up-store';
+import { useState } from 'react';
 // import { useEffect } from 'react';
 
 export const useAuth = () => {
     const queryClient = useQueryClient();
+    const [stepUpActive, setStepUpActive] = useState(false);
 
     const query = useQuery({
         queryKey: ['auth-user'],
@@ -47,11 +50,27 @@ export const useAuth = () => {
         return roleHierarchy[userRole] <= roleHierarchy[role];
     };
 
+    const applyStepUp = (token: string, expiresIn: number) => {
+        stepUpStore.set(token, expiresIn);
+        setStepUpActive(true);
+    };
+
+    const clearStepUp = () => {
+        stepUpStore.clear();
+        setStepUpActive(false);
+    };
+
+    const hasStepUp = () => stepUpStore.get() !== null;
+
     return {
         user: query.data ?? null,
         isVerified: query.data?.isVerified ?? false,
         isLoading: query.isLoading,
         logout: logout.mutate,
         hasRole,
+        isStepupActive: stepUpActive,
+        hasStepUp,
+        applyStepUp,
+        clearStepUp,
     };
 };

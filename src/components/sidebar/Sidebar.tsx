@@ -1,15 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
-import { adminSidebar, sidebar } from '../../config/sidebar';
+import { accountSidebar, adminSidebar, sidebar } from '../../config/sidebar';
 import { Menu } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { ROUTES } from '../../config/routes';
 
 export default function Sidebar({
-    admin = false,
+    type = 'default',
     isCollapsed,
     setIsCollapsed,
 }: {
-    admin?: boolean;
+    type?: 'default' | 'admin' | 'account';
     isCollapsed: boolean;
     setIsCollapsed: (value: boolean) => void;
 }) {
@@ -18,7 +19,7 @@ export default function Sidebar({
 
     if (!auth) return null;
 
-    const items = admin ? adminSidebar : sidebar;
+    const items = type === 'account' ? accountSidebar : type === 'admin' ? adminSidebar : sidebar;
 
     return (
         <div
@@ -40,7 +41,7 @@ export default function Sidebar({
                         <Link to="/browse" className="flex items-center gap-2">
                             <span className="text-white font-black text-2xl uppercase tracking-tighter transition-colors">Duckflix</span>
                         </Link>
-                        {admin && (
+                        {type === 'admin' && (
                             <div className="flex items-center self-center px-2 py-1 rounded-lg bg-primary/20 border border-none backdrop-blur-md select-none shrink-0">
                                 <p className="font-black uppercase text-[10px] tracking-[0.15em] text-primary leading-none">Admin</p>
                             </div>
@@ -63,9 +64,11 @@ export default function Sidebar({
                                 <div className="flex flex-col gap-1 w-full">
                                     {group.items.map((item) => (
                                         <SidebarItem
-                                            key={item.link}
-                                            {...item}
-                                            isActive={location.pathname === item.link}
+                                            key={item.key}
+                                            link={ROUTES.routeOf(item.key)}
+                                            icon={item.icon}
+                                            text={item.text}
+                                            isActive={location.pathname === ROUTES.routeOf(item.key)}
                                             isCollapsed={isCollapsed}
                                         />
                                     ))}

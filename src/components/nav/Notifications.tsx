@@ -32,7 +32,7 @@ export function NotificationBox() {
     return (
         <div className="relative" ref={containerRef}>
             <button
-                className={`bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
+                className={`bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-full text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="flex items-center justify-center p-3 relative">
@@ -48,7 +48,7 @@ export function NotificationBox() {
                 <div
                     className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-auto sm:right-0 
                     mt-2 sm:mt-4 sm:w-95 bg-background/60 backdrop-blur-3xl 
-                    border border-white/10 rounded-4xl sm:rounded-3xl 
+                    border border-white/10 rounded-3xl sm:rounded-4xl 
                     shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
                 >
                     <div className="px-6 py-5 border-b border-white/5 flex items-center justify-between bg-white/2">

@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import FullscreenLoader from './FullscreenLoader';
 import { useAuthContext } from '../contexts/AuthContext';
+import { ROUTES } from '../config/routes';
 
 export const ProtectedRoute = () => {
     const auth = useAuthContext();
@@ -8,10 +9,10 @@ export const ProtectedRoute = () => {
 
     if (!auth || auth.isLoading) return <Loading />;
 
-    if (!auth.user) return <Navigate to="/login" state={{ from: location }} replace />;
+    if (!auth.user) return <Navigate to={ROUTES.routeOf('login')} state={{ from: location }} replace />;
 
-    if (!auth.isVerified && location.pathname !== '/verify-email') {
-        return <Navigate to="/verify-email" replace />;
+    if (!auth.isVerified && location.pathname !== ROUTES.routeOf('verify-email')) {
+        return <Navigate to={ROUTES.routeOf('verify-email')} replace />;
     }
 
     return <Outlet />;
@@ -20,7 +21,7 @@ export const ProtectedRoute = () => {
 export const ContributorRoute = () => {
     const auth = useAuthContext()!;
 
-    if (!auth.hasRole('contributor')) return <Navigate to="/browse" replace />;
+    if (!auth.hasRole('contributor')) return <Navigate to={ROUTES.routeOf('browse')} replace />;
 
     return <Outlet />;
 };
@@ -28,7 +29,7 @@ export const ContributorRoute = () => {
 export const AdminRoute = () => {
     const auth = useAuthContext()!;
 
-    if (!auth.hasRole('admin')) return <Navigate to="/browse" replace />;
+    if (!auth.hasRole('admin')) return <Navigate to={ROUTES.routeOf('browse')} replace />;
 
     return <Outlet />;
 };
