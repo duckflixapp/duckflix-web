@@ -1,10 +1,21 @@
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 
-export function Section({ label, children }: { label: string; children: React.ReactNode }) {
+export function Section({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
     return (
         <div className="my-2">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">{label}</p>
-            <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">{children}</div>
+            <div className="flex flex-col gap-1 mb-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text/45 px-1">{label}</p>
+                {desc && <p className="text-[12px] text-text/30 px-1">{desc}</p>}
+            </div>
+            <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-text/6">{children}</div>
+        </div>
+    );
+}
+
+export function Header({ title }: { title: string }) {
+    return (
+        <div className="flex w-full justify-center items-center pt-4">
+            <h1 className="text-text text-2xl">{title}</h1>
         </div>
     );
 }
@@ -45,9 +56,9 @@ const rowColorScheme = {
         title: 'text-amber-400',
     },
     info: {
-        icon: 'text-white/50',
-        iconBg: 'bg-white/5',
-        title: 'text-white/85',
+        icon: 'text-text/50',
+        iconBg: 'bg-text/5',
+        title: 'text-text/85',
     },
 };
 
@@ -63,7 +74,7 @@ export function ButtonRow({
 }) {
     const colorScheme = rowColorScheme[type];
     const chevronColor =
-        type === 'info' ? 'group-hover:text-white/50' : type === 'warn' ? 'group-hover:text-amber-400/50' : 'group-hover:text-red-400/50';
+        type === 'info' ? 'group-hover:text-primary/85' : type === 'warn' ? 'group-hover:text-amber-400/50' : 'group-hover:text-red-400/50';
 
     return (
         <button
@@ -72,13 +83,13 @@ export function ButtonRow({
             onClick={onClick}
         >
             <div className={`w-9 h-9 rounded-full  flex items-center justify-center shrink-0 ${colorScheme.iconBg}`}>
-                <Icon size={16} className={colorScheme.icon} />
+                <Icon size={16} className={`${colorScheme.icon} ${type == 'info' && 'group-hover:text-primary'}`} />
             </div>
             <div className="flex-1 min-w-0 text-left">
                 <p className={`text-sm font-medium ${colorScheme.title}`}>{label}</p>
                 <p className="text-xs text-white/40 mt-0.5">{value}</p>
             </div>
-            {onClick != undefined && <ChevronRight size={16} className={`text-white/25 transition-colors shrink-0 ${chevronColor}`} />}
+            {onClick != undefined && <ChevronRight size={16} className={`text-white/25 transition-colors shrink-0 ${chevronColor} `} />}
         </button>
     );
 }

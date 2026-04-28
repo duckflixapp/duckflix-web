@@ -10,7 +10,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@duckflixapp/shared": "^0.7.0",
+        "@duckflixapp/shared": "^0.8.1",
         "@hookform/resolvers": "^5.2.2",
         "@tanstack/react-query": "^5.90.20",
         "axios": "^1.13.5",

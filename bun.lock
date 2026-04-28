@@ -5,7 +5,7 @@
     "": {
       "name": "@duckflixapp/frontend",
       "dependencies": {
-        "@duckflixapp/shared": "^0.7.0",
+        "@duckflixapp/shared": "^0.8.1",
         "@hookform/resolvers": "^5.2.2",
         "@tanstack/react-query": "^5.90.20",
         "axios": "^1.13.5",
@@ -95,7 +95,7 @@
 
     "@babel/types": ["@babel/types@7.29.0", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A=="],
 
-    "@duckflixapp/shared": ["@duckflixapp/shared@0.7.0", "https://npm.pkg.github.com/download/@duckflixapp/shared/0.7.0/02e4b75b3793f49c5dc9075b288bcd672b4e1ea0", { "peerDependencies": { "typescript": "^5" } }, "sha512-Vss4wCShaL/GQOI8tr+WX+XqOimtjyQxRAuVlVR7MvyGoV2GVHKRfAVcAu6tggJPMh3yg1ZLsCzXoV+Fbf0XjQ=="],
+    "@duckflixapp/shared": ["@duckflixapp/shared@0.8.1", "https://npm.pkg.github.com/download/@duckflixapp/shared/0.8.1/403c1622d94ff98642a3b83f3f6166ffaa6be8f5", { "peerDependencies": { "typescript": "^5" } }, "sha512-6bRGkcOZJ0NNxrVkC5FFVq3OLBxCXJF8/X81gN39NJJ5gGvBMrHO/8rhF4t0uQys/ME+IGTkFPm0tHBE1He0fA=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.27.7", "", { "os": "aix", "cpu": "ppc64" }, "sha512-EKX3Qwmhz1eMdEJokhALr0YiD0lhQNwDqkPYyPhiSwKrh7/4KRjQc04sZ8db+5DVVnZ1LmbNDI1uAMPEUBnQPg=="],
 

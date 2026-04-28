@@ -1,6 +1,6 @@
 import { Mail, User, UserKey } from 'lucide-react';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { InfoRow, Section } from '../Components';
+import { Header, InfoRow, Section } from '../Components';
 import { capitalize } from '../../../utils/string';
 
 export default function ProfilePage() {
@@ -10,6 +10,8 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+            <Header title="My Profile" />
+
             <Section label="Profile">
                 <InfoRow icon={User} label="Display name" value={auth.user.name} />
                 <InfoRow

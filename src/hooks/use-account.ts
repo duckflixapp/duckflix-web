@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { AccountTwoFactorStatusDTO } from '@duckflixapp/shared';
+import type { AccountSessionMinDTO, AccountTwoFactorStatusDTO } from '@duckflixapp/shared';
 
 export const useAccount = () => {
-    const query = useQuery({
+    const twofa = useQuery({
         queryKey: ['account', '2fa'],
         queryFn: async () => {
             const data = await api.get<AccountTwoFactorStatusDTO>('/account/2fa');
@@ -14,7 +14,19 @@ export const useAccount = () => {
         placeholderData: (previousData) => previousData,
     });
 
+    const sessions = useQuery({
+        queryKey: ['account', 'sessions'],
+        queryFn: async () => {
+            const { sessions } = await api.get<{ sessions: AccountSessionMinDTO[] }>('/account/sessions');
+            return sessions;
+        },
+        retry: false,
+        staleTime: 1000,
+        placeholderData: (previousData) => previousData,
+    });
+
     return {
-        twoFA: query.data,
+        twoFA: twofa.data,
+        sessions: sessions.data,
     };
 };

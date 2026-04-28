@@ -130,6 +130,23 @@ export const ROUTES = new RouteNode('root', '/', {
                                             element: lazy(() => import('../pages/account/security/TwoStepVerif')),
                                         }),
 
+                                        new RouteNode('devices', 'devices', {
+                                            children: [
+                                                new RouteNode('index', '', {
+                                                    element: lazy(() => import('../pages/account/security/Devices')),
+                                                }),
+                                                new RouteNode('stepup-protected', null, {
+                                                    guard: 'stepup',
+                                                    scope: 'sensitive:write',
+                                                    children: [
+                                                        new RouteNode('device', ':id', {
+                                                            element: lazy(() => import('../pages/account/security/Device')),
+                                                        }),
+                                                    ],
+                                                }),
+                                            ],
+                                        }),
+
                                         // STEP UP
                                         new RouteNode('stepup-protected', null, {
                                             guard: 'stepup',
