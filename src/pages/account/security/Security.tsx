@@ -3,7 +3,7 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { useAccount } from '../../../hooks/use-account';
 import { ROUTES } from '../../../config/routes';
 import { ButtonRow, Header, Section } from '../Components';
-import { CircleQuestionMark, Monitor, Phone, RectangleEllipsis, ScanQrCode, Shield, Tablet } from 'lucide-react';
+import { CircleQuestionMark, Monitor, RectangleEllipsis, ScanQrCode, Shield, Smartphone, Tablet } from 'lucide-react';
 import { capitalize } from '../../../utils/string';
 import type { AccountSessionDTO } from '@duckflixapp/shared';
 
@@ -77,7 +77,7 @@ export default function SecurityPage() {
 
 const getIconForType = (type: AccountSessionDTO['deviceType']) => {
     if (type === 'desktop') return Monitor;
-    if (type === 'mobile') return Phone;
+    if (type === 'mobile') return Smartphone;
     if (type === 'tablet') return Tablet;
     return CircleQuestionMark;
 };

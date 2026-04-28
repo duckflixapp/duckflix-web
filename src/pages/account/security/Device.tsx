@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CircleQuestionMark, LogOut, Monitor, Phone, Tablet, type LucideIcon } from 'lucide-react';
+import { CircleQuestionMark, LogOut, Monitor, Smartphone, Tablet, type LucideIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import type { AccountSessionDTO } from '@duckflixapp/shared';
 import { BackButton } from '../../../components/buttons/BackButton';
@@ -143,7 +143,7 @@ export default function DevicePage() {
 
 const getIconForType = (type: AccountSessionDTO['deviceType']): LucideIcon => {
     if (type === 'desktop') return Monitor;
-    if (type === 'mobile') return Phone;
+    if (type === 'mobile') return Smartphone;
     if (type === 'tablet') return Tablet;
     return CircleQuestionMark;
 };
