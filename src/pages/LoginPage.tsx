@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
@@ -287,7 +287,7 @@ export default function LoginPage() {
                                     </p>
                                 </form>
                             ) : (
-                                <form onSubmit={handleTwoFactorSubmit} className="space-y-5">
+                                <form onSubmit={handleTwoFactorSubmit} className="space-y-6">
                                     <div className="rounded-3xl border border-white/10 bg-white/4 p-4">
                                         <div className="flex items-center justify-between gap-3">
                                             <div className="flex items-center gap-3">
@@ -301,7 +301,7 @@ export default function LoginPage() {
                                                     </p>
                                                 </div>
                                             </div>
-                                            <div className="h-2 w-2 rounded-full bg-accent shadow-[0_0_20px_rgba(113,205,113,0.65)]" />
+                                            <div className="h-2 w-2 mx-2 rounded-full bg-accent shadow-[0_0_20px_rgba(113,205,113,0.65)]" />
                                         </div>
                                     </div>
 
@@ -413,63 +413,29 @@ function MethodButton({ active, icon, label, onClick }: { active: boolean; icon:
 }
 
 function TotpInput({ value, onChange, disabled }: { value: string[]; onChange: (value: string[]) => void; disabled: boolean }) {
-    const inputs = useRef<(HTMLInputElement | null)[]>([]);
-
-    const handleChange = (index: number, nextValue: string) => {
-        if (disabled || !/^\d*$/.test(nextValue)) return;
-        const next = [...value];
-        next[index] = nextValue.slice(-1);
-        onChange(next);
-        if (nextValue && index < value.length - 1) inputs.current[index + 1]?.focus();
-    };
-
-    const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleChange = (nextValue: string) => {
         if (disabled) return;
-        if (e.key === 'Backspace' && !value[index] && index > 0) inputs.current[index - 1]?.focus();
-    };
-
-    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
-        if (disabled) return;
-        e.preventDefault();
-        const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, value.length);
-        if (!pasted) return;
-
-        const next = [...value];
-        pasted.split('').forEach((char, index) => {
-            next[index] = char;
-        });
-        onChange(next);
-        inputs.current[Math.min(pasted.length, value.length - 1)]?.focus();
+        const digits = nextValue.replace(/\D/g, '').slice(0, value.length);
+        onChange(value.map((_, index) => digits[index] ?? ''));
     };
 
     return (
-        <div className="flex flex-col gap-3">
-            <label className="ml-1 text-xs font-medium text-text/80">Authenticator Code</label>
-            <div
-                className="flex items-center justify-center gap-2 rounded-3xl border border-white/8 bg-background/45 px-3 py-4"
-                onPaste={handlePaste}
-            >
-                {value.map((digit, index) => (
-                    <input
-                        key={index}
-                        ref={(el) => {
-                            inputs.current[index] = el;
-                        }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleChange(index, e.target.value)}
-                        onKeyDown={(e) => handleKeyDown(index, e)}
-                        className={`h-12 w-10 rounded-2xl border bg-white/5 text-center text-lg font-semibold text-white outline-none transition-colors sm:w-11 ${
-                            digit ? 'border-primary/60' : 'border-white/10'
-                        } focus:border-primary/80 focus:bg-white/8 disabled:opacity-50`}
-                        autoComplete={index === 0 ? 'one-time-code' : 'off'}
-                        autoFocus={index === 0}
-                        disabled={disabled}
-                    />
-                ))}
-            </div>
-        </div>
+        <FieldShell label="Authenticator Code" error={null}>
+            <KeyRound
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-text/30 transition-colors group-focus-within:text-primary"
+                size={18}
+            />
+            <input
+                type="text"
+                inputMode="numeric"
+                value={value.join('')}
+                onChange={(e) => handleChange(e.target.value)}
+                placeholder="123456"
+                className="w-full rounded-3xl border border-white/5 bg-background/50 py-3 pl-12 pr-4 font-mono text-sm tracking-widest text-text outline-none transition-all focus:ring-2 ring-primary/50"
+                autoComplete="one-time-code"
+                autoFocus
+                disabled={disabled}
+            />
+        </FieldShell>
     );
 }
