@@ -25,6 +25,9 @@ export class RouteNode {
     public set parent(parent: RouteNode) {
         this._parent = parent;
     }
+    public get parent(): RouteNode | null {
+        return this._parent;
+    }
 
     public get index(): string | undefined {
         return this._index ?? undefined;

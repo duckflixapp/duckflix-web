@@ -25,7 +25,7 @@ export default function AccountSettingsPage() {
     const requestStepUp = () => {
         auth.clearStepUp();
         navigate(ROUTES.routeOf('account.stepup'), {
-            state: { scope: 'sensitive:write', returnTo: ROUTES.routeOf('account.settings') },
+            state: { scope: 'sensitive:write', returnTo: ROUTES.routeOf('account.settings'), onCancelReturnTo: window.location.pathname },
         });
     };
 
