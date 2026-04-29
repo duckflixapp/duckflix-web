@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function DevicesPage() {
     const auth = useAuthContext();
-    const { sessions } = useAccount();
+    const { sessions, isSessionsLoading } = useAccount();
 
     if (!auth?.user) return null;
 
@@ -22,6 +22,7 @@ export default function DevicesPage() {
             <Section
                 label="Your Devices"
                 desc="Device which session is active and not expired. There might be multiple activity sessions from the same device."
+                loading={isSessionsLoading}
             >
                 {devices.length > 0 ? (
                     devices.map((device) => <DeviceRow key={device.id} device={device} />)

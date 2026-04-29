@@ -1,13 +1,31 @@
-import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { ChevronRight, Loader2, type LucideIcon } from 'lucide-react';
 
-export function Section({ label, desc, children }: { label: string; desc?: string; children: React.ReactNode }) {
+export function Section({
+    label,
+    desc,
+    loading = false,
+    children,
+}: {
+    label: string;
+    desc?: string;
+    loading?: boolean;
+    children: React.ReactNode;
+}) {
     return (
         <div className="my-2">
             <div className="flex flex-col gap-1 mb-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text/45 px-1">{label}</p>
                 {desc && <p className="text-[12px] text-text/30 px-1">{desc}</p>}
             </div>
-            <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-text/6">{children}</div>
+            {!loading ? (
+                <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-text/6">
+                    {children}
+                </div>
+            ) : (
+                <div>
+                    <Loader2 size={24} className="text-primary animate-spin stroke-[1.5]" />
+                </div>
+            )}
         </div>
     );
 }

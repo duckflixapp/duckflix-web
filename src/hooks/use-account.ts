@@ -27,6 +27,8 @@ export const useAccount = () => {
 
     return {
         twoFA: twofa.data,
+        isTwoFaLoading: twofa.isLoading,
         sessions: sessions.data,
+        isSessionsLoading: sessions.isLoading,
     };
 };

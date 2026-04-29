@@ -10,7 +10,7 @@ import type { AccountSessionDTO } from '@duckflixapp/shared';
 export default function SecurityPage() {
     const auth = useAuthContext();
     const navigate = useNavigate();
-    const { sessions, twoFA } = useAccount();
+    const { sessions, isSessionsLoading, twoFA, isTwoFaLoading } = useAccount();
 
     if (!auth?.user) return null;
 
@@ -59,7 +59,7 @@ export default function SecurityPage() {
                     last
                 />
             </Section>
-            <Section label="Sessions" desc="Keep track on devices where you’re signed in">
+            <Section label="Sessions" desc="Keep track on devices where you’re signed in" loading={isSessionsLoading}>
                 {groupedSessions?.map((group) => (
                     <ButtonRow
                         key={group.type}
