@@ -35,7 +35,8 @@ export default function TwoStepVerif() {
                             <BadgeAlert size={16} className="text-red-400" />
                         )}
                         <p className="text-xs text-text/40">
-                            {backupCodes} codes available.{backupCodes === 0 && ' Reset authenticator.'}
+                            {backupCodes} codes available.
+                            {backupCodes === 0 && twoFA.methods.authenticator.enabled && ' Reset authenticator.'}
                         </p>
                     </div>
                 </div>

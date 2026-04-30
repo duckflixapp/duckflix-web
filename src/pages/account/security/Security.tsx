@@ -10,7 +10,7 @@ import type { AccountSessionDTO } from '@duckflixapp/shared';
 export default function SecurityPage() {
     const auth = useAuthContext();
     const navigate = useNavigate();
-    const { sessions, isSessionsLoading, twoFA, isTwoFaLoading } = useAccount();
+    const { sessions, isSessionsLoading, twoFA } = useAccount();
 
     if (!auth?.user) return null;
 
