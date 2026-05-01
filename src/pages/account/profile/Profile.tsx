@@ -2,6 +2,7 @@ import { Mail, User, UserKey } from 'lucide-react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { Header, InfoRow, Section } from '../Components';
 import { capitalize } from '../../../utils/string';
+import { getAccountDisplayName } from '../../../lib/account';
 
 export default function ProfilePage() {
     const auth = useAuthContext();
@@ -13,7 +14,7 @@ export default function ProfilePage() {
             <Header title="My Profile" />
 
             <Section label="Profile" desc="View and edit your Duckflix profile.">
-                <InfoRow icon={User} label="Display name" value={auth.user.name} />
+                <InfoRow icon={User} label="Display name" value={getAccountDisplayName(auth.user, auth.user.email)} />
                 <InfoRow
                     icon={Mail}
                     label="Email address"

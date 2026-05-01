@@ -9,6 +9,7 @@ import { fetchUnified } from '../../hooks/useSearch';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { NotificationBox } from './Notifications';
+import { getAccountDisplayName } from '../../lib/account';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -34,7 +35,6 @@ export default function Navbar() {
     useNotificationSocket(handleNotification);
 
     if (!auth) return null;
-
     return (
         <nav className="relative h-18 z-50">
             <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
@@ -372,6 +372,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
     ];
 
     if (!auth) return null;
+    const displayName = getAccountDisplayName(auth.user, auth.user?.email ?? 'Account');
 
     return (
         <div className="relative" ref={containerRef}>
@@ -398,7 +399,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                 >
                     <div className="p-2 flex flex-col gap-1">
                         <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
-                            <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>
+                            <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
                             <p className="text-xs text-text/40 truncate line-clamp-1">{auth.user?.email}</p>
                         </div>
 

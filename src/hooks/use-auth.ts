@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { roleHierarchy, type UserDTO, type UserRole } from '@duckflixapp/shared';
+import { roleHierarchy, type UserRole } from '@duckflixapp/shared';
 import { stepUpStore } from '../lib/step-up-store';
 import { useState } from 'react';
+import { fetchCurrentAccount } from '../lib/account';
 // import { useEffect } from 'react';
 
 export const useAuth = () => {
@@ -13,8 +14,7 @@ export const useAuth = () => {
         queryKey: ['auth-user'],
         queryFn: async () => {
             try {
-                const { user } = await api.get<{ user: UserDTO }>('/users/@me');
-                return user;
+                return await fetchCurrentAccount();
             } catch {
                 return null;
             }
@@ -68,6 +68,7 @@ export const useAuth = () => {
         isLoading: query.isLoading,
         logout: logout.mutate,
         hasRole,
+        hasSelectedProfile: !!query.data && !!query.data.profile,
         isStepupActive: stepUpActive,
         hasStepUp,
         applyStepUp,

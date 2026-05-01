@@ -15,6 +15,7 @@ import LibraryPage from '../pages/LibraryPage';
 import BrowsePage from '../pages/BrowsePage';
 import { Layout } from '../components/Layout';
 import { Navigate } from 'react-router-dom';
+import ProfileSelector from '../pages/ProfileSelector';
 
 const AccountLayout = () => <Layout type="account" />;
 const AdminLayout = () => <Layout type="admin" />;
@@ -36,6 +37,9 @@ export const ROUTES = new RouteNode('root', '/', {
         }),
         new RouteNode('verify-email', 'verify-email', {
             element: VerifyEmailPage,
+        }),
+        new RouteNode('select-profile', 'select-profile', {
+            element: ProfileSelector,
         }),
 
         // PROTECTED ROOT

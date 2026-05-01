@@ -15,6 +15,8 @@ export const ProtectedRoute = () => {
         return <Navigate to={ROUTES.routeOf('verify-email')} replace />;
     }
 
+    if (!auth.hasSelectedProfile) return <Navigate to={ROUTES.routeOf('select-profile')} replace />;
+
     return <Outlet />;
 };
 
