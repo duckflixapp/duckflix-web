@@ -17,9 +17,9 @@ export default function AccountSettingsPage() {
     const [confirmEmail, setConfirmEmail] = useState('');
     const [deleting, setDeleting] = useState(false);
 
-    if (!auth?.user) return null;
+    if (!auth?.account) return null;
 
-    const expectedEmail = auth.user.email.toLowerCase();
+    const expectedEmail = auth.account.email.toLowerCase();
     const emailMatches = confirmEmail.trim().toLowerCase() === expectedEmail;
 
     const requestStepUp = () => {
@@ -122,7 +122,7 @@ export default function AccountSettingsPage() {
                                     value={confirmEmail}
                                     onChange={(event) => setConfirmEmail(event.target.value)}
                                     type="email"
-                                    placeholder={auth.user.email}
+                                    placeholder={auth.account.email}
                                     disabled={deleting}
                                     className={`outline-none text-sm px-4 py-3 rounded-3xl bg-white/5 border transition-colors ${
                                         confirmEmail && !emailMatches ? 'border-red-500/40' : 'border-white/8 focus:border-primary/50'

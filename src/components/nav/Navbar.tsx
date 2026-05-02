@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ContentDTO } from '@duckflixapp/shared';
-import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
+import { ArrowDownUp, ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
 import { useDeferredValue, useEffect, useId, useRef, useState, type KeyboardEvent, type PropsWithChildren } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
@@ -9,7 +9,7 @@ import { fetchUnified } from '../../hooks/useSearch';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { NotificationBox } from './Notifications';
-import { getAccountDisplayName } from '../../lib/account';
+import { useProfile } from '../../hooks/useProfile';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -44,7 +44,7 @@ export default function Navbar() {
 
                 <SearchBar />
                 <div className="flex flex-row items-center gap-2 md:gap-4">
-                    {!auth.user ? (
+                    {!auth.account ? (
                         <Link to="/login">Login</Link>
                     ) : (
                         <>
@@ -342,6 +342,7 @@ function SearchResultBox({
 
 function UserBox({ logout }: { logout: () => unknown }) {
     const auth = useAuthContext();
+    const { logout: switchProfile } = useProfile();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -364,6 +365,12 @@ function UserBox({ logout }: { logout: () => unknown }) {
             show: auth?.hasRole('admin'),
         },
         {
+            label: 'Switch Profile',
+            icon: ArrowDownUp,
+            onClick: () => switchProfile(),
+            show: true,
+        },
+        {
             label: 'Account',
             icon: Settings,
             onClick: () => navigate('/account/'),
@@ -372,7 +379,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
     ];
 
     if (!auth) return null;
-    const displayName = getAccountDisplayName(auth.user, auth.user?.email ?? 'Account');
+    const displayName = auth.profile?.name ?? 'Account';
 
     return (
         <div className="relative" ref={containerRef}>
@@ -400,7 +407,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                     <div className="p-2 flex flex-col gap-1">
                         <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
                             <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
-                            <p className="text-xs text-text/40 truncate line-clamp-1">{auth.user?.email}</p>
+                            <p className="text-xs text-text/40 truncate line-clamp-1">{auth.account?.email}</p>
                         </div>
 
                         {menuItems

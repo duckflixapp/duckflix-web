@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { useAccount } from '../../../hooks/use-account';
+import { useAccountSessions, useAccountTwoFa } from '../../../hooks/useAccount';
 import { ROUTES } from '../../../config/routes';
 import { ButtonRow, Header, Section } from '../Components';
 import { CircleQuestionMark, Monitor, Phone, RectangleEllipsis, ScanQrCode, Shield, Tablet } from 'lucide-react';
@@ -10,9 +10,10 @@ import type { AccountSessionDTO } from '@duckflixapp/shared';
 export default function SecurityPage() {
     const auth = useAuthContext();
     const navigate = useNavigate();
-    const { sessions, isSessionsLoading, twoFA } = useAccount();
+    const { sessions, isLoading: isSessionsLoading } = useAccountSessions();
+    const { twoFA } = useAccountTwoFa();
 
-    if (!auth?.user) return null;
+    if (!auth?.account) return null;
 
     const handleTwoStepV = () => navigate(ROUTES.routeOf('account.security.twosv'));
     const handleChangePassword = () => navigate(ROUTES.routeOf('account.security.password'));

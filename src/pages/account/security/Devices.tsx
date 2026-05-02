@@ -2,16 +2,16 @@ import { ChevronRight, CircleQuestionMark, Monitor, Phone, Tablet, type LucideIc
 import type { AccountSessionDTO, AccountSessionMinDTO } from '@duckflixapp/shared';
 import { BackButton } from '../../../components/buttons/BackButton';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { useAccount } from '../../../hooks/use-account';
+import { useAccountSessions } from '../../../hooks/useAccount';
 import { capitalize } from '../../../utils/string';
 import { Section } from '../Components';
 import { useNavigate } from 'react-router-dom';
 
 export default function DevicesPage() {
     const auth = useAuthContext();
-    const { sessions, isSessionsLoading } = useAccount();
+    const { sessions, isLoading } = useAccountSessions();
 
-    if (!auth?.user) return null;
+    if (!auth?.account) return null;
 
     const devices = sessions ?? [];
 
@@ -22,7 +22,7 @@ export default function DevicesPage() {
             <Section
                 label="Your Devices"
                 desc="Device which session is active and not expired. There might be multiple activity sessions from the same device."
-                loading={isSessionsLoading}
+                loading={isLoading}
             >
                 {devices.length > 0 ? (
                     devices.map((device) => <DeviceRow key={device.id} device={device} />)

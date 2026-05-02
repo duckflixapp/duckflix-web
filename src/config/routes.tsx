@@ -38,14 +38,15 @@ export const ROUTES = new RouteNode('root', '/', {
         new RouteNode('verify-email', 'verify-email', {
             element: VerifyEmailPage,
         }),
-        new RouteNode('select-profile', 'select-profile', {
-            element: ProfileSelector,
-        }),
 
         // PROTECTED ROOT
         new RouteNode('protected', null, {
             guard: 'protected',
             children: [
+                new RouteNode('select-profile', 'select-profile', {
+                    element: ProfileSelector,
+                }),
+
                 new RouteNode('watch', 'watch/:id', {
                     element: lazy(() => import('../pages/WatchPage')),
                     suspenseLabel: 'Loading player',

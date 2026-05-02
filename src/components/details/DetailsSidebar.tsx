@@ -1,12 +1,11 @@
-import type { AccountMinDTO, AccountRefDTO, VideoVersionDTO } from '@duckflixapp/shared';
+import type { AccountRefDTO, VideoVersionDTO } from '@duckflixapp/shared';
 import { VersionBadge } from './VersionBadge';
 import { api } from '../../lib/api';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useVideoSocket } from '../../hooks/useVideoSocket';
-import { getAccountDisplayName } from '../../lib/account';
 
-type UploaderDTO = AccountMinDTO | AccountRefDTO;
+type UploaderDTO = AccountRefDTO;
 
 export function DetailsSidebar({
     videoId,
@@ -28,8 +27,7 @@ export function DetailsSidebar({
             toast('Error, Job kill failed', { description: message });
         });
     };
-    const uploaderName =
-        uploader && 'profile' in uploader ? getAccountDisplayName(uploader, 'Unknown user') : (uploader?.email ?? 'Unknown user');
+    const uploaderName = (uploader && (uploader.system ? 'System' : uploader.email)) ?? 'Unknown user';
 
     return (
         <div className="space-y-8 h-fit">

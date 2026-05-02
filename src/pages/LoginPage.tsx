@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, AlertCircle, KeyRound, Loader2, Lock, Mail, ShieldCheck, TicketCheck } from 'lucide-react';
 import axios from 'axios';
 import { useAuthContext } from '../contexts/AuthContext';
-import { fetchCurrentAccount, selectProfile } from '../lib/account';
 import type { AccountDTO } from '@duckflixapp/shared';
 
 type LoginStep = 'credentials' | 'two-factor';
@@ -30,12 +29,6 @@ const isTwoFactorChallenge = (value: unknown): value is LoginTwoFactorChallenge 
     if (!value || typeof value !== 'object') return false;
     const challenge = value as Partial<LoginTwoFactorChallenge>;
     return typeof challenge.challengeToken === 'string' && Array.isArray(challenge.methods);
-};
-
-const isLoginSuccess = (value: unknown): value is LoginSuccess => {
-    if (!value || typeof value !== 'object') return false;
-    const result = value as Partial<LoginSuccess>;
-    return result.status === 'success' && !!result.user;
 };
 
 const getErrorMessage = (err: unknown, fallback: string) => {
@@ -77,7 +70,7 @@ export default function LoginPage() {
     }, [location.state]);
 
     useEffect(() => {
-        if (auth && !auth.isLoading && auth.user) {
+        if (auth && !auth.isLoading && auth.account) {
             navigate('/browse', { replace: true });
         }
     }, [auth, navigate]);
@@ -102,13 +95,9 @@ export default function LoginPage() {
         );
     }
 
-    const finishLogin = async (loginUser?: AccountDTO) => {
-        if (loginUser?.profile && loginUser.isVerified) {
-            await selectProfile(loginUser.profile.id);
-        }
-
-        const user = loginUser && !loginUser.isVerified ? loginUser : await fetchCurrentAccount();
-        queryClient.setQueryData(['auth-user'], user);
+    const finishLogin = async () => {
+        queryClient.invalidateQueries({ queryKey: ['account'] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
         navigate(redirectTo, { replace: true });
     };
 
@@ -150,7 +139,7 @@ export default function LoginPage() {
                 return;
             }
 
-            await finishLogin(isLoginSuccess(result) ? result.user : undefined);
+            await finishLogin();
         } catch (err: unknown) {
             if (!setServerFieldErrors(err)) {
                 setError(getErrorMessage(err, 'Unable to sign in. Please check your details and try again.'));
@@ -171,13 +160,13 @@ export default function LoginPage() {
         setLoadingStep('two-factor');
 
         try {
-            const result = await api.post<LoginSuccess>('/auth/login/verify-2fa', {
+            await api.post<LoginSuccess>('/auth/login/verify-2fa', {
                 challengeToken: challenge.challengeToken,
                 method: selectedMethod,
                 credential,
             });
 
-            await finishLogin(isLoginSuccess(result) ? result.user : undefined);
+            await finishLogin();
         } catch (err: unknown) {
             setTwoFactorError(getErrorMessage(err, 'Invalid authentication code. Please try again.'));
         } finally {

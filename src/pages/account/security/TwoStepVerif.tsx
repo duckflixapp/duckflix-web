@@ -1,10 +1,10 @@
 import { BadgeAlert, BadgeCheck, BookKey, ScanQrCode } from 'lucide-react';
 import { BackButton } from '../../../components/buttons/BackButton';
-import { useAccount } from '../../../hooks/use-account';
+import { useAccountTwoFa } from '../../../hooks/useAccount';
 import { Section } from '../Components';
 
 export default function TwoStepVerif() {
-    const { twoFA } = useAccount();
+    const { twoFA } = useAccountTwoFa();
     if (!twoFA) return null;
     const backupCodes = twoFA.methods.backupCodes.remaining;
     return (

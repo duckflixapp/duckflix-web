@@ -65,7 +65,7 @@ export const useLibrary = (libraryId?: string) => {
     });
 
     const createLibrary = useMutation({
-        mutationFn: async (name: string) => await api.post('/library', { name }),
+        mutationFn: async (name: string) => await api.post('/libraries', { name }),
         onSuccess: () => {
             toast.success('Collection created');
             invalidate();

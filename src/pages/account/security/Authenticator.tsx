@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { BackButton } from '../../../components/buttons/BackButton';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAccount } from '../../../hooks/use-account';
+import { useAccountTwoFa } from '../../../hooks/useAccount';
 import { Section } from '../Components';
 
 type Step = 'scan' | 'verify' | 'backup';
@@ -22,7 +22,7 @@ export default function Authenticator() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [disabling, setDisabling] = useState(false);
     const { clearStepUp } = useAuth();
-    const { twoFA } = useAccount();
+    const { twoFA } = useAccountTwoFa();
     const query = useQueryClient();
 
     const handleDisable = async () => {

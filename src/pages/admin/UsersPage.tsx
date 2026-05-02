@@ -4,7 +4,6 @@ import type { UserRole } from '@duckflixapp/shared';
 import { useAdminUsers } from '../../hooks/useAdminUser';
 import AdminSection from '../../components/admin/AdminSection';
 import InputGroup from '../../components/admin/InputGroup';
-import { getAccountDisplayName } from '../../lib/account';
 
 export default function AdminUsersPage() {
     const { users, loading, updateRole, isUpdating, deleteUser } = useAdminUsers();
@@ -111,9 +110,7 @@ export default function AdminUsersPage() {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-white/80 truncate">
-                                                        {getAccountDisplayName(user, user.email)}
-                                                    </p>
+                                                    <p className="text-sm font-medium text-white/80 truncate">-</p>
                                                     <p className="text-xs text-white/35 truncate">{user.email}</p>
                                                 </div>
                                             </div>

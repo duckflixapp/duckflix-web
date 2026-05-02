@@ -9,13 +9,14 @@ export const ProtectedRoute = () => {
 
     if (!auth || auth.isLoading) return <Loading />;
 
-    if (!auth.user) return <Navigate to={ROUTES.routeOf('login')} state={{ from: location }} replace />;
+    if (!auth.account) return <Navigate to={ROUTES.routeOf('login')} state={{ from: location }} replace />;
 
     if (!auth.isVerified && location.pathname !== ROUTES.routeOf('verify-email')) {
         return <Navigate to={ROUTES.routeOf('verify-email')} replace />;
     }
 
-    if (!auth.hasSelectedProfile) return <Navigate to={ROUTES.routeOf('select-profile')} replace />;
+    if (!auth.hasSelectedProfile && location.pathname !== ROUTES.routeOf('select-profile'))
+        return <Navigate to={ROUTES.routeOf('select-profile')} replace />;
 
     return <Outlet />;
 };
