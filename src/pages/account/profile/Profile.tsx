@@ -1,4 +1,4 @@
-import { Mail, UserKey } from 'lucide-react';
+import { Mail, User, UserKey } from 'lucide-react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { Header, InfoRow, Section } from '../Components';
 import { capitalize } from '../../../utils/string';
@@ -12,8 +12,7 @@ export default function ProfilePage() {
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
             <Header title="My Profile" />
 
-            <Section label="Profile" desc="View and edit your Duckflix profile.">
-                {/* <InfoRow icon={User} label="Display name" value={auth.profile?.name ?? ''} /> */}
+            <Section label="Account" desc="View and edit your account profile.">
                 <InfoRow
                     icon={Mail}
                     label="Email address"
@@ -27,6 +26,10 @@ export default function ProfilePage() {
                     }
                 />
                 <InfoRow icon={UserKey} label="Role" value={capitalize(auth.account.role)} last />
+            </Section>
+
+            <Section label="Personalized" desc="View and edit your personalized profile.">
+                <InfoRow icon={User} label="Display name" value={auth.profile?.name ?? ''} />
             </Section>
         </div>
     );

@@ -5,6 +5,13 @@ import type { ProfileDTO } from '@duckflixapp/shared';
 export const useProfile = () => {
     const queryClient = useQueryClient();
 
+    const invalidateQueries = () => {
+        queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
+        queryClient.invalidateQueries({ queryKey: ['library'] });
+        queryClient.invalidateQueries({ queryKey: ['movie'] });
+        queryClient.invalidateQueries({ queryKey: ['series'] });
+    };
+
     const profile = useQuery({
         queryKey: ['profile', 'me'],
         queryFn: async () => {
@@ -18,22 +25,12 @@ export const useProfile = () => {
 
     const selectProfile = useMutation({
         mutationFn: (profileId: string) => api.post(`/profiles/${profileId}/select`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profile'] });
-            queryClient.invalidateQueries({ queryKey: ['library'] });
-            queryClient.invalidateQueries({ queryKey: ['movie'] });
-            queryClient.invalidateQueries({ queryKey: ['series'] });
-        },
+        onSuccess: invalidateQueries,
     });
 
     const logoutProfile = useMutation({
         mutationFn: () => api.post(`/profiles/logout`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
-            queryClient.invalidateQueries({ queryKey: ['library'] });
-            queryClient.invalidateQueries({ queryKey: ['movie'] });
-            queryClient.invalidateQueries({ queryKey: ['series'] });
-        },
+        onSuccess: invalidateQueries,
     });
 
     return {

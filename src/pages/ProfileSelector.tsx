@@ -19,10 +19,10 @@ export default function ProfileSelectorPage() {
     };
 
     return (
-        <div className="relative w-screen h-screen bg-background text-text">
+        <div className="relative w-screen min-h-screen bg-background text-text">
             <div className="absolute top-[-10%] left-[10%] w-[30%] h-[30%] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-[10%] right-[5%] w-[25%] h-[25%] bg-accent/5 rounded-full blur-[100px] pointer-events-none" />
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full pt-[22vh] flex items-center justify-center">
                 <ProfileSelector profiles={profiles} loading={isLoading} onSelect={handleSelect} />
             </div>
         </div>
@@ -40,18 +40,25 @@ function ProfileSelector({
 }) {
     if (loading) return <p>loading</p>;
     return (
-        <div className="flex flex-wrap gap-4 items-center">
-            {profiles.map((profile) => (
-                <ProfileBox profile={profile} key={profile.id} onClick={() => onSelect(profile)} />
-            ))}
+        <div className="flex flex-col items-center gap-8">
+            <h1 className="text-3xl text-center">Who's watching?</h1>
+            <div className="flex flex-wrap gap-6 items-center justify-center p-4">
+                {profiles.map((profile) => (
+                    <ProfileBox profile={profile} key={profile.id} onClick={() => onSelect(profile)} />
+                ))}
+            </div>
         </div>
     );
 }
 
 function ProfileBox({ profile, className, ...props }: { profile: ProfileDTO } & ButtonHTMLAttributes<HTMLButtonElement>) {
     return (
-        <button {...props} className={`bg-secondary/10 rounded-2xl w-16 h-16 ${className}`}>
-            {profile.name}
-        </button>
+        <div className="flex flex-col gap-3 items-center">
+            <button
+                {...props}
+                className={`bg-secondary/10 rounded-2xl w-32 h-32 cursor-pointer transition-all hover:scale-105 ${className}`}
+            ></button>
+            <span>{profile.name}</span>
+        </div>
     );
 }

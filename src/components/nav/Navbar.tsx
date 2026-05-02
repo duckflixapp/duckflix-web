@@ -365,13 +365,13 @@ function UserBox({ logout }: { logout: () => unknown }) {
             show: auth?.hasRole('admin'),
         },
         {
-            label: 'Switch Profile',
+            label: 'Switch Profiles',
             icon: ArrowDownUp,
             onClick: () => switchProfile(),
             show: true,
         },
         {
-            label: 'Account',
+            label: 'Settings',
             icon: Settings,
             onClick: () => navigate('/account/'),
             show: true,
