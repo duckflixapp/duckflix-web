@@ -56,8 +56,10 @@ function ProfileBox({ profile, className, ...props }: { profile: ProfileDTO } & 
         <div className="flex flex-col gap-3 items-center">
             <button
                 {...props}
-                className={`bg-secondary/10 rounded-2xl w-32 h-32 cursor-pointer transition-all hover:scale-105 ${className}`}
-            ></button>
+                className={`bg-secondary/10 rounded-2xl w-32 h-32 overflow-clip cursor-pointer transition-all hover:scale-105 ${className}`}
+            >
+                {profile.avatar.url && <img src={profile.avatar.url} alt="Profile picture" />}
+            </button>
             <span>{profile.name}</span>
         </div>
     );

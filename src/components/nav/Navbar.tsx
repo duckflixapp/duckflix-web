@@ -405,9 +405,16 @@ function UserBox({ logout }: { logout: () => unknown }) {
                     shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
                 >
                     <div className="p-2 flex flex-col gap-1">
-                        <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
-                            <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
-                            <p className="text-xs text-text/40 truncate line-clamp-1">{auth.account?.email}</p>
+                        <div className="flex items-center gap-2 px-2.5 py-3 mb-1 border-b border-white/5">
+                            {auth.profile?.avatar.url && (
+                                <div className="flex-none w-10 rounded-xl overflow-clip">
+                                    <img src={auth.profile?.avatar.url} alt="Profile picture" />
+                                </div>
+                            )}
+                            <div className="flex-1 pl-1 min-w-0">
+                                <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
+                                <p className="text-xs text-text/40 truncate line-clamp-1">{auth.account?.email}</p>
+                            </div>
                         </div>
 
                         {menuItems
