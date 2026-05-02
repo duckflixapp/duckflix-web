@@ -4,12 +4,15 @@ import type { SeriesDetailedDTO } from '@duckflixapp/shared';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useCallback } from 'react';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export const useSeriesDetailed = (id: string | undefined) => {
     const queryClient = useQueryClient();
+    const auth = useAuthContext();
+    const profileId = auth?.profile?.id;
 
     const query = useQuery({
-        queryKey: ['series', id],
+        queryKey: ['series', profileId, id],
         queryFn: async () => {
             if (!id) return null;
             const { series } = await api.get<{ series: SeriesDetailedDTO }>(`/series/${id}`);
@@ -20,10 +23,13 @@ export const useSeriesDetailed = (id: string | undefined) => {
             return failureCount < 3;
         },
         staleTime: 100,
-        enabled: !!id,
+        enabled: !!profileId && !!id,
     });
 
-    const invalidate = useCallback(() => queryClient.invalidateQueries({ queryKey: ['series', id] }), [id, queryClient]);
+    const invalidate = useCallback(
+        () => queryClient.invalidateQueries({ queryKey: ['series', profileId, id] }),
+        [id, profileId, queryClient]
+    );
 
     const deleteSeries = useMutation({
         mutationFn: async () => {

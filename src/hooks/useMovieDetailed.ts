@@ -6,12 +6,15 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { useCallback } from 'react';
 import { useNotificationSocket, type NotificationSocketData } from './useNotificationSocket';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export const useMovieDetailed = (id: string | undefined) => {
     const queryClient = useQueryClient();
+    const auth = useAuthContext();
+    const profileId = auth?.profile?.id;
 
     const query = useQuery({
-        queryKey: ['movie', id],
+        queryKey: ['movie', profileId, id],
         queryFn: async () => {
             if (!id) return null;
             const { movie } = await api.get<{ movie: MovieDetailedDTO }>(`/movies/${id}`);
@@ -22,10 +25,13 @@ export const useMovieDetailed = (id: string | undefined) => {
             return failureCount < 3;
         },
         staleTime: 100,
-        enabled: !!id,
+        enabled: !!profileId && !!id,
     });
 
-    const invalidate = useCallback(() => queryClient.invalidateQueries({ queryKey: ['movie', id] }), [id, queryClient]);
+    const invalidate = useCallback(
+        () => queryClient.invalidateQueries({ queryKey: ['movie', profileId, id] }),
+        [id, profileId, queryClient]
+    );
 
     const movie = query.data;
     const handleNotification = useCallback(
@@ -44,7 +50,7 @@ export const useMovieDetailed = (id: string | undefined) => {
         },
         onSuccess: () => {
             toast.success('Movie updated');
-            queryClient.invalidateQueries({ queryKey: ['movie', id] });
+            invalidate();
         },
         onError: (err) => {
             const message = err instanceof AxiosError ? err.response?.data.message : undefined;
@@ -63,14 +69,18 @@ export const useMovieDetailed = (id: string | undefined) => {
 };
 
 export const useFeaturedMovie = () => {
+    const auth = useAuthContext();
+    const profileId = auth?.profile?.id;
+
     const query = useQuery({
-        queryKey: ['movie', 'featured'],
+        queryKey: ['movie', profileId, 'featured'],
         queryFn: async () => {
             const { movie } = await api.get<{ movie: MovieDetailedDTO | null }>(`/movies/featured`);
             return movie;
         },
         retry: false,
         staleTime: 100,
+        enabled: !!profileId,
     });
 
     return {

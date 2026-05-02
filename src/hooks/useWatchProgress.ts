@@ -3,12 +3,16 @@ import { api } from '../lib/api';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import type { WatchHistoryDTO } from '@duckflixapp/shared';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export const useWatchProgress = (videoId: string | undefined) => {
     const queryClient = useQueryClient();
+    const auth = useAuthContext();
+    const profileId = auth?.profile?.id;
+    const queryKey = ['video', 'progress', profileId, videoId];
 
     const query = useQuery({
-        queryKey: ['video', videoId, 'progress'],
+        queryKey,
         queryFn: async () => {
             const { watchHistory } = await api.get<{ watchHistory: WatchHistoryDTO }>(`/videos/${videoId}/progress`);
             return watchHistory;
@@ -18,7 +22,7 @@ export const useWatchProgress = (videoId: string | undefined) => {
             return failureCount < 3;
         },
         staleTime: 500,
-        enabled: !!videoId,
+        enabled: !!videoId && !!profileId,
     });
 
     const save = useMutation({
@@ -28,7 +32,7 @@ export const useWatchProgress = (videoId: string | undefined) => {
             });
             return watchHistory;
         },
-        onSuccess: (data) => queryClient.setQueryData(['video', videoId, 'progress'], data),
+        onSuccess: (data) => queryClient.setQueryData(queryKey, data),
         onError: (err) => {
             const message = err instanceof AxiosError ? err.response?.data.message : undefined;
             toast.error('Failed to save progress', { description: message });

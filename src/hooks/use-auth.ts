@@ -8,8 +8,8 @@ import { useProfile } from './useProfile';
 
 export const useAuth = () => {
     const queryClient = useQueryClient();
-    const { account, isLoading } = useAccount();
-    const { profile } = useProfile();
+    const { account, isLoading: isLoadingAccount } = useAccount();
+    const { profile: selectedProfile, isLoading: isLoadingProfile } = useProfile();
     const [stepUpActive, setStepUpActive] = useState(false);
 
     const logout = useMutation({
@@ -43,11 +43,11 @@ export const useAuth = () => {
     return {
         account: account ?? null,
         isVerified: account?.isVerified ?? false,
-        isLoading,
+        isLoading: isLoadingAccount || isLoadingProfile,
         logout: logout.mutate,
         hasRole,
-        hasSelectedProfile: !!profile,
-        profile,
+        hasSelectedProfile: !!selectedProfile,
+        profile: selectedProfile ?? null,
         isStepupActive: stepUpActive,
         hasStepUp,
         applyStepUp,

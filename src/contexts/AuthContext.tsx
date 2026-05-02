@@ -1,8 +1,9 @@
-import type { AccountDTO, ProfileDTO, UserRole } from '@duckflixapp/shared';
+import type { ProfileDTO, UserRole } from '@duckflixapp/shared';
 import { createContext, useContext } from 'react';
+import type { AccountMeDTO } from '../hooks/useAccount';
 
 export interface AuthContextType {
-    account: AccountDTO | null;
+    account: AccountMeDTO | null;
     isLoading: boolean;
     logout: () => void;
     hasRole: (role: UserRole | null) => boolean;

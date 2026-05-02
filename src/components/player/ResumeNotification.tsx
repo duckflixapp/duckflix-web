@@ -12,9 +12,14 @@ interface ResumeNotificationProps {
 }
 
 export function ResumeNotification({ watchProgress, videoRef, onResume, onClose }: ResumeNotificationProps) {
-    const [lastPosition] = useState(watchProgress.lastPosition);
+    const lastPosition = watchProgress.lastPosition;
     const [visible, setVisibility] = useState(!!lastPosition && lastPosition > 10);
     const [videoLoaded, setVideoLoaded] = useState(false);
+
+    useEffect(() => {
+        setVisibility(!!lastPosition && lastPosition > 10);
+        setVideoLoaded(false);
+    }, [lastPosition, watchProgress.profileId, watchProgress.videoId]);
 
     useEffect(() => {
         const video = videoRef.current;

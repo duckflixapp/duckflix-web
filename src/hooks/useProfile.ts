@@ -1,21 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { ProfileDTO } from '@duckflixapp/shared';
+import { AxiosError } from 'axios';
+
+type SelectProfileResult = {
+    token: string;
+    profile: ProfileDTO;
+};
 
 export const useProfile = () => {
     const queryClient = useQueryClient();
 
-    const invalidateQueries = () => {
-        queryClient.invalidateQueries({ queryKey: ['profile', 'me'] });
-        queryClient.invalidateQueries({ queryKey: ['library'] });
-        queryClient.invalidateQueries({ queryKey: ['movie'] });
-        queryClient.invalidateQueries({ queryKey: ['series'] });
-    };
-
     const profile = useQuery({
         queryKey: ['profile', 'me'],
         queryFn: async () => {
-            const { profile } = await api.get<{ profile: ProfileDTO }>('/profiles/@me').catch((_) => ({ profile: null }));
+            const { profile } = await api.get<{ profile: ProfileDTO }>('/profiles/@me').catch((e) => {
+                if (e instanceof AxiosError && e.response?.status === 403) return { profile: null };
+                throw e;
+            });
             return profile;
         },
         retry: false,
@@ -24,13 +26,17 @@ export const useProfile = () => {
     });
 
     const selectProfile = useMutation({
-        mutationFn: (profileId: string) => api.post(`/profiles/${profileId}/select`),
-        onSuccess: invalidateQueries,
+        mutationFn: (profileId: string) => api.post<SelectProfileResult>(`/profiles/${profileId}/select`),
+        onSuccess: ({ profile }) => {
+            queryClient.setQueryData(['profile', 'me'], profile);
+        },
     });
 
     const logoutProfile = useMutation({
         mutationFn: () => api.post(`/profiles/logout`),
-        onSuccess: invalidateQueries,
+        onSuccess: () => {
+            queryClient.setQueryData(['profile', 'me'], null);
+        },
     });
 
     return {
