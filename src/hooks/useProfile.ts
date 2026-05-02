@@ -8,6 +8,16 @@ type SelectProfileResult = {
     profile: ProfileDTO;
 };
 
+type CreateProfileInput = {
+    name: string;
+    avatarAssetId: string | null;
+};
+
+export type ProfileAvatarDTO = {
+    id: string | null;
+    url: string | null;
+};
+
 export const useProfile = () => {
     const queryClient = useQueryClient();
 
@@ -59,5 +69,39 @@ export const useProfiles = () => {
     return {
         profiles: profiles.data ?? [],
         isLoading: profiles.isLoading,
+    };
+};
+
+export const useProfileAvatars = (enabled = true) => {
+    const avatars = useQuery({
+        queryKey: ['profile', 'avatars'],
+        enabled,
+        queryFn: async () => {
+            const { avatars } = await api.get<{ avatars: ProfileAvatarDTO[] }>('/profiles/avatars');
+            return avatars;
+        },
+    });
+
+    return {
+        avatars: avatars.data ?? [],
+        isLoading: avatars.isLoading,
+    };
+};
+
+export const useCreateProfile = () => {
+    const queryClient = useQueryClient();
+
+    const createProfile = useMutation({
+        mutationFn: (data: CreateProfileInput) => api.post<SelectProfileResult>('/profiles/', data),
+        onSuccess: ({ profile }) => {
+            queryClient.setQueryData(['profile', 'me'], profile);
+            queryClient.setQueryData<ProfileDTO[]>(['profile'], (profiles) => (profiles ? [...profiles, profile] : [profile]));
+        },
+    });
+
+    return {
+        createProfile: createProfile.mutate,
+        createProfileAsync: createProfile.mutateAsync,
+        isCreating: createProfile.isPending,
     };
 };

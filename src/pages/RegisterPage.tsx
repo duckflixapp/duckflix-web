@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { User, Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Mail, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { api } from '../lib/api';
 import axios from 'axios';
+import type { AccountMeDTO } from '../hooks/useAccount';
 
 const registerSchema = z.object({
-    name: z.string().min(2, 'Name must be at least 2 characters').max(32),
     email: z.email('Invalid email address').toLowerCase().trim(),
     password: z
         .string()
@@ -22,9 +22,14 @@ const registerSchema = z.object({
 });
 
 type RegisterFields = z.infer<typeof registerSchema>;
+type RegisterResult = {
+    status: string;
+    user: AccountMeDTO;
+};
 
 export default function RegisterPage() {
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
     const [serverError, setServerError] = useState<string | null>(null);
 
     const {
@@ -37,10 +42,12 @@ export default function RegisterPage() {
     });
 
     const mutation = useMutation({
-        mutationFn: (data: RegisterFields) => api.post('/auth/register', data),
-        onSuccess: () => {
-            toast.success('Account created! You can now log in.');
-            navigate('/login');
+        mutationFn: (data: RegisterFields) => api.post<RegisterResult>('/auth/register', data),
+        onSuccess: (result) => {
+            queryClient.setQueryData(['account', 'me'], result.user);
+            queryClient.setQueryData(['profile', 'me'], null);
+            toast.success('Account created. Set up your profile next.');
+            navigate('/select-profile', { replace: true });
         },
         onError: (err: unknown) => {
             if (axios.isAxiosError(err)) {
@@ -75,24 +82,6 @@ export default function RegisterPage() {
                                 {serverError}
                             </div>
                         )}
-
-                        {/* Full Name */}
-                        <div className="flex flex-col gap-2">
-                            <label className="text-xs font-medium text-text/80 ml-1">Full Name</label>
-                            <div className="relative group">
-                                <User
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-text/30 group-focus-within:text-primary transition-colors"
-                                    size={18}
-                                />
-                                <input
-                                    {...register('name')}
-                                    type="text"
-                                    placeholder="John Doe"
-                                    className={`w-full bg-background/50 border ${errors.name ? 'border-red-500' : 'border-white/5'} text-sm py-3 pl-12 pr-4 rounded-3xl outline-none focus:ring-2 ring-primary/50 transition-all text-text`}
-                                />
-                            </div>
-                            {errors.name && <p className="text-red-500 text-[10px] ml-1">{errors.name.message}</p>}
-                        </div>
 
                         {/* Email */}
                         <div className="flex flex-col gap-1.5">
