@@ -48,7 +48,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => {
         const res = response.data;
-        return res.meta ? res : res.data;
+        if (res && typeof res === 'object' && 'meta' in res && res.meta) return res;
+        if (res && typeof res === 'object' && 'data' in res) return res.data;
+        return res;
     },
     async (error) => {
         const originalRequest = error.config;

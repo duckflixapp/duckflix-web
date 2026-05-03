@@ -15,6 +15,7 @@ import LibraryPage from '../pages/LibraryPage';
 import BrowsePage from '../pages/BrowsePage';
 import { Layout } from '../components/Layout';
 import { Navigate } from 'react-router-dom';
+import ProfileSelector from '../pages/ProfileSelector';
 
 const AccountLayout = () => <Layout type="account" />;
 const AdminLayout = () => <Layout type="admin" />;
@@ -42,6 +43,10 @@ export const ROUTES = new RouteNode('root', '/', {
         new RouteNode('protected', null, {
             guard: 'protected',
             children: [
+                new RouteNode('select-profile', 'select-profile', {
+                    element: ProfileSelector,
+                }),
+
                 new RouteNode('watch', 'watch/:id', {
                     element: lazy(() => import('../pages/WatchPage')),
                     suspenseLabel: 'Loading player',
@@ -115,6 +120,18 @@ export const ROUTES = new RouteNode('root', '/', {
                                 new RouteNode('profile', 'profile', {
                                     element: lazy(() => import('../pages/account/profile/Profile')),
                                     suspenseLabel: 'Loading account settings',
+                                }),
+                                new RouteNode('profile-pin', 'profile/pin', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePin')),
+                                    suspenseLabel: 'Loading profile PIN settings',
+                                }),
+                                new RouteNode('profile-pin-change', 'profile/pin/change', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePinChange')),
+                                    suspenseLabel: 'Loading profile PIN settings',
+                                }),
+                                new RouteNode('profile-pin-remove', 'profile/pin/remove', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePinRemove')),
+                                    suspenseLabel: 'Loading profile PIN settings',
                                 }),
                                 new RouteNode('settings', 'settings', {
                                     element: lazy(() => import('../pages/account/settings/Settings')),

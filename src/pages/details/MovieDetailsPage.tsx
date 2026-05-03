@@ -55,7 +55,7 @@ export default function MovieDetailsPage() {
 
     const video = movie.video;
     const versions = video.versions;
-    const uploader = video.uploader;
+    const uploader = video.user;
     const tag = getTagFromVersions(video.versions);
     const availableVersions = versions
         .filter((v) => v.status === 'ready' || v.status === 'processing')

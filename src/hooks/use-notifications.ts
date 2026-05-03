@@ -8,7 +8,7 @@ export const useNotifications = () => {
     const query = useQuery({
         queryKey: ['notifications'],
         queryFn: async () => {
-            const { notifications } = await api.get<{ notifications: NotificationDTO[] }>('/users/@me/notifications');
+            const { notifications } = await api.get<{ notifications: NotificationDTO[] }>('/account/notifications');
             return notifications;
         },
         placeholderData: (previousData) => previousData,
@@ -18,7 +18,7 @@ export const useNotifications = () => {
     const markMutation = useMutation({
         mutationKey: ['notifications-mark'],
         mutationFn: async (ids: string[]) => {
-            await api.patch('/users/@me/notifications/mark', {
+            await api.patch('/account/notifications/mark', {
                 notificationIds: ids,
             });
         },
@@ -28,7 +28,7 @@ export const useNotifications = () => {
     const clearMutation = useMutation({
         mutationKey: ['notifications-clear'],
         mutationFn: async () => {
-            await api.delete('/users/@me/notifications');
+            await api.delete('/account/notifications');
         },
         onSuccess: () => queryClient.setQueryData(['notifications'], []),
     });

@@ -4,14 +4,15 @@ import { ROUTES } from '../config/routes';
 
 interface StepUpRouteProps {
     scope: string;
+    onCancelReturnTo?: string;
 }
 
-export const StepUpRoute = ({ scope }: StepUpRouteProps) => {
+export const StepUpRoute = ({ scope, onCancelReturnTo }: StepUpRouteProps) => {
     const { hasStepUp } = useAuth();
     const location = useLocation();
 
     if (!hasStepUp()) {
-        return <Navigate to={ROUTES.routeOf('account.stepup')} state={{ scope, returnTo: location.pathname }} replace />;
+        return <Navigate to={ROUTES.routeOf('account.stepup')} state={{ scope, returnTo: location.pathname, onCancelReturnTo }} replace />;
     }
 
     return <Outlet />;

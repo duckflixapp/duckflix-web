@@ -2,6 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import { api } from '../lib/api';
 import type { LibraryDTO, LibraryItemDTO, LibraryMinDTO, PaginatedResponse } from '@duckflixapp/shared';
 import { toast } from 'sonner';
+import { useAuthContext } from '../contexts/AuthContext';
 
 export const libraryApi = {
     getUserLibraries: () => api.get<{ libraries: LibraryMinDTO[] }>('/libraries/'),
@@ -18,28 +19,31 @@ export const libraryApi = {
 
 export const useLibrary = (libraryId?: string) => {
     const queryClient = useQueryClient();
-    const invalidate = () => queryClient.invalidateQueries({ queryKey: ['libraries'] });
+    const auth = useAuthContext();
+    const profileId = auth?.profile?.id;
+    const invalidate = () => queryClient.invalidateQueries({ queryKey: ['libraries', profileId] });
 
     // --- QUERIES ---
     const libraries = useQuery({
-        queryKey: ['libraries'],
+        queryKey: ['libraries', profileId],
         queryFn: libraryApi.getUserLibraries,
+        enabled: !!profileId,
     });
 
     const libraryDetails = useQuery({
-        queryKey: ['library', libraryId],
+        queryKey: ['libraries', profileId, libraryId],
         queryFn: () => libraryApi.getLibrary(libraryId!),
-        enabled: !!libraryId,
+        enabled: !!profileId && !!libraryId,
     });
 
     const libraryItems = useInfiniteQuery({
-        queryKey: ['library', libraryId, 'items'],
+        queryKey: ['libraries', profileId, libraryId, 'items'],
         queryFn: ({ pageParam = 1 }) => api.get<PaginatedResponse<LibraryItemDTO>>(`/libraries/${libraryId}/items?page=${pageParam}`),
         getNextPageParam: (lastPage) => {
             const next = lastPage.meta.currentPage + 1;
             return next <= lastPage.meta.totalPages ? next : undefined;
         },
-        enabled: !!libraryId,
+        enabled: !!profileId && !!libraryId,
         initialPageParam: 1,
     });
 
@@ -48,9 +52,10 @@ export const useLibrary = (libraryId?: string) => {
         mutationFn: ({ libId, contentId, contentType }: { libId: string; contentId: string; contentType: string }) =>
             libraryApi.addContent(libId, contentId, contentType),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['library', libraryId, 'movies'] });
-            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', variables.contentId] });
-            else queryClient.invalidateQueries({ queryKey: ['series', variables.contentId] });
+            queryClient.invalidateQueries({ queryKey: ['libraries', profileId] });
+            queryClient.invalidateQueries({ queryKey: ['libraries', profileId, libraryId] });
+            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', profileId, variables.contentId] });
+            else queryClient.invalidateQueries({ queryKey: ['series', profileId, variables.contentId] });
         },
     });
 
@@ -58,14 +63,15 @@ export const useLibrary = (libraryId?: string) => {
         mutationFn: ({ libId, contentId, contentType }: { libId: string; contentId: string; contentType: string }) =>
             libraryApi.removeContent(libId, contentId, contentType),
         onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({ queryKey: ['library', libraryId, 'movies'] });
-            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', variables.contentId] });
-            else queryClient.invalidateQueries({ queryKey: ['series', variables.contentId] });
+            queryClient.invalidateQueries({ queryKey: ['libraries', profileId] });
+            queryClient.invalidateQueries({ queryKey: ['libraries', profileId, libraryId] });
+            if (variables.contentType === 'movie') queryClient.invalidateQueries({ queryKey: ['movie', profileId, variables.contentId] });
+            else queryClient.invalidateQueries({ queryKey: ['series', profileId, variables.contentId] });
         },
     });
 
     const createLibrary = useMutation({
-        mutationFn: async (name: string) => await api.post('/library', { name }),
+        mutationFn: async (name: string) => await api.post('/libraries', { name }),
         onSuccess: () => {
             toast.success('Collection created');
             invalidate();

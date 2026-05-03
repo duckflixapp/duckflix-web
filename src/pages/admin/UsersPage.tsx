@@ -109,7 +109,10 @@ export default function AdminUsersPage() {
                                     <tr key={user.id} className="group hover:bg-white/2 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-sm font-medium text-white/80">{user.email}</span>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-white/80 truncate">-</p>
+                                                    <p className="text-xs text-white/35 truncate">{user.email}</p>
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

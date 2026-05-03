@@ -1,9 +1,11 @@
-import type { UserMinDTO, VideoVersionDTO } from '@duckflixapp/shared';
+import type { AccountRefDTO, VideoVersionDTO } from '@duckflixapp/shared';
 import { VersionBadge } from './VersionBadge';
 import { api } from '../../lib/api';
 import { AxiosError } from 'axios';
 import { toast } from 'sonner';
 import { useVideoSocket } from '../../hooks/useVideoSocket';
+
+type UploaderDTO = AccountRefDTO;
 
 export function DetailsSidebar({
     videoId,
@@ -13,7 +15,7 @@ export function DetailsSidebar({
 }: {
     videoId: string;
     availableVersions: VideoVersionDTO[];
-    uploader: UserMinDTO | null;
+    uploader: UploaderDTO | null;
     isContributor: boolean;
 }) {
     const { progressMap } = useVideoSocket(videoId);
@@ -25,6 +27,7 @@ export function DetailsSidebar({
             toast('Error, Job kill failed', { description: message });
         });
     };
+    const uploaderName = (uploader && (uploader.system ? 'System' : uploader.email)) ?? 'Unknown user';
 
     return (
         <div className="space-y-8 h-fit">
@@ -32,7 +35,7 @@ export function DetailsSidebar({
                 <div>
                     <h3 className="text-[10px] uppercase tracking-[0.2em] text-white/30 font-bold mb-2">Uploaded By</h3>
                     <div className="flex items-center gap-3">
-                        <p className="text-white font-medium">{uploader.name}</p>
+                        <p className="text-white font-medium">{uploaderName}</p>
 
                         <span
                             className={`text-[9px] px-2 py-0.5 rounded-xl uppercase font-bold tracking-wider ${

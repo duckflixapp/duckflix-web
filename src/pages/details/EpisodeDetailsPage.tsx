@@ -122,7 +122,7 @@ export default function EpisodeDetailsPage() {
                 <DetailsSidebar
                     videoId={video.id}
                     availableVersions={availableVersions}
-                    uploader={video.uploader}
+                    uploader={video.user}
                     isContributor={isContributor}
                 />
             </div>

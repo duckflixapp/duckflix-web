@@ -4,8 +4,8 @@ import { api } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, AlertCircle, KeyRound, Loader2, Lock, Mail, ShieldCheck, TicketCheck } from 'lucide-react';
 import axios from 'axios';
-import type { UserDTO } from '@duckflixapp/shared';
 import { useAuthContext } from '../contexts/AuthContext';
+import type { AccountDTO } from '@duckflixapp/shared';
 
 type LoginStep = 'credentials' | 'two-factor';
 type LoginTwoFactorMethod = 'totp' | 'backup_code';
@@ -18,6 +18,11 @@ interface LoginTwoFactorChallenge {
 
 interface ActiveChallenge extends LoginTwoFactorChallenge {
     expiresAt: number;
+}
+
+interface LoginSuccess {
+    status: 'success';
+    user: AccountDTO;
 }
 
 const isTwoFactorChallenge = (value: unknown): value is LoginTwoFactorChallenge => {
@@ -65,7 +70,7 @@ export default function LoginPage() {
     }, [location.state]);
 
     useEffect(() => {
-        if (auth && !auth.isLoading && auth.user) {
+        if (auth && !auth.isLoading && auth.account) {
             navigate('/browse', { replace: true });
         }
     }, [auth, navigate]);
@@ -91,8 +96,8 @@ export default function LoginPage() {
     }
 
     const finishLogin = async () => {
-        const { user } = await api.get<{ user: UserDTO }>('/users/@me');
-        queryClient.setQueryData(['auth-user'], user);
+        queryClient.invalidateQueries({ queryKey: ['account'] });
+        queryClient.invalidateQueries({ queryKey: ['profile'] });
         navigate(redirectTo, { replace: true });
     };
 
@@ -118,7 +123,7 @@ export default function LoginPage() {
         setLoadingStep('credentials');
 
         try {
-            const result = await api.post<LoginTwoFactorChallenge | undefined>('/auth/login', {
+            const result = await api.post<LoginTwoFactorChallenge | LoginSuccess | undefined>('/auth/login', {
                 email: email.trim(),
                 password,
             });
@@ -155,7 +160,7 @@ export default function LoginPage() {
         setLoadingStep('two-factor');
 
         try {
-            await api.post('/auth/login/verify-2fa', {
+            await api.post<LoginSuccess>('/auth/login/verify-2fa', {
                 challengeToken: challenge.challengeToken,
                 method: selectedMethod,
                 credential,

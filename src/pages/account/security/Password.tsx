@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { BackButton } from '../../../components/buttons/BackButton';
 import { ROUTES } from '../../../config/routes';
+import { Section } from '../Components';
 
 const schema = z
     .object({
@@ -73,8 +74,10 @@ export default function Password() {
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
             <BackButton to="/account/security" label="Security" />
             <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Password</p>
-                <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
+                <Section
+                    label="Password"
+                    desc="Reset your account password. Note that this action will log out you from all sessions except this one."
+                >
                     <div className="flex items-center gap-4 px-5 py-4">
                         <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
                             <RectangleEllipsis size={15} className="text-white/50" />
@@ -109,7 +112,7 @@ export default function Password() {
                             {errors.confirm && <p className="text-xs text-red-400 px-1">{errors.confirm.message}</p>}
                         </div>
                     </div>
-                </div>
+                </Section>
 
                 <div className="px-5 py-4 my-2 flex items-center justify-end gap-3">
                     <button onClick={handleCancel} className="px-6 py-2 rounded-3xl text-sm text-text/75 cursor-pointer">

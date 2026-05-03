@@ -14,6 +14,7 @@ export default function StepUp() {
     const { state } = useLocation();
     const scope = state?.scope ?? 'sensitive:write';
     const returnTo = state?.returnTo ?? '/account/security';
+    const onCancelReturnTo = state?.onCancelReturnTo ?? '/account';
     const navigate = useNavigate();
     const { applyStepUp } = useAuth();
     const [method, setMethod] = useState<null | StepUpMethod>(null);
@@ -67,7 +68,7 @@ export default function StepUp() {
     };
 
     const handleCancel = () => {
-        navigate('/account/security');
+        navigate(onCancelReturnTo);
     };
 
     const disabled = loading || !credential.length;

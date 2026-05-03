@@ -22,7 +22,7 @@ function renderRoutes(node: RouteNode): React.ReactNode {
         ) : guard === 'admin' ? (
             <AdminRoute />
         ) : guard === 'stepup' ? (
-            <StepUpRoute scope={scope ?? 'sensitive:write'} />
+            <StepUpRoute onCancelReturnTo={node.parent ? node.parent.path : undefined} scope={scope ?? 'sensitive:write'} />
         ) : (
             wrapped
         );

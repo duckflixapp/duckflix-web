@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
 
     if (!auth) return null;
 
-    if (auth.user?.isVerified) return <Navigate to={'/browse'} />;
+    if (auth.account?.isVerified) return <Navigate to={'/browse'} />;
 
     return (
         <div

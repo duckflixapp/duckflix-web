@@ -11,7 +11,8 @@ import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 import { BackButton } from '../../../components/buttons/BackButton';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAccount } from '../../../hooks/use-account';
+import { useAccountTwoFa } from '../../../hooks/useAccount';
+import { Section } from '../Components';
 
 type Step = 'scan' | 'verify' | 'backup';
 
@@ -21,7 +22,7 @@ export default function Authenticator() {
     const [backupCodes, setBackupCodes] = useState<string[]>([]);
     const [disabling, setDisabling] = useState(false);
     const { clearStepUp } = useAuth();
-    const { twoFA } = useAccount();
+    const { twoFA } = useAccountTwoFa();
     const query = useQueryClient();
 
     const handleDisable = async () => {
@@ -44,36 +45,33 @@ export default function Authenticator() {
         }
     };
 
+    const isTwoFaEnabled = twoFA?.methods.authenticator.enabled;
+    const label = isTwoFaEnabled ? 'Authenticator' : 'Setup';
+    const desc = isTwoFaEnabled ? 'Manage your time-based One Time Password' : 'Protect your account by adding a second layer of security';
+
     return (
         <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
             <BackButton to="/account/security" label="Security" />
-            {twoFA?.methods.authenticator.enabled ? (
-                <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Authenticator</p>
-                    <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
-                        <div className="flex items-center gap-4 px-5 py-4">
-                            <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                                <ShieldCheck size={15} className="text-emerald-400" />
-                            </div>
-                            <div className="flex-1">
-                                <p className="text-sm font-medium text-white/85">Authenticator App</p>
-                                <p className="text-xs text-white/40 mt-0.5">Your account is protected with TOTP</p>
-                            </div>
-                            <button
-                                onClick={handleDisable}
-                                disabled={disabling}
-                                className="flex items-center justify-center px-4 py-2.5 rounded-2xl border border-red-500/20 bg-red-500/8 hover:bg-red-500/12 transition-colors text-xs text-red-400 cursor-pointer"
-                            >
-                                {disabling ? 'Disabling...' : 'Remove'}
-                            </button>
+            <Section label={label} desc={desc}>
+                {isTwoFaEnabled ? (
+                    <div className="flex items-center gap-4 px-5 py-4">
+                        <div className="w-9 h-9 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                            <ShieldCheck size={15} className="text-emerald-400" />
                         </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-white/85">Authenticator App</p>
+                            <p className="text-xs text-white/40 mt-0.5">Your account is protected with TOTP</p>
+                        </div>
+                        <button
+                            onClick={handleDisable}
+                            disabled={disabling}
+                            className="flex items-center justify-center px-4 py-2.5 rounded-2xl border border-red-500/20 bg-red-500/8 hover:bg-red-500/12 transition-colors text-xs text-red-400 cursor-pointer"
+                        >
+                            {disabling ? 'Disabling...' : 'Remove'}
+                        </button>
                     </div>
-                </div>
-            ) : (
-                <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/35 px-1 mb-2">Setup</p>
-                    <div className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-white/6">
-                        {/* Title row */}
+                ) : (
+                    <>
                         <div className="flex items-center gap-4 px-5 py-4">
                             <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
                                 <ScanQrCode size={15} className="text-white/50" />
@@ -122,9 +120,9 @@ export default function Authenticator() {
                                 }}
                             />
                         )}
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </Section>
         </div>
     );
 }

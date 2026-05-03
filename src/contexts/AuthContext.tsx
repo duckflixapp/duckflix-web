@@ -1,8 +1,10 @@
-import type { UserDTO, UserRole } from '@duckflixapp/shared';
+import type { ProfileDTO, UserRole } from '@duckflixapp/shared';
 import { createContext, useContext } from 'react';
+import type { AccountMeDTO } from '../hooks/useAccount';
 
 export interface AuthContextType {
-    user: UserDTO | null;
+    account: AccountMeDTO | null;
+    isLoggedOut: boolean;
     isLoading: boolean;
     logout: () => void;
     hasRole: (role: UserRole | null) => boolean;
@@ -11,6 +13,8 @@ export interface AuthContextType {
     hasStepUp: () => boolean;
     applyStepUp: (token: string, expires: number) => unknown;
     clearStepUp: () => unknown;
+    hasSelectedProfile: boolean;
+    profile: ProfileDTO | null;
 }
 export const AuthContext = createContext<AuthContextType | null>(null);
 

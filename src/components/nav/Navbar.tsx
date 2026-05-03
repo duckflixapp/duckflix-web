@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ContentDTO } from '@duckflixapp/shared';
-import { ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
+import { ArrowDownUp, ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
 import { useDeferredValue, useEffect, useId, useRef, useState, type KeyboardEvent, type PropsWithChildren } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
@@ -9,6 +9,7 @@ import { fetchUnified } from '../../hooks/useSearch';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { NotificationBox } from './Notifications';
+import { useProfile } from '../../hooks/useProfile';
 
 export default function Navbar() {
     const auth = useAuthContext();
@@ -34,7 +35,6 @@ export default function Navbar() {
     useNotificationSocket(handleNotification);
 
     if (!auth) return null;
-
     return (
         <nav className="relative h-18 z-50">
             <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
@@ -44,7 +44,7 @@ export default function Navbar() {
 
                 <SearchBar />
                 <div className="flex flex-row items-center gap-2 md:gap-4">
-                    {!auth.user ? (
+                    {!auth.account ? (
                         <Link to="/login">Login</Link>
                     ) : (
                         <>
@@ -342,6 +342,7 @@ function SearchResultBox({
 
 function UserBox({ logout }: { logout: () => unknown }) {
     const auth = useAuthContext();
+    const { logout: switchProfile } = useProfile();
     const [isOpen, setIsOpen] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -364,7 +365,13 @@ function UserBox({ logout }: { logout: () => unknown }) {
             show: auth?.hasRole('admin'),
         },
         {
-            label: 'Account',
+            label: 'Switch Profiles',
+            icon: ArrowDownUp,
+            onClick: () => switchProfile(),
+            show: true,
+        },
+        {
+            label: 'Settings',
             icon: Settings,
             onClick: () => navigate('/account/'),
             show: true,
@@ -372,6 +379,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
     ];
 
     if (!auth) return null;
+    const displayName = auth.profile?.name ?? 'Account';
 
     return (
         <div className="relative" ref={containerRef}>
@@ -397,9 +405,16 @@ function UserBox({ logout }: { logout: () => unknown }) {
                     shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
                 >
                     <div className="p-2 flex flex-col gap-1">
-                        <div className="p-3.5 pt-2 mb-1 border-b border-white/5">
-                            <p className="text-sm font-bold text-text truncate line-clamp-1">{auth.user?.name}</p>
-                            <p className="text-xs text-text/40 truncate line-clamp-1">{auth.user?.email}</p>
+                        <div className="flex items-center gap-2 px-2.5 py-3 mb-1 border-b border-white/5">
+                            {auth.profile?.avatar.url && (
+                                <div className="flex-none w-10 rounded-xl overflow-clip">
+                                    <img src={auth.profile?.avatar.url} alt="Profile picture" />
+                                </div>
+                            )}
+                            <div className="flex-1 pl-1 min-w-0">
+                                <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
+                                <p className="text-xs text-text/40 truncate line-clamp-1">{auth.account?.email}</p>
+                            </div>
                         </div>
 
                         {menuItems
