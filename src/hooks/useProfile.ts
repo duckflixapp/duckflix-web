@@ -24,6 +24,10 @@ type UpdateProfilePinInput = {
     currentPin?: string;
 };
 
+type DeleteProfileInput = {
+    pin?: string;
+};
+
 export type ProfileAvatarDTO = {
     id: string | null;
     url: string | null;
@@ -117,6 +121,26 @@ export const useCreateProfile = () => {
         createProfile: createProfile.mutate,
         createProfileAsync: createProfile.mutateAsync,
         isCreating: createProfile.isPending,
+    };
+};
+
+export const useDeleteProfile = () => {
+    const queryClient = useQueryClient();
+
+    const deleteProfile = useMutation({
+        mutationFn: (data: DeleteProfileInput = {}) => api.post<{ token: string }>('/profiles/@me/delete', { data }),
+        onMutate: () => {
+            queryClient.setQueryData(['profile', 'me'], null);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+            queryClient.invalidateQueries({ queryKey: ['libraries'] });
+        },
+    });
+
+    return {
+        deleteProfile: deleteProfile.mutateAsync,
+        isDeletingProfile: deleteProfile.isPending,
     };
 };
 
