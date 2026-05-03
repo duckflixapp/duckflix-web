@@ -9,15 +9,24 @@ import { useProfile } from './useProfile';
 export const useAuth = () => {
     const queryClient = useQueryClient();
     const { account, isLoading: isLoadingAccount } = useAccount();
-    const { profile: selectedProfile, isLoading: isLoadingProfile } = useProfile();
+    const isLoggedOut = account === null;
+    const { profile: selectedProfile, isLoading: isLoadingProfile } = useProfile(Boolean(account));
     const [stepUpActive, setStepUpActive] = useState(false);
 
     const logout = useMutation({
         mutationFn: () => api.post('/auth/logout'),
-        onSuccess: () => {
+        onMutate: () => {
             queryClient.setQueryData(['account', 'me'], null);
             queryClient.setQueryData(['profile', 'me'], null);
+            stepUpStore.clear();
+            setStepUpActive(false);
         },
+        onSettled: () =>
+            Promise.all([
+                queryClient.invalidateQueries({ queryKey: ['account'] }),
+                queryClient.invalidateQueries({ queryKey: ['profile'] }),
+                queryClient.invalidateQueries({ queryKey: ['libraries'] }),
+            ]),
     });
 
     const hasRole = (role: UserRole | null) => {
@@ -42,6 +51,7 @@ export const useAuth = () => {
 
     return {
         account: account ?? null,
+        isLoggedOut,
         isVerified: account?.isVerified ?? false,
         isLoading: isLoadingAccount || isLoadingProfile,
         logout: logout.mutate,

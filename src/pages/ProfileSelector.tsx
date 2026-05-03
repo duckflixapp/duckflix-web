@@ -2,16 +2,17 @@ import { useNavigate } from 'react-router-dom';
 import { useCreateProfile, useProfile, useProfileAvatars, useProfiles, type ProfileAvatarDTO } from '../hooks/useProfile';
 import { useEffect, useState, type ButtonHTMLAttributes, type SubmitEvent } from 'react';
 import type { ProfileDTO } from '@duckflixapp/shared';
-import { Check, Loader2, LogOut, Plus } from 'lucide-react';
+import { Check, Loader2, LockKeyhole, LogOut, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { useAuthContext } from '../contexts/AuthContext';
 
 export default function ProfileSelectorPage() {
     const auth = useAuthContext();
-    const { profile, isLoading: isLoadingProfile, selectProfile } = useProfile();
+    const { profile, isLoading: isLoadingProfile, selectProfileAsync, isSelectingProfile } = useProfile();
     const { profiles, isLoading } = useProfiles();
     const [isCreatingProfile, setIsCreatingProfile] = useState(false);
+    const [pinProfile, setPinProfile] = useState<ProfileDTO | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -20,9 +21,16 @@ export default function ProfileSelectorPage() {
         }
     }, [profile, isLoadingProfile, navigate]);
 
-    const handleSelect = (profile: ProfileDTO) => {
-        selectProfile(profile.id);
+    const handleSelect = async (profile: ProfileDTO) => {
+        if (profile.hasPin) {
+            setPinProfile(profile);
+            return;
+        }
+
+        await selectProfileAsync({ profileId: profile.id });
     };
+
+    const handlePinSubmit = (pin: string) => selectProfileAsync({ profileId: pinProfile!.id, pin });
 
     return (
         <div className="relative w-screen min-h-screen bg-background text-text">
@@ -35,7 +43,14 @@ export default function ProfileSelectorPage() {
                 Logout
             </button>
             <div className="w-full min-h-screen px-5 py-16 flex items-center justify-center">
-                {(profiles.length === 0 && !isLoading) || isCreatingProfile ? (
+                {pinProfile ? (
+                    <ProfilePinPrompt
+                        profile={pinProfile}
+                        isSubmitting={isSelectingProfile}
+                        onCancel={() => setPinProfile(null)}
+                        onSubmit={handlePinSubmit}
+                    />
+                ) : (profiles.length === 0 && !isLoading) || isCreatingProfile ? (
                     <CreateProfileFlow onCancel={profiles.length > 0 ? () => setIsCreatingProfile(false) : undefined} />
                 ) : (
                     <ProfileSelector
@@ -87,9 +102,14 @@ function ProfileBox({ profile, className, ...props }: { profile: ProfileDTO } & 
         <div className="flex flex-col gap-3 items-center">
             <button
                 {...props}
-                className={`bg-secondary/10 rounded-2xl w-32 h-32 overflow-clip cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/70 ${className}`}
+                className={`relative bg-secondary/10 rounded-2xl w-32 h-32 overflow-clip cursor-pointer transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/70 shadow-lg ${className}`}
             >
                 {profile.avatar.url && <img src={profile.avatar.url} alt="Profile picture" className="h-full w-full object-cover" />}
+                {profile.hasPin && (
+                    <span className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-primary backdrop-blur">
+                        <LockKeyhole size={15} />
+                    </span>
+                )}
             </button>
             <span>{profile.name}</span>
         </div>
@@ -102,11 +122,11 @@ function AddProfileBox({ onClick }: { onClick: () => unknown }) {
             <button
                 type="button"
                 onClick={onClick}
-                className="flex h-32 w-32 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-white/15 bg-secondary/10 text-text/55 transition-all hover:scale-105 hover:border-primary/60 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/70"
+                className="flex h-32 w-32 cursor-pointer items-center justify-center rounded-2xl border border-dashed border-white/15 bg-secondary/10 text-text transition-all hover:scale-105 hover:border-primary/60 hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/70"
             >
                 <Plus size={34} />
             </button>
-            <span>Add profile</span>
+            <span>New profile</span>
         </div>
     );
 }
@@ -115,6 +135,7 @@ function CreateProfileFlow({ onCancel }: { onCancel?: () => unknown }) {
     const navigate = useNavigate();
     const [step, setStep] = useState<'name' | 'avatar'>('name');
     const [name, setName] = useState('');
+    const [pin, setPin] = useState('');
     const [selectedAvatarId, setSelectedAvatarId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { avatars, isLoading } = useProfileAvatars(step === 'avatar');
@@ -136,6 +157,11 @@ function CreateProfileFlow({ onCancel }: { onCancel?: () => unknown }) {
             return;
         }
 
+        if (pin.length > 0 && !/^\d{4}$/.test(pin)) {
+            setError('Profile PIN must be exactly 4 digits.');
+            return;
+        }
+
         setStep('avatar');
     };
 
@@ -148,7 +174,7 @@ function CreateProfileFlow({ onCancel }: { onCancel?: () => unknown }) {
         }
 
         try {
-            await createProfileAsync({ name: profileName, avatarAssetId: selectedAvatarId });
+            await createProfileAsync({ name: profileName, avatarAssetId: selectedAvatarId, pin: pin || undefined });
             toast.success('Profile created');
             navigate('/browse', { replace: true });
         } catch (err) {
@@ -172,10 +198,24 @@ function CreateProfileFlow({ onCancel }: { onCancel?: () => unknown }) {
                             value={name}
                             onChange={(event) => setName(event.target.value)}
                             type="text"
-                            placeholder="Nikola"
+                            placeholder="Family"
                             maxLength={32}
                             className="w-full rounded-3xl border border-white/10 bg-secondary/10 px-5 py-3 text-sm text-text outline-none transition-all focus:ring-2 ring-primary/50"
                             autoFocus
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                        <label className="ml-1 text-xs font-medium text-text/75">Profile PIN</label>
+                        <input
+                            value={pin}
+                            onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                            type="password"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            placeholder="Optional 4-digit PIN"
+                            maxLength={4}
+                            className="w-full rounded-3xl border border-white/10 bg-secondary/10 px-5 py-3 text-sm text-text outline-none transition-all focus:ring-2 ring-primary/50"
                         />
                     </div>
 
@@ -245,6 +285,84 @@ function CreateProfileFlow({ onCancel }: { onCancel?: () => unknown }) {
                 </div>
             )}
         </div>
+    );
+}
+
+function ProfilePinPrompt({
+    profile,
+    isSubmitting,
+    onCancel,
+    onSubmit,
+}: {
+    profile: ProfileDTO;
+    isSubmitting: boolean;
+    onCancel: () => unknown;
+    onSubmit: (pin: string) => Promise<unknown>;
+}) {
+    const [pin, setPin] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    const submitPin = async (event: SubmitEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setError(null);
+
+        if (!/^\d{4}$/.test(pin)) {
+            setError('Enter the 4-digit PIN.');
+            return;
+        }
+
+        try {
+            await onSubmit(pin);
+        } catch (err) {
+            if (axios.isAxiosError(err)) setError(err.response?.data?.message || 'Invalid profile PIN.');
+            else setError('Invalid profile PIN.');
+        }
+    };
+
+    return (
+        <form onSubmit={submitPin} className="mx-auto flex w-full max-w-sm flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-3">
+                <div className="h-28 w-28 overflow-hidden rounded-2xl bg-secondary/10 shadow-lg">
+                    {profile.avatar.url && <img src={profile.avatar.url} alt="Profile picture" className="h-full w-full object-cover" />}
+                </div>
+                <div className="text-center">
+                    <h1 className="text-2xl font-semibold tracking-tight">{profile.name}</h1>
+                    <p className="mt-1 text-sm text-text/55">Enter profile PIN</p>
+                </div>
+            </div>
+
+            <input
+                value={pin}
+                onChange={(event) => setPin(event.target.value.replace(/\D/g, '').slice(0, 4))}
+                type="password"
+                inputMode="numeric"
+                autoComplete="off"
+                placeholder="PIN"
+                maxLength={4}
+                className="w-full rounded-3xl border border-white/10 bg-secondary/10 px-5 py-3 text-center font-mono text-lg tracking-[0.35em] text-text outline-none transition-all focus:ring-2 ring-primary/50"
+                autoFocus
+            />
+
+            {error && <p className="w-full rounded-3xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">{error}</p>}
+
+            <div className="flex w-full flex-col-reverse gap-3 sm:flex-row">
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    disabled={isSubmitting}
+                    className="flex flex-1 cursor-pointer items-center justify-center rounded-3xl border border-white/10 bg-secondary/10 py-3 text-sm font-semibold text-text transition-colors hover:bg-secondary/15 disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                    Back
+                </button>
+                <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-3xl bg-primary py-3 text-sm font-semibold text-background transition-all hover:bg-primary/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55"
+                >
+                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : 'Unlock'}
+                </button>
+            </div>
+        </form>
     );
 }
 

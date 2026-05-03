@@ -4,6 +4,7 @@ import type { AccountMeDTO } from '../hooks/useAccount';
 
 export interface AuthContextType {
     account: AccountMeDTO | null;
+    isLoggedOut: boolean;
     isLoading: boolean;
     logout: () => void;
     hasRole: (role: UserRole | null) => boolean;

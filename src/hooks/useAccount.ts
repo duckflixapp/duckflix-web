@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import type { AccountSessionMinDTO, AccountTwoFactorStatusDTO, UserRole } from '@duckflixapp/shared';
+import { AxiosError } from 'axios';
 
 export type AccountMeDTO = {
     id: string;
@@ -16,10 +17,13 @@ export const useAccount = () => {
     const account = useQuery({
         queryKey: ['account', 'me'],
         queryFn: async () => {
-            const { account } = await api.get<{ account: AccountMeDTO }>('/account/@me');
+            const { account } = await api.get<{ account: AccountMeDTO }>('/account/@me').catch((error) => {
+                if (isLoggedOutResponse(error)) return { account: null };
+                throw error;
+            });
             return account;
         },
-        retry: 1,
+        retry: (failureCount, error) => !isLoggedOutResponse(error) && failureCount < 1,
         staleTime: 100,
         placeholderData: (previousData) => previousData,
     });
@@ -29,6 +33,9 @@ export const useAccount = () => {
         isLoading: account.isLoading,
     };
 };
+
+const isLoggedOutResponse = (error: unknown) =>
+    error instanceof AxiosError && error.response?.data?.status === 'fail' && error.response?.data?.message === 'No token provided';
 
 export const useAccountSessions = () => {
     const sessions = useQuery({

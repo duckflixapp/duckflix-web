@@ -7,7 +7,11 @@ export const ProtectedRoute = () => {
     const auth = useAuthContext();
     const location = useLocation();
 
-    if (!auth || auth.isLoading) return <Loading />;
+    if (!auth) return <Loading />;
+
+    if (auth.isLoggedOut) return <Navigate to={ROUTES.routeOf('login')} replace />;
+
+    if (auth.isLoading) return <Loading />;
 
     if (!auth.account) return <Navigate to={ROUTES.routeOf('login')} state={{ from: location }} replace />;
 

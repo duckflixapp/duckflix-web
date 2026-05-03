@@ -8,9 +8,20 @@ type SelectProfileResult = {
     profile: ProfileDTO;
 };
 
+type SelectProfileInput = {
+    profileId: string;
+    pin?: string;
+};
+
 type CreateProfileInput = {
     name: string;
     avatarAssetId: string | null;
+    pin?: string;
+};
+
+type UpdateProfilePinInput = {
+    pin: string;
+    currentPin?: string;
 };
 
 export type ProfileAvatarDTO = {
@@ -18,11 +29,12 @@ export type ProfileAvatarDTO = {
     url: string | null;
 };
 
-export const useProfile = () => {
+export const useProfile = (enabled = true) => {
     const queryClient = useQueryClient();
 
     const profile = useQuery({
         queryKey: ['profile', 'me'],
+        enabled,
         queryFn: async () => {
             const { profile } = await api.get<{ profile: ProfileDTO }>('/profiles/@me').catch((e) => {
                 if (e instanceof AxiosError && e.response?.status === 403) return { profile: null };
@@ -36,7 +48,7 @@ export const useProfile = () => {
     });
 
     const selectProfile = useMutation({
-        mutationFn: (profileId: string) => api.post<SelectProfileResult>(`/profiles/${profileId}/select`),
+        mutationFn: ({ profileId, pin }: SelectProfileInput) => api.post<SelectProfileResult>(`/profiles/${profileId}/select`, { pin }),
         onSuccess: ({ profile }) => {
             queryClient.setQueryData(['profile', 'me'], profile);
         },
@@ -53,6 +65,8 @@ export const useProfile = () => {
         profile: profile.data,
         isLoading: profile.isLoading,
         selectProfile: selectProfile.mutate,
+        selectProfileAsync: selectProfile.mutateAsync,
+        isSelectingProfile: selectProfile.isPending,
         logout: logoutProfile.mutate,
     };
 };
@@ -103,5 +117,37 @@ export const useCreateProfile = () => {
         createProfile: createProfile.mutate,
         createProfileAsync: createProfile.mutateAsync,
         isCreating: createProfile.isPending,
+    };
+};
+
+export const useProfilePin = () => {
+    const queryClient = useQueryClient();
+    const updateProfileCaches = (profile: ProfileDTO) => {
+        queryClient.setQueryData(['profile', 'me'], profile);
+        queryClient.setQueryData<ProfileDTO[]>(
+            ['profile'],
+            (profiles) => profiles?.map((item) => (item.id === profile.id ? profile : item)) ?? profiles
+        );
+    };
+
+    const updatePin = useMutation({
+        mutationFn: (data: UpdateProfilePinInput) => api.patch<{ profile: ProfileDTO }>('/profiles/@me/pin', data),
+        onSuccess: ({ profile }) => {
+            updateProfileCaches(profile);
+        },
+    });
+
+    const removePin = useMutation({
+        mutationFn: (pin: string) => api.delete<{ profile: ProfileDTO }>('/profiles/@me/pin', { data: { pin } }),
+        onSuccess: ({ profile }) => {
+            updateProfileCaches(profile);
+        },
+    });
+
+    return {
+        updatePin: updatePin.mutateAsync,
+        removePin: removePin.mutateAsync,
+        isUpdatingPin: updatePin.isPending,
+        isRemovingPin: removePin.isPending,
     };
 };

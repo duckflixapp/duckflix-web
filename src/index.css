@@ -18,13 +18,13 @@
     --color-secondary: var(--secondary);
     --color-accent: var(--accent);
 }
-
-:root {
-    --text: #0e101b;
-    --background: #f2f3f8;
-    --primary: #2f3b5b;
-    --secondary: #c8bf92;
-    --accent: #509b50;
+@theme {
+    --color-text: #0e101b;
+    --color-background: #f2f3f8;
+    --color-primary: #718ad3;
+    --color-secondary: #c8bf92;
+    --color-accent: #509b50;
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif;
 
     color-scheme: light dark;
 }
