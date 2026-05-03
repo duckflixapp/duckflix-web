@@ -2,6 +2,8 @@
 
 React/Vite frontend for the Duckflix media streaming platform.
 
+[MIT License](./LICENSE)
+
 ## Tech Stack
 
 - **Framework:** [React](https://react.dev/)
@@ -12,3 +14,7 @@ React/Vite frontend for the Duckflix media streaming platform.
 ## Setup
 
 See **[BUILDING.md](./BUILDING.md)** for full setup instructions.
+
+## License
+
+This project is licensed under the [MIT License](./LICENSE).

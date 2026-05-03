@@ -45,3 +45,7 @@ bun dev
 
 - Frontend: http://localhost:5173
 - Backend API: http://localhost:3000
+
+## 6. License
+
+Duckflix Frontend is licensed under the [MIT License](./LICENSE).
