@@ -121,6 +121,18 @@ export const ROUTES = new RouteNode('root', '/', {
                                     element: lazy(() => import('../pages/account/profile/Profile')),
                                     suspenseLabel: 'Loading account settings',
                                 }),
+                                new RouteNode('profile-pin', 'profile/pin', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePin')),
+                                    suspenseLabel: 'Loading profile PIN settings',
+                                }),
+                                new RouteNode('profile-pin-change', 'profile/pin/change', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePinChange')),
+                                    suspenseLabel: 'Loading profile PIN settings',
+                                }),
+                                new RouteNode('profile-pin-remove', 'profile/pin/remove', {
+                                    element: lazy(() => import('../pages/account/profile/ProfilePinRemove')),
+                                    suspenseLabel: 'Loading profile PIN settings',
+                                }),
                                 new RouteNode('settings', 'settings', {
                                     element: lazy(() => import('../pages/account/settings/Settings')),
                                     suspenseLabel: 'Loading account settings',
