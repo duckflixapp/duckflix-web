@@ -6,7 +6,7 @@ import { VideoDownloadProgress } from '../../components/details/VideoDownloadPro
 import { VideoProcessing } from '../../components/details/VideoProcessing';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useLibrary } from '../../hooks/useLibrary';
-import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
+import { VideoSettingsModal } from '../../components/video-settings/VideoSettingsModal';
 import { VideoError } from '../../components/details/VideoError';
 import { MovieDetailsTab } from '../../components/video-settings/VideoSettingsMovieDetails';
 import { getTagFromVersions } from '../../utils/video';
@@ -18,6 +18,7 @@ import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { DetailsCast } from '../../components/details/DetailsCast';
 import { DetailsMetadata } from '../../components/details/DetailsMetadata';
+import type { SettingsTab } from '../../components/video-settings/ModalTemplate';
 
 export default function MovieDetailsPage() {
     const { id } = useParams<{ id: string }>();

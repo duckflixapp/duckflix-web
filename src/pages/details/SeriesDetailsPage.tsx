@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Layers } from 'lucide-react';
+import { ChevronLeft, Layers, Settings } from 'lucide-react';
 import { useSeriesDetailed } from '../../hooks/useSeriesDetailed';
 
 import type { SeriesGenreDTO } from '@duckflixapp/shared';
@@ -9,14 +9,21 @@ import WatchlistButton from '../../components/buttons/WatchlistButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { useLibrary } from '../../hooks/useLibrary';
 import { DetailsMetadata } from '../../components/details/DetailsMetadata';
+import { ModalTemplate, type Tab } from '../../components/video-settings/ModalTemplate';
+import { useState } from 'react';
+import { useAuth } from '../../hooks/use-auth';
+
+const TABS = [{ id: 'details', label: 'Details', icon: Settings }] satisfies Tab[];
 
 export default function SeriesDetailsPage() {
+    const auth = useAuth();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [showSettings, setShowSettings] = useState(false);
 
     const { addContent, removeContent } = useLibrary();
 
-    const { series, isLoading, isNotFound } = useSeriesDetailed(id);
+    const { series, isLoading, isNotFound, deleteSeries, isDeleting } = useSeriesDetailed(id);
 
     if (isLoading) return <DetailsSkeleton />;
     if (isNotFound) return <VideoNotFound />;
@@ -27,6 +34,10 @@ export default function SeriesDetailsPage() {
     const handleToWatchlist = () => {
         if (series.inUserLibrary) removeContent({ libId: 'watchlist', contentId: series.id, contentType: 'series' });
         else addContent({ libId: 'watchlist', contentId: series.id, contentType: 'series' });
+    };
+
+    const handleDelete = () => {
+        deleteSeries(undefined, { onSuccess: () => navigate('/browse') });
     };
 
     const openSeasonDetails = (seasonId: string) => navigate(`/details/season/${seasonId}`);
@@ -60,6 +71,15 @@ export default function SeriesDetailsPage() {
                 >
                     <ChevronLeft size={24} />
                 </button>
+
+                {auth?.hasRole('contributor') && (
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                    >
+                        <Settings size={22} />
+                    </button>
+                )}
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
                     <div className="max-w-4xl space-y-6">
@@ -163,6 +183,20 @@ export default function SeriesDetailsPage() {
                     </div>
                 </div>
             </div>
+            {showSettings && (
+                <ModalTemplate
+                    title={series.title}
+                    onClose={() => setShowSettings(false)}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                    deleteLabel="Delete Series"
+                    tabs={TABS}
+                    tab={'details'}
+                    setTab={(_) => {}}
+                >
+                    <div></div>
+                </ModalTemplate>
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { Star, Calendar, ChevronLeft, Clock } from 'lucide-react';
+import { Star, Calendar, ChevronLeft, Clock, Settings } from 'lucide-react';
 
 import { useSeasonDetailed } from '../../hooks/useSeasonDetails';
 import type { EpisodeMinDTO } from '@duckflixapp/shared';
@@ -7,18 +7,29 @@ import VideoNotFound from '../../components/details/VideoNotFound';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { DetailsMetadata } from '../../components/details/DetailsMetadata';
+import { ModalTemplate, type Tab } from '../../components/video-settings/ModalTemplate';
+import { useState } from 'react';
+import { useAuth } from '../../hooks/use-auth';
+
+const TABS = [{ id: 'details', label: 'Details', icon: Settings }] satisfies Tab[];
 
 export default function SeasonDetailsPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const [showSettings, setShowSettings] = useState(false);
+    const auth = useAuth();
 
-    const { season, isLoading, isNotFound } = useSeasonDetailed(id);
+    const { season, isLoading, isNotFound, deleteSeason, isDeleting } = useSeasonDetailed(id);
 
     if (isLoading) return <DetailsSkeleton />;
     if (isNotFound) return <VideoNotFound />;
     if (!season) return null;
 
     const releaseYear = season.airDate ? String(new Date(season.airDate).getFullYear()) : null;
+
+    const handleDelete = () => {
+        deleteSeason(undefined, { onSuccess: () => navigate('/details/season/' + season.seriesId) });
+    };
 
     const handleGoBack = () => navigate(`/details/series/${season.seriesId}`);
     const handleEpisodeClick = (episodeId: string) => navigate(`/details/episode/${episodeId}`);
@@ -49,6 +60,15 @@ export default function SeasonDetailsPage() {
                 >
                     <ChevronLeft size={24} />
                 </button>
+
+                {auth?.hasRole('contributor') && (
+                    <button
+                        onClick={() => setShowSettings(true)}
+                        className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                    >
+                        <Settings size={22} />
+                    </button>
+                )}
 
                 <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10 flex gap-8 items-end">
                     {season.posterUrl && (
@@ -115,6 +135,20 @@ export default function SeasonDetailsPage() {
                     </div>
                 </div>
             </div>
+            {showSettings && (
+                <ModalTemplate
+                    title={season.name + ' - ' + season.series.title}
+                    onClose={() => setShowSettings(false)}
+                    onDelete={handleDelete}
+                    isDeleting={isDeleting}
+                    deleteLabel="Delete Series"
+                    tabs={TABS}
+                    tab={'details'}
+                    setTab={(_) => {}}
+                >
+                    <div></div>
+                </ModalTemplate>
+            )}
         </div>
     );
 }
