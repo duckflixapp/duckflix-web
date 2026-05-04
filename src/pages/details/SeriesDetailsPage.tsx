@@ -12,6 +12,7 @@ import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 import { ModalTemplate, type Tab } from '../../components/video-settings/ModalTemplate';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/use-auth';
+import { SeriesDetailsTab } from '../../components/video-settings/ModalSeriesDetailsTab';
 
 const TABS = [{ id: 'details', label: 'Details', icon: Settings }] satisfies Tab[];
 
@@ -194,7 +195,7 @@ export default function SeriesDetailsPage() {
                     tab={'details'}
                     setTab={(_) => {}}
                 >
-                    <div></div>
+                    <SeriesDetailsTab />
                 </ModalTemplate>
             )}
         </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import {
     X,
     Film,
@@ -48,9 +48,6 @@ export function VideoSettingsModal({ videoId, onDelete, initialTab, detailsTab, 
     const tabs = [detailsTab && { id: 'details' as const, label: 'Details', icon: Settings }, ...TABS].filter((t) => !!t) satisfies Tab[];
     const [tab, setTab] = useState<SettingsTab>(initialTab ?? 'details');
 
-    const [confirmDelete, setConfirmDelete] = useState(false);
-    const deleteButtonRef = useRef<HTMLButtonElement>(null);
-
     const existingHeights = new Set(
         versions
             .filter((v) => v.mimeType === 'application/x-mpegURL' && v.status !== 'canceled' && v.status !== 'error')
@@ -60,22 +57,8 @@ export function VideoSettingsModal({ videoId, onDelete, initialTab, detailsTab, 
     const availablePresets = PRESET_HEIGHTS.filter((h) => h <= (original?.height ?? 0) && !existingHeights.has(h));
 
     const handleDelete = () => {
-        if (!confirmDelete) {
-            setConfirmDelete(true);
-            return;
-        }
         deleteVideo(undefined, { onSuccess: onDelete });
     };
-
-    useEffect(() => {
-        if (!confirmDelete) return;
-        const handleClickOutside = (e: MouseEvent) => {
-            if (deleteButtonRef.current?.contains(e.target as Node)) return;
-            setConfirmDelete(false);
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [confirmDelete]);
 
     if (!video) return;
 

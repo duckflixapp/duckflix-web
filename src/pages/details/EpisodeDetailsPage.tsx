@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useEpisodeDetailed } from '../../hooks/useEpisodeDetails';
 import { useAuthContext } from '../../contexts/AuthContext';
 
-import { VideoSettingsModal, type SettingsTab } from '../../components/video-settings/VideoSettingsModal';
+import { VideoSettingsModal } from '../../components/video-settings/VideoSettingsModal';
 import { getTagFromVersions } from '../../utils/video';
 import { DetailsSkeleton } from '../../components/details/DetailsSkeleton';
 import { DetailsSidebar } from '../../components/details/DetailsSidebar';
@@ -18,6 +18,7 @@ import PlayButton from '../../components/buttons/PlayButton';
 import VideoOverview from '../../components/details/VideoOverview';
 import { DetailsCast } from '../../components/details/DetailsCast';
 import { DetailsMetadata } from '../../components/details/DetailsMetadata';
+import type { SettingsTab } from '../../components/video-settings/ModalTemplate';
 
 export default function EpisodeDetailsPage() {
     const { id } = useParams<{ id: string }>();

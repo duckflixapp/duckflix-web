@@ -10,6 +10,7 @@ import { DetailsMetadata } from '../../components/details/DetailsMetadata';
 import { ModalTemplate, type Tab } from '../../components/video-settings/ModalTemplate';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/use-auth';
+import { SeriesSeasonDetailsTab } from '../../components/video-settings/ModalSeasonDeatilsTab';
 
 const TABS = [{ id: 'details', label: 'Details', icon: Settings }] satisfies Tab[];
 
@@ -28,7 +29,7 @@ export default function SeasonDetailsPage() {
     const releaseYear = season.airDate ? String(new Date(season.airDate).getFullYear()) : null;
 
     const handleDelete = () => {
-        deleteSeason(undefined, { onSuccess: () => navigate('/details/season/' + season.seriesId) });
+        deleteSeason(undefined, { onSuccess: () => navigate('/details/series/' + season.seriesId) });
     };
 
     const handleGoBack = () => navigate(`/details/series/${season.seriesId}`);
@@ -146,7 +147,7 @@ export default function SeasonDetailsPage() {
                     tab={'details'}
                     setTab={(_) => {}}
                 >
-                    <div></div>
+                    <SeriesSeasonDetailsTab />
                 </ModalTemplate>
             )}
         </div>
