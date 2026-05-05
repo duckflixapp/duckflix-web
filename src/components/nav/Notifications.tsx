@@ -1,15 +1,18 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Info, AlertTriangle, History, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Bell, Info, AlertTriangle, History, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { useNotifications } from '../../hooks/use-notifications';
 import type { NotificationDTO } from '@duckflixapp/shared';
 import { timeAgo } from '../../utils/format';
 import { useNotificationSocket } from '../../hooks/useNotificationSocket';
 import { useNavigate } from 'react-router-dom';
+import { useInView } from 'react-intersection-observer';
 
 export function NotificationBox() {
     const [isOpen, setIsOpen] = useState(false);
-    const { notifications, refresh, clear, isClearing, mark, isMarking } = useNotifications();
+    const { notifications, refresh, clear, isClearing, mark, isMarking, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+        useNotifications();
     const containerRef = useRef<HTMLDivElement>(null);
+    const { ref: loadMoreRef, inView } = useInView();
 
     useNotificationSocket(() => {
         refresh();
@@ -25,7 +28,11 @@ export function NotificationBox() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    if (!notifications) return null;
+    useEffect(() => {
+        if (isOpen && inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    }, [fetchNextPage, hasNextPage, inView, isFetchingNextPage, isOpen]);
 
     const unreadCount = notifications.filter((n) => !n.isRead).length;
 
@@ -81,11 +88,18 @@ export function NotificationBox() {
                     </div>
 
                     <div className="max-h-112.5 overflow-y-auto custom-scrollbar p-2">
-                        {notifications.length > 0 ? (
+                        {isLoading ? (
+                            <div className="py-16 flex items-center justify-center text-primary/70">
+                                <Loader2 size={28} className="animate-spin" />
+                            </div>
+                        ) : notifications.length > 0 ? (
                             <div className="flex flex-col gap-1">
                                 {notifications.map((n) => (
                                     <NotificationItem key={n.id} notification={n} mark={() => mark([n.id])} />
                                 ))}
+                                <div ref={loadMoreRef} className="h-8 flex items-center justify-center">
+                                    {isFetchingNextPage && <Loader2 size={16} className="animate-spin text-primary/60" />}
+                                </div>
                             </div>
                         ) : (
                             <div className="py-16 flex flex-col items-center justify-center text-center opacity-20">

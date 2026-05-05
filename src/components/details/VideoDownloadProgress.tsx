@@ -1,8 +1,29 @@
-import { Loader2, Users, Antenna } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
+import { Antenna, Loader2, X, Users } from 'lucide-react';
+import { toast } from 'sonner';
 import { useVideoSocket } from '../../hooks/useVideoSocket';
+import { api } from '../../lib/api';
 
 export function VideoDownloadProgress({ title, videoId }: { title: string; videoId: string }) {
     const { downloadProgress: progress } = useVideoSocket(videoId);
+    const queryClient = useQueryClient();
+
+    const cancelDownload = useMutation({
+        mutationFn: async () => {
+            await api.delete<void>(`/videos/${videoId}/download`);
+        },
+        onSuccess: () => {
+            toast.success('Torrent download cancelled');
+            queryClient.invalidateQueries({ queryKey: ['video', videoId] });
+            queryClient.invalidateQueries({ queryKey: ['movie'] });
+            queryClient.invalidateQueries({ queryKey: ['episode'] });
+        },
+        onError: (err) => {
+            const message = err instanceof AxiosError ? err.response?.data.message : undefined;
+            toast.error('Failed to cancel torrent download', { description: message });
+        },
+    });
 
     const percent = progress?.percent ?? 0;
 
@@ -57,6 +78,18 @@ export function VideoDownloadProgress({ title, videoId }: { title: string; video
                                 {progress?.peers.connecting ?? 0} Connecting
                             </span>
                         </div>
+                    </div>
+
+                    <div className="flex justify-center">
+                        <button
+                            type="button"
+                            onClick={() => cancelDownload.mutate()}
+                            disabled={cancelDownload.isPending}
+                            className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-red-500/10 disabled:hover:bg-white/5 border border-white/10 hover:border-red-500/30 disabled:hover:border-white/10 text-red-400 disabled:text-white/30 text-xs font-bold uppercase tracking-wider rounded-3xl transition-all cursor-pointer disabled:cursor-not-allowed"
+                        >
+                            {cancelDownload.isPending ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
+                            Cancel Torrent
+                        </button>
                     </div>
                 </div>
             </div>

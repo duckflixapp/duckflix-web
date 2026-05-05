@@ -128,7 +128,7 @@ export const useDeleteProfile = () => {
     const queryClient = useQueryClient();
 
     const deleteProfile = useMutation({
-        mutationFn: (data: DeleteProfileInput = {}) => api.post<{ token: string }>('/profiles/@me/delete', { data }),
+        mutationFn: (data: DeleteProfileInput = {}) => api.post<{ token: string }>('/profiles/@me/delete', { ...data }),
         onMutate: () => {
             queryClient.setQueryData(['profile', 'me'], null);
         },
