@@ -35,7 +35,7 @@ export default function AdminUsersPage() {
     `;
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20">
             <div className="mb-10">
                 <h1 className="text-2xl font-bold text-white flex items-center gap-3">
                     <UserLock className="text-primary" size={28} />

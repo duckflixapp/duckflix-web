@@ -189,7 +189,7 @@ export default function UploadPage() {
     }
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8 text-white">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8 text-white">
             <div className="flex items-center justify-between gap-4 pt-4">
                 <button
                     type="button"

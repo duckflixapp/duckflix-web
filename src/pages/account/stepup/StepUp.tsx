@@ -74,7 +74,7 @@ export default function StepUp() {
     const disabled = loading || !credential.length;
 
     return (
-        <div className="max-w-6xl w-full mx-auto p-6 md:p-12 pb-20 flex flex-col xl:pr-56 gap-y-8">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-12 pb-20 flex flex-col gap-y-8">
             <div className="flex flex-col items-center justify-center h-full">
                 <div className="w-full max-w-sm flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4 text-center">

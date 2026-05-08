@@ -43,7 +43,7 @@ export default function LibraryPage() {
 
     if (!selectedLibId) {
         return (
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto px-10 py-8 md:px-16 custom-scrollbar">
                 <header className="mb-12">
                     <h1 className="text-3xl font-black tracking-tight text-white">My Collections</h1>
                     <p className="text-text/40 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Organize your movies</p>
@@ -93,7 +93,7 @@ export default function LibraryPage() {
     const isInitialLoading = libraryItems.isLoading;
 
     return (
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-10 py-8 md:px-16 custom-scrollbar">
             <div className="flex items-center gap-4 mb-10">
                 <button
                     onClick={() => selectLibrary(null)}

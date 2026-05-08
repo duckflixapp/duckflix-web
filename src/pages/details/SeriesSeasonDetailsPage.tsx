@@ -57,7 +57,7 @@ export default function SeasonDetailsPage() {
 
                 <button
                     onClick={handleGoBack}
-                    className="absolute top-8 left-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                    className="absolute top-24 sm:top-28 left-10 md:left-16 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -65,13 +65,13 @@ export default function SeasonDetailsPage() {
                 {auth?.hasRole('contributor') && (
                     <button
                         onClick={() => setShowSettings(true)}
-                        className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                        className="absolute top-24 sm:top-28 right-10 md:right-16 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
                     >
                         <Settings size={22} />
                     </button>
                 )}
 
-                <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10 flex gap-8 items-end">
+                <div className="absolute bottom-0 left-0 w-full px-10 py-8 md:px-16 md:py-16 z-10 flex gap-8 items-end">
                     {season.posterUrl && (
                         <div className="hidden md:block w-48 aspect-2/3 rounded-2xl overflow-hidden border border-white/10 shadow-2xl shrink-0">
                             <img src={season.posterUrl} alt={season.name} className="w-full h-full object-cover" />
@@ -92,7 +92,7 @@ export default function SeasonDetailsPage() {
             </div>
 
             {/* Content Section */}
-            <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
+            <div className="mx-auto px-10 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-8">
                     <VideoOverview title={'Season Overview'} overview={season.overview} />
 
