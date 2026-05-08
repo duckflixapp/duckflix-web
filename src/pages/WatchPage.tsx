@@ -380,8 +380,8 @@ export default function WatchPage() {
                 });
 
                 hls.on(Hls.Events.LEVEL_SWITCHED, (_, data) => setCurrentHlsLevel(data.level));
-                hls.on(Hls.Events.ERROR, (_, data) => {
-                    if (data.fatal) console.error('Fatal HLS error:', data.type);
+                hls.on(Hls.Events.ERROR, (e, data) => {
+                    if (data.fatal) console.error('Fatal HLS error:', data.type, e);
                 });
             }
         } else {

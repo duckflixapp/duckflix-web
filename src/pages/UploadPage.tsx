@@ -1,4 +1,4 @@
-import { Upload, FileIcon, X, Check, Database, Settings2 } from 'lucide-react';
+import { Upload, FileIcon, X, Check, Database, Settings2, Film, ChevronRight } from 'lucide-react';
 import { forwardRef, useCallback, useState, type InputHTMLAttributes, type TextareaHTMLAttributes } from 'react';
 import { useForm, useWatch, type FieldErrors, type UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,10 +12,21 @@ import type { VideoMinDTO } from '@duckflixapp/shared';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
 
+interface UploadedVideo extends VideoMinDTO {
+    title: string;
+    overview: string;
+}
+
+const findProcessor = (fileName: string) => {
+    if (fileName.endsWith('.torrent')) return 'torrent';
+    return 'uploader';
+};
+
 export default function UploadPage() {
     const { genres } = useMovieGenres();
     const [file, setFile] = useState<File | null>(null);
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+    const [uploadedVideos, setUploadedVideos] = useState<UploadedVideo[] | null>(null);
     const [showManual, setShowManual] = useState(false);
     const navigate = useNavigate();
 
@@ -32,7 +43,7 @@ export default function UploadPage() {
             overview: '',
             dbUrl: '',
             genres: [],
-            type: 'movie',
+            type: 'episode',
         },
     });
 
@@ -49,6 +60,7 @@ export default function UploadPage() {
         }
 
         setUploadProgress(0);
+        setUploadedVideos(null);
         const formData = new FormData();
 
         Object.entries(values).forEach(([key, value]) => {
@@ -60,15 +72,13 @@ export default function UploadPage() {
         });
 
         if (file) {
-            if (file.name.endsWith('.torrent')) {
-                formData.append('torrent', file);
-            } else {
-                formData.append('video', file);
-            }
+            formData.append('source', file);
+            formData.append('sourceType', 'file');
+            formData.append('processor', findProcessor(file.name));
         }
 
         const data = await api
-            .post<{ video: VideoMinDTO }>('/videos/upload', formData as never, {
+            .post<{ videos: UploadedVideo[] }>('/videos/upload', formData, {
                 onUploadProgress: (progressEvent) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total!);
                     setUploadProgress(percentCompleted);
@@ -80,10 +90,23 @@ export default function UploadPage() {
                 setUploadProgress(null);
             });
 
-        if (data) navigate(`/details/${data.video.id}`);
+        const videos = data?.videos;
+        if (!videos) return;
+
+        if (videos.length === 1) {
+            navigate(`/details/${videos[0].id}`);
+            return;
+        }
+
+        setUploadProgress(null);
+        setUploadedVideos(videos);
     };
 
     const changeFile = (file: File | null) => setFile(file);
+
+    if (uploadedVideos) {
+        return <UploadedVideosList videos={uploadedVideos} />;
+    }
 
     return (
         <div className="w-full xl:pr-56 transition-all duration-300">
@@ -202,6 +225,42 @@ export default function UploadPage() {
                     </button>
                 </div>
             </form>
+        </div>
+    );
+}
+
+function UploadedVideosList({ videos }: { videos: UploadedVideo[] }) {
+    const navigate = useNavigate();
+
+    return (
+        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8 text-white">
+            <section className="my-2">
+                <div className="flex flex-col gap-1 mb-4">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text/45 px-1">Uploaded Videos</p>
+                </div>
+
+                <ul className="rounded-3xl border border-secondary/12 bg-secondary/5 overflow-hidden divide-y divide-text/6">
+                    {videos.map((video) => (
+                        <li key={video.id}>
+                            <button
+                                type="button"
+                                title="Open video"
+                                onClick={() => navigate(`/details/${video.id}`)}
+                                className="group w-full flex items-center gap-4 px-5 py-4 hover:bg-white/4 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2"
+                            >
+                                <div className="w-9 h-9 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                                    <Film size={16} className="text-text/50 group-hover:text-primary" />
+                                </div>
+                                <div className="flex-1 min-w-0 text-left">
+                                    <p className="text-sm font-medium text-white/85 truncate">{video.title}</p>
+                                    <p className="text-xs text-white/40 mt-0.5 leading-relaxed line-clamp-2">{video.overview}</p>
+                                </div>
+                                <ChevronRight size={16} className="text-white/25 transition-colors shrink-0 group-hover:text-primary" />
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </section>
         </div>
     );
 }

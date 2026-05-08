@@ -29,14 +29,14 @@ export function VideoDownloadProgress({ title, videoId }: { title: string; video
 
     return (
         <div className="relative h-full flex flex-col items-center justify-center text-text overflow-hidden">
-            <div className="absolute top-[40%] -right-[10%] transition-all duration-300 sm:w-75 sm:h-75 md:w-100 md:h-100 lg:w-150 lg:h-150 bg-primary/5 rounded-full blur-[120px] pointer-events-none z-0" />
+            <div className="absolute top-[40%] right-[-10%] transition-all duration-300 sm:w-75 sm:h-75 md:w-100 md:h-100 lg:w-150 lg:h-150 bg-primary/5 rounded-full blur-[120px] pointer-events-none z-0" />
 
             <div className="relative z-10 w-full max-w-2xl px-12 space-y-12">
                 <div className="text-center space-y-4">
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white/90">{title}</h1>
                     <div className="flex items-center justify-center gap-3 text-white/30">
                         <Loader2 size={14} className="animate-spin text-primary/60" />
-                        <span className="text-[10px] uppercase tracking-[0.4em] font-bold">Downloading metadata & content</span>
+                        <span className="text-[10px] uppercase tracking-[0.4em] font-bold">Downloading content</span>
                     </div>
                 </div>
 
@@ -88,7 +88,7 @@ export function VideoDownloadProgress({ title, videoId }: { title: string; video
                             className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-red-500/10 disabled:hover:bg-white/5 border border-white/10 hover:border-red-500/30 disabled:hover:border-white/10 text-red-400 disabled:text-white/30 text-xs font-bold uppercase tracking-wider rounded-3xl transition-all cursor-pointer disabled:cursor-not-allowed"
                         >
                             {cancelDownload.isPending ? <Loader2 size={14} className="animate-spin" /> : <X size={14} />}
-                            Cancel Torrent
+                            Cancel Download
                         </button>
                     </div>
                 </div>
