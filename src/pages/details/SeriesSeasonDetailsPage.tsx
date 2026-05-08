@@ -142,7 +142,7 @@ export default function SeasonDetailsPage() {
                     onClose={() => setShowSettings(false)}
                     onDelete={handleDelete}
                     isDeleting={isDeleting}
-                    deleteLabel="Delete Series"
+                    deleteLabel="Delete Season"
                     tabs={TABS}
                     tab={'details'}
                     setTab={(_) => {}}
