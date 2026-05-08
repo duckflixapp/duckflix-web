@@ -49,7 +49,7 @@ export default function Navbar({ type = 'default' }: { type?: 'admin' | 'account
                 <div className="flex h-full items-center justify-between gap-3 min-[1200px]:block">
                     <div className="z-20 flex items-center gap-2 min-[1200px]:absolute min-[1200px]:left-0 min-[1200px]:top-1/2 min-[1200px]:-translate-y-1/2">
                         <NavbarBrand isAdmin={type === 'admin'} />
-                        <SearchBar />
+                        {type === 'default' && <SearchBar />}
                     </div>
 
                     <div className="pointer-events-auto z-30 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:left-1/2 min-[1200px]:top-1/2 min-[1200px]:-translate-x-1/2 min-[1200px]:-translate-y-1/2">
@@ -70,19 +70,14 @@ export default function Navbar({ type = 'default' }: { type?: 'admin' | 'account
 }
 
 function NavbarScrim() {
-    return (
-        <div
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-background/70 via-background/25 to-transparent"
-        />
-    );
+    return <div aria-hidden="true" className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-background/90 to-transparent" />;
 }
 
 function NavbarBrand({ isAdmin }: { isAdmin: boolean }) {
     return (
         <Link
             to="/browse"
-            className="pointer-events-auto flex items-center shrink-0 gap-3 rounded-full py-1.5 px-4 shadow-2xl text-shadow-xs transition-colors hover:bg-white/8"
+            className="pointer-events-auto flex items-center shrink-0 gap-3 rounded-full py-2 px-4 hover:shadow-xl text-shadow-xs transition-all hover:bg-white/8"
         >
             <span className="hidden sm:inline text-xl font-black uppercase tracking-tight text-text">Duckflix</span>
             {isAdmin && (
@@ -265,13 +260,13 @@ function SearchBar() {
                 }`}
             >
                 <div
-                    className={`flex h-10 items-center overflow-hidden transition-[width] duration-300 ${isExpanded ? 'w-56' : 'w-10'}`}
+                    className={`flex h-11 items-center overflow-hidden transition-[width] duration-300 ${isExpanded ? 'w-60' : 'h-11'}`}
                     onClick={() => inputRef.current?.focus()}
                 >
                     <button
                         type="button"
                         aria-label="Search movies and series"
-                        className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                        className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         onClick={(event) => {
                             event.stopPropagation();
                             if (isExpanded && hasQuery) {
