@@ -53,13 +53,13 @@ export default function Navbar({ type = 'default' }: { type?: 'admin' | 'account
                     </div>
 
                     <div className="pointer-events-auto z-30 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:left-1/2 min-[1200px]:top-1/2 min-[1200px]:-translate-x-1/2 min-[1200px]:-translate-y-1/2">
-                        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
                             <DesktopNavItems items={navItems} />
                         </div>
                     </div>
 
                     <div className="pointer-events-auto z-20 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:right-0 min-[1200px]:top-1/2 min-[1200px]:-translate-y-1/2">
-                        <div className="flex items-center gap-2 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
                             <NavbarActions isAuthenticated={Boolean(auth.account)} logout={auth.logout} />
                         </div>
                     </div>
@@ -91,7 +91,7 @@ function NavbarBrand({ isAdmin }: { isAdmin: boolean }) {
 
 function NavbarActions({ isAuthenticated, logout }: { isAuthenticated: boolean; logout: () => unknown }) {
     return (
-        <div className="pointer-events-auto justify-end flex flex-row items-center">
+        <>
             <div className="md:hidden">
                 <SearchBar />
             </div>
@@ -103,7 +103,7 @@ function NavbarActions({ isAuthenticated, logout }: { isAuthenticated: boolean; 
                     <UserBox logout={logout} />
                 </>
             )}
-        </div>
+        </>
     );
 }
 
@@ -497,7 +497,7 @@ function UserBox({ logout }: { logout: () => unknown }) {
                     className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-auto sm:right-0 
                     mt-2 sm:mt-4 sm:w-64 bg-background/76 backdrop-blur-3xl 
                     border border-white/12 rounded-3xl
-                    shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
+                    shadow-2xl z-1000 overflow-hidden animate-in fade-in slide-in-from-top-4"
                 >
                     <div className="p-2 flex flex-col gap-1">
                         <div className="flex items-center gap-2 px-2.5 py-3 mb-1 border-b border-white/5">

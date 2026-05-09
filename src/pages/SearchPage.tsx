@@ -196,7 +196,7 @@ export default function SearchPage() {
     const totalResults = infiniteData?.pages[0]?.meta?.totalItems ?? 0;
 
     return (
-        <div className="flex-1 overflow-y-auto custom-scrollbar relative w-full h-full min-h-screen">
+        <div className="flex-1 relative w-full h-full min-h-screen">
             <div className="absolute top-[20%] right-[10%] w-64 h-64 bg-secondary/10 rounded-full blur-[120px] pointer-events-none z-0" />
 
             <div className="relative z-10 px-10 py-12 md:px-16">

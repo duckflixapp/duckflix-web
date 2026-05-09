@@ -42,10 +42,6 @@ export default function BrowsePage() {
 
     return (
         <div className="flex-1 sm:overflow-y-auto custom-scrollbar relative w-full h-full">
-            {/* <div
-                className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
-                style={{ animationDuration: '8s' }}
-            /> */}
             {!hasContent && !loading && (
                 <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />
             )}
