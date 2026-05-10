@@ -57,9 +57,8 @@ export default function Navbar({ type = 'default' }: { type?: 'admin' | 'account
                             <DesktopNavItems items={navItems} />
                         </div>
                     </div>
-
                     <div className="pointer-events-auto z-20 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:right-0 min-[1200px]:top-1/2 min-[1200px]:-translate-y-1/2">
-                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20">
                             <NavbarActions isAuthenticated={Boolean(auth.account)} logout={auth.logout} />
                         </div>
                     </div>
