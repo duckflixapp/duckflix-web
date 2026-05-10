@@ -1,19 +1,22 @@
 import { useQuery } from '@tanstack/react-query';
 import type { ContentDTO } from '@duckflixapp/shared';
-import { ArrowDownUp, ChevronDown, ChevronRight, LayoutDashboard, Loader2, LogOut, Play, Search, Settings, User } from 'lucide-react';
-import { useDeferredValue, useEffect, useId, useRef, useState, type KeyboardEvent, type PropsWithChildren } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ChevronRight, Loader2, Play, Search } from 'lucide-react';
+import { useDeferredValue, useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchUnified } from '../../hooks/useSearch';
 import { useNotificationSocket, type NotificationSocketData } from '../../hooks/useNotificationSocket';
 import { toast } from 'sonner';
 import { NotificationBox } from './Notifications';
-import { useProfile } from '../../hooks/useProfile';
+import { ROUTES } from '../../config/routes';
+import { accountNavbar, adminNavbar, navbar } from '../../config/navbar';
+import UserMenu from './UserMenu';
 
-export default function Navbar() {
+export default function Navbar({ type = 'default' }: { type?: 'admin' | 'account' | 'default' }) {
     const auth = useAuthContext();
     const navigate = useNavigate();
+    const navItems = type === 'account' ? accountNavbar : type === 'admin' ? adminNavbar : navbar;
 
     const handleNotification = (data: NotificationSocketData) => {
         toast.success(data.title, {
@@ -35,33 +38,101 @@ export default function Navbar() {
     useNotificationSocket(handleNotification);
 
     if (!auth) return null;
-    return (
-        <nav className="relative h-18 z-50">
-            <div className="px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between gap-3">
-                <Link to="/browse" className="flex sm:hidden items-center shrink-0">
-                    <div className="w-9 h-9 flex items-center justify-center font-black text-3xl text-text">D</div>
-                </Link>
 
-                <SearchBar />
-                <div className="flex flex-row items-center gap-2 md:gap-4">
-                    {!auth.account ? (
-                        <Link to="/login">Login</Link>
-                    ) : (
-                        <>
-                            <NotificationBox />
-                            <UserBox logout={auth.logout} />
-                        </>
-                    )}
+    return (
+        <nav className="fixed inset-x-0 top-0 z-50 h-18 sm:h-24 pointer-events-none">
+            <NavbarScrim />
+            <div className="relative h-full mx-6 md:mx-12">
+                <div className="flex h-full items-center justify-between gap-3 min-[1200px]:block">
+                    <div className="z-20 flex items-center gap-2 min-[1200px]:absolute min-[1200px]:left-0 min-[1200px]:top-1/2 min-[1200px]:-translate-y-1/2">
+                        <NavbarBrand isAdmin={type === 'admin'} />
+                        {type === 'default' && <SearchBar />}
+                    </div>
+
+                    <div className="pointer-events-auto z-30 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:left-1/2 min-[1200px]:top-1/2 min-[1200px]:-translate-x-1/2 min-[1200px]:-translate-y-1/2">
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20 backdrop-blur-xl">
+                            <DesktopNavItems items={navItems} />
+                        </div>
+                    </div>
+                    <div className="pointer-events-auto z-20 hidden min-w-0 justify-center md:flex min-[1200px]:absolute min-[1200px]:right-0 min-[1200px]:top-1/2 min-[1200px]:-translate-y-1/2">
+                        <div className="flex items-center gap-1 rounded-full border border-white/10 bg-background/20 p-1 shadow-2xl shadow-black/20">
+                            <NavbarActions isAuthenticated={Boolean(auth.account)} />
+                        </div>
+                    </div>
                 </div>
             </div>
         </nav>
     );
 }
 
+function NavbarScrim() {
+    return (
+        <div aria-hidden="true" className="absolute inset-x-0 top-0 h-32 bg-linear-to-b from-background via-background/75 to-transparent" />
+    );
+}
+
+function NavbarBrand({ isAdmin }: { isAdmin: boolean }) {
+    return (
+        <Link
+            to="/browse"
+            className="pointer-events-auto flex items-center shrink-0 gap-3 rounded-full py-2 px-4 hover:shadow-lg text-shadow-lg transition-all hover:bg-white/8"
+        >
+            <span className="hidden sm:inline text-xl font-black uppercase tracking-tight text-text">Duckflix</span>
+            {isAdmin && (
+                <span className="hidden sm:inline-flex rounded-full bg-primary/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-primary">
+                    Admin
+                </span>
+            )}
+        </Link>
+    );
+}
+
+function NavbarActions({ isAuthenticated }: { isAuthenticated: boolean }) {
+    return (
+        <>
+            <div className="md:hidden">
+                <SearchBar />
+            </div>
+            {!isAuthenticated ? (
+                <Link to="/login">Login</Link>
+            ) : (
+                <>
+                    <NotificationBox />
+                    <UserMenu />
+                </>
+            )}
+        </>
+    );
+}
+
+function DesktopNavItems({ items }: { items: { key: string; text: string }[] }) {
+    const location = useLocation();
+
+    return items.map((item) => {
+        const label = item.text;
+        const link = ROUTES.routeOf(item.key);
+        const isActive =
+            item.key === 'admin' ? location.pathname === link : location.pathname === link || location.pathname.startsWith(`${link}/`);
+
+        return (
+            <Link
+                key={item.key}
+                to={link}
+                className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all ${
+                    isActive ? 'bg-white/14 text-text shadow-lg shadow-black/10' : 'text-text/72 hover:bg-white/7 hover:text-text'
+                }`}
+            >
+                {label}
+            </Link>
+        );
+    });
+}
+
 function SearchBar() {
     const [search, setSearch] = useState('');
     const [showResults, setShowResults] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const [isFocused, setIsFocused] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const searchContainerRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
@@ -85,6 +156,7 @@ function SearchBar() {
     const hasQuery = search.trim().length > 0;
     const optionCount = results.length + (moreResults ? 1 : 0);
     const isDropdownOpen = showResults && hasQuery;
+    const isExpanded = isFocused || hasQuery || isDropdownOpen;
 
     useEffect(() => {
         if (trimmedSearch.length > 0) {
@@ -127,6 +199,7 @@ function SearchBar() {
     };
 
     const onFocus = () => {
+        setIsFocused(true);
         if (search.trim().length > 0) {
             setShowResults(true);
         }
@@ -174,19 +247,32 @@ function SearchBar() {
     };
 
     return (
-        <div className="relative" ref={searchContainerRef}>
-            <GlassyBox>
-                <div className="flex items-center py-3" onClick={() => inputRef.current?.focus()}>
+        <div className="relative flex-none pointer-events-auto" ref={searchContainerRef}>
+            <div
+                className={`rounded-full transition-all ${
+                    isExpanded
+                        ? 'border border-white/12 bg-background/15 text-text shadow-lg shadow-black/10 backdrop-blur-xl'
+                        : 'border border-transparent text-text/80 hover:bg-white/7 hover:text-text'
+                }`}
+            >
+                <div
+                    className={`flex h-11 items-center overflow-hidden transition-[width] duration-300 ${isExpanded ? 'w-60' : 'h-11'}`}
+                    onClick={() => inputRef.current?.focus()}
+                >
                     <button
                         type="button"
-                        aria-label="Open full search results"
-                        className="mx-4 text-text/40 cursor-pointer transition-colors hover:text-text/80 focus-visible:text-text/80 focus-visible:outline-none"
+                        aria-label="Search movies and series"
+                        className="flex h-11 w-11 shrink-0 text-shadow-lg text-text cursor-pointer items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                         onClick={(event) => {
                             event.stopPropagation();
-                            externalSearch();
+                            if (isExpanded && hasQuery) {
+                                externalSearch();
+                                return;
+                            }
+                            inputRef.current?.focus();
                         }}
                     >
-                        <Search size={18} />
+                        <Search size={19} />
                     </button>
                     <input
                         value={search}
@@ -194,6 +280,7 @@ function SearchBar() {
                         onChange={(e) => setSearch(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onFocus={onFocus}
+                        onBlur={() => setIsFocused(false)}
                         type="search"
                         role="combobox"
                         aria-label="Search movies and series"
@@ -201,16 +288,18 @@ function SearchBar() {
                         aria-controls={listboxId}
                         aria-activedescendant={activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
                         aria-autocomplete="list"
-                        className="border-0 outline-0 pr-8 text-[13px] w-full sm:w-52 md:w-72 lg:w-96 bg-transparent text-text placeholder:text-text/30 focus:placeholder:text-transparent"
-                        placeholder="Search movies and series..."
+                        className={`border-0 bg-transparent text-[13px] text-text outline-0 transition-all placeholder:text-text/30 focus:placeholder:text-transparent ${
+                            isExpanded ? 'w-40 pr-8 opacity-100' : 'w-0 p-0 opacity-0'
+                        }`}
+                        placeholder="Search..."
                     />
-                    {loading && (
+                    {loading && isExpanded && (
                         <div className="absolute right-3 animate-in fade-in duration-300">
                             <Loader2 size={18} className="animate-spin text-primary" />
                         </div>
                     )}
                 </div>
-            </GlassyBox>
+            </div>
 
             <SearchResultBox
                 hidden={!isDropdownOpen}
@@ -252,8 +341,8 @@ function SearchResultBox({
 
     return (
         <div
-            className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-0 sm:right-0 
-                mt-2 sm:mt-3 bg-secondary/15 backdrop-blur-3xl border border-white/10 
+            className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-0 sm:right-auto sm:w-80 md:w-96 
+                mt-2 sm:mt-3 bg-background/72 backdrop-blur-3xl border border-white/12 
                 rounded-2xl sm:rounded-3xl overflow-hidden z-60 shadow-2xl 
                 animate-in fade-in slide-in-from-top-2 duration-200"
         >
@@ -338,122 +427,4 @@ function SearchResultBox({
             )}
         </div>
     );
-}
-
-function UserBox({ logout }: { logout: () => unknown }) {
-    const auth = useAuthContext();
-    const { logout: switchProfile } = useProfile();
-    const [isOpen, setIsOpen] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const menuItems = [
-        {
-            label: 'Admin Panel',
-            icon: LayoutDashboard,
-            onClick: () => navigate('/admin'),
-            show: auth?.hasRole('admin'),
-        },
-        {
-            label: 'Switch Profiles',
-            icon: ArrowDownUp,
-            onClick: () => switchProfile(),
-            show: true,
-        },
-        {
-            label: 'Settings',
-            icon: Settings,
-            onClick: () => navigate('/account/'),
-            show: true,
-        },
-    ];
-
-    if (!auth) return null;
-    const displayName = auth.profile?.name ?? 'Account';
-
-    return (
-        <div className="relative" ref={containerRef}>
-            <button
-                type="button"
-                aria-label="Open account menu"
-                aria-expanded={isOpen}
-                aria-haspopup="menu"
-                className={`flex items-center p-3 gap-3 bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60 transition-all cursor-pointer hover:bg-white/5 ${isOpen ? 'ring-2 ring-primary/50 text-primary' : ''}`}
-                onClick={() => setIsOpen(!isOpen)}
-            >
-                <div className="rounded-lg">
-                    <User size={18} />
-                </div>
-                <ChevronDown size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-            </button>
-
-            {isOpen && (
-                <div
-                    className="fixed sm:absolute top-18 sm:top-full left-4 right-4 sm:left-auto sm:right-0 
-                    mt-2 sm:mt-4 sm:w-64 bg-background/60 backdrop-blur-3xl 
-                    border border-white/10 rounded-3xl
-                    shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-4"
-                >
-                    <div className="p-2 flex flex-col gap-1">
-                        <div className="flex items-center gap-2 px-2.5 py-3 mb-1 border-b border-white/5">
-                            {auth.profile?.avatar.url && (
-                                <div className="flex-none w-10 rounded-xl overflow-clip">
-                                    <img src={auth.profile?.avatar.url} alt="Profile picture" />
-                                </div>
-                            )}
-                            <div className="flex-1 pl-1 min-w-0">
-                                <p className="text-sm font-bold text-text truncate line-clamp-1">{displayName}</p>
-                                <p className="text-xs text-text/40 truncate line-clamp-1">{auth.account?.email}</p>
-                            </div>
-                        </div>
-
-                        {menuItems
-                            .filter((item) => item.show)
-                            .map((item, idx) => (
-                                <button
-                                    type="button"
-                                    key={idx}
-                                    onClick={() => {
-                                        item.onClick();
-                                        setIsOpen(false);
-                                    }}
-                                    className="flex items-center gap-3 w-full py-2.5 px-3.5 text-left text-[13px] cursor-pointer font-medium text-text/80 hover:bg-white/5 hover:text-primary rounded-2xl transition-all group"
-                                >
-                                    <item.icon size={16} className="group-hover:scale-110 transition-transform" />
-                                    {item.label}
-                                </button>
-                            ))}
-
-                        <div className="h-px bg-white/5 my-1" />
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                logout();
-                                setIsOpen(false);
-                            }}
-                            className="flex items-center gap-3 w-full py-2.5 px-3.5 text-left text-[13px] cursor-pointer font-medium text-red-400 hover:bg-red-500/10 rounded-2xl transition-all group"
-                        >
-                            <LogOut size={16} className="group-hover:scale-110 transition-transform" />
-                            Logout
-                        </button>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-function GlassyBox({ children }: PropsWithChildren) {
-    return <div className="bg-secondary/10 backdrop-blur-3xl border border-white/10 rounded-3xl text-text/60">{children}</div>;
 }

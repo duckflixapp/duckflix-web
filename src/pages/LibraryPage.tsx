@@ -6,6 +6,7 @@ import { Library, ArrowLeft, Loader2, ClockFading, Plus, Trash2 } from 'lucide-r
 import { useInView } from 'react-intersection-observer';
 import CreateLibraryModal from '../components/library/CreateLibraryModal';
 import { ContentCard } from '../components/content/ContentCard';
+import Header from '../components/Header';
 
 export default function LibraryPage() {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -43,13 +44,10 @@ export default function LibraryPage() {
 
     if (!selectedLibId) {
         return (
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                <header className="mb-12">
-                    <h1 className="text-3xl font-black tracking-tight text-white">My Collections</h1>
-                    <p className="text-text/40 text-[10px] font-bold uppercase tracking-[0.2em] mt-2">Organize your movies</p>
-                </header>
+            <div className="flex-1 overflow-y-auto px-10 py-8 md:px-16 custom-scrollbar">
+                <Header title="My Collections" desc="Organize your movies" />
 
-                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6">
+                <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 py-12">
                     {librariesQuery.isLoading
                         ? Array(4)
                               .fill(0)
@@ -93,7 +91,7 @@ export default function LibraryPage() {
     const isInitialLoading = libraryItems.isLoading;
 
     return (
-        <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-10 py-8 md:px-16 custom-scrollbar">
             <div className="flex items-center gap-4 mb-10">
                 <button
                     onClick={() => selectLibrary(null)}

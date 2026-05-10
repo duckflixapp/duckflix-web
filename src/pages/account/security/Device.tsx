@@ -36,7 +36,7 @@ export default function DevicePage() {
 
     if (!device) {
         return (
-            <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+            <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
                 <BackButton to={ROUTES.routeOf('account.security.devices')} label="Devices" />
                 <Section label="Device" desc="This session could not be found">
                     <div className="flex items-center gap-4 px-5 py-5">
@@ -85,7 +85,7 @@ export default function DevicePage() {
     };
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
             <BackButton to={ROUTES.routeOf('account.security.devices')} label="Devices" />
 
             <Section label="Device" desc="Review this active session and where it is being used">

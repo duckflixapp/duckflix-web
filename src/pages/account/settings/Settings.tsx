@@ -7,7 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { ROUTES } from '../../../config/routes';
 import { api } from '../../../lib/api';
-import { ButtonRow, Header, Section } from '../Components';
+import { ButtonRow, Section } from '../Components';
+import Header from '../../../components/Header';
 
 export default function AccountSettingsPage() {
     const auth = useAuthContext();
@@ -69,8 +70,8 @@ export default function AccountSettingsPage() {
     };
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
-            <Header title="Account & Settings" />
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
+            <Header title="Account & Settings" desc="Account settings & preferences" />
             <Section label="Account" desc="Manage your account">
                 <ButtonRow
                     icon={Trash}

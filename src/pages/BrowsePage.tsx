@@ -42,16 +42,12 @@ export default function BrowsePage() {
 
     return (
         <div className="flex-1 sm:overflow-y-auto custom-scrollbar relative w-full h-full">
-            <div
-                className="absolute top-[10%] left-[30%] w-125 h-125 bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0 animate-pulse"
-                style={{ animationDuration: '8s' }}
-            />
             {!hasContent && !loading && (
                 <EmptyState canUpload={auth?.hasRole('contributor') ?? false} onNavigate={() => navigate('/upload')} />
             )}
             <HeroSection loading={recentLoading} movie={heroMovie} onOpenDetails={openDetails} />
             {hasContent && (
-                <div className="flex flex-col px-8 py-12 gap-8">
+                <div className="flex flex-col px-10 md:px-16 py-12 gap-8">
                     {recent && recent.length > 0 && (
                         <ResultListSection title="Recently Added" results={recent} loading={recentLoading} onOpenDetails={openDetails} />
                     )}
@@ -174,41 +170,39 @@ export function HeroSection({
     if (!movie) return null;
     const canPlay = movie.runtime && movie.video.status == 'ready';
     return (
-        <section className="relative w-full aspect-video sm:aspect-21/9 min-h-100 sm:min-h-120 px-4 sm:px-8 pt-4 sm:pt-6 z-10">
-            <div className="relative w-full h-full rounded-3xl sm:rounded-4xl overflow-hidden shadow-2xl border border-white/5">
-                <img src={movie.bannerUrl ?? ''} className="w-full h-full object-cover brightness-[0.65]" alt="Hero Banner" />
+        <section className="relative w-full aspect-video sm:aspect-21/9 min-h-100 sm:min-h-120 pt-4 sm:pt-6 z-10 overflow-hidden">
+            <img src={movie.bannerUrl ?? ''} className="absolute inset-0 w-full h-full object-cover brightness-[0.65]" alt="Hero Banner" />
 
-                <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-black/20 flex flex-col justify-end p-6 sm:p-12">
-                    <h1 className="text-3xl sm:text-6xl font-black mb-3 sm:mb-4 max-w-3xl font-poppins tracking-tighter text-text leading-tight">
-                        {movie.title}
-                    </h1>
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {movie.rating && (
-                            <span className="px-3 py-1.5 rounded-2xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
-                                <Star size={12} fill="currentColor" /> {movie.rating}
-                            </span>
-                        )}
-                        {movie.genres.map((genre) => (
-                            <span
-                                key={genre.id}
-                                title={capitalize(genre.name)}
-                                className="px-3 py-1.5 rounded-2xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
-                            >
-                                {genre.name}
-                            </span>
-                        ))}
-                    </div>
+            <div className="absolute inset-0 bg-linear-to-t from-background via-transparent to-black/15 flex flex-col justify-end px-10 md:px-16 py-6 sm:py-12">
+                <h1 className="text-3xl sm:text-6xl font-black mb-3 sm:mb-4 max-w-3xl font-poppins tracking-tighter text-text leading-tight">
+                    {movie.title}
+                </h1>
+                <div className="flex flex-wrap gap-2 mb-6">
+                    {movie.rating && (
+                        <span className="px-3 py-1.5 rounded-2xl bg-yellow-500/10 backdrop-blur-md border border-yellow-500/20 text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 text-yellow-500">
+                            <Star size={12} fill="currentColor" /> {movie.rating}
+                        </span>
+                    )}
+                    {movie.genres.map((genre) => (
+                        <span
+                            key={genre.id}
+                            title={capitalize(genre.name)}
+                            className="px-3 py-1.5 rounded-2xl bg-secondary/10 backdrop-blur-md border border-white/10 text-[10px] font-bold uppercase tracking-widest text-white"
+                        >
+                            {genre.name}
+                        </span>
+                    ))}
+                </div>
 
-                    <div className="flex flex-wrap gap-3">
-                        <div className="flex w-full sm:w-auto gap-3">
-                            {canPlay && <PlayButton videoId={movie.videoId} className="flex-1 sm:flex-initial" />}
-                            <button
-                                onClick={() => openDetails('movie', movie.id)}
-                                className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
-                            >
-                                <Info size={20} /> <span className="sm:inline">Details</span>
-                            </button>
-                        </div>
+                <div className="flex flex-wrap gap-3">
+                    <div className="flex w-full sm:w-auto gap-3">
+                        {canPlay && <PlayButton videoId={movie.videoId} className="flex-1 sm:flex-initial" />}
+                        <button
+                            onClick={() => openDetails('movie', movie.id)}
+                            className="flex items-center gap-3 px-8 py-4 cursor-pointer bg-white/5 text-shadow-2xs text-shadow-black hover:bg-white/10 backdrop-blur-md border border-white/10 text-white font-medium rounded-4xl transition-all"
+                        >
+                            <Info size={20} /> <span className="sm:inline">Details</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -230,8 +224,9 @@ export function CardSkeleton() {
 
 export function HeroSkeleton() {
     return (
-        <section className="relative w-full aspect-21/9 min-h-120 px-8 pt-6 z-10 animate-pulse">
-            <div className="w-full h-full rounded-4xl bg-secondary/10 border border-white/5 flex flex-col justify-end p-12 space-y-6">
+        <section className="relative w-full aspect-video sm:aspect-21/9 min-h-100 sm:min-h-120 pt-4 sm:pt-6 z-10 animate-pulse overflow-hidden">
+            <div className="absolute inset-0 bg-secondary/10" />
+            <div className="absolute inset-0 flex flex-col justify-end px-10 py-6 sm:px-20 sm:py-12 space-y-6">
                 <div className="h-14 w-1/2 bg-secondary/20 rounded-xl" />
                 <div className="h-10 w-1/3 bg-secondary/10 rounded-xl" />
                 <div className="flex gap-4">

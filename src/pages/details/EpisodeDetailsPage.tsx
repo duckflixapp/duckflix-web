@@ -78,7 +78,7 @@ export default function EpisodeDetailsPage() {
                 {/* Back Button */}
                 <button
                     onClick={() => navigate(`/details/season/${episode.seasonId}`)}
-                    className="absolute top-8 left-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
+                    className="absolute top-24 sm:top-28 left-10 md:left-16 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white hover:bg-white/10 transition-all z-30 cursor-pointer"
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -87,13 +87,13 @@ export default function EpisodeDetailsPage() {
                 {isContributor && (
                     <button
                         onClick={handleOpenSettings}
-                        className="absolute top-8 right-8 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white drop-shadow-xl hover:bg-white/10 transition-all z-30 cursor-pointer"
+                        className="absolute top-24 sm:top-28 right-10 md:right-16 p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full text-white drop-shadow-xl hover:bg-white/10 transition-all z-30 cursor-pointer"
                     >
                         <Settings size={22} className="drop-shadow-xl" />
                     </button>
                 )}
 
-                <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 z-10">
+                <div className="absolute bottom-0 left-0 w-full px-10 py-8 md:px-16 md:py-16 z-10">
                     <div className="max-w-4xl space-y-6">
                         <DetailsMetadata
                             tag={`S${episode.season.seasonNumber}.E${episode.episodeNumber}`}
@@ -114,7 +114,7 @@ export default function EpisodeDetailsPage() {
             </div>
 
             {/* Content Section */}
-            <div className="mx-auto px-8 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
+            <div className="mx-auto px-10 md:px-16 mt-12 grid grid-cols-1 xl:grid-cols-3 gap-12 lg:gap-24">
                 <div className="lg:col-span-2 space-y-10">
                     <VideoOverview title={'Episode Overview'} overview={episode.overview} />
                     <DetailsCast cast={episode.cast} />

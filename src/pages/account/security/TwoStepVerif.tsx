@@ -8,7 +8,7 @@ export default function TwoStepVerif() {
     if (!twoFA) return null;
     const backupCodes = twoFA.methods.backupCodes.remaining;
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
             <BackButton to="/account/security" label="Security" />
             <Section label="2F Authentication" desc="Review and manage your two-factor authentication methods and backup settings">
                 <div className="flex items-center gap-4 px-5 py-4">

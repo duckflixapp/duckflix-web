@@ -11,7 +11,7 @@ export function UploadedVideosList({ videos }: { videos: UploadedVideo[] }) {
     const navigate = useNavigate();
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8 text-white">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8 text-white">
             <section className="my-2">
                 <div className="flex flex-col gap-1 mb-4">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-text/45 px-1">Uploaded Videos</p>

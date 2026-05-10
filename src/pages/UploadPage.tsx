@@ -10,6 +10,7 @@ import { UploadedVideosList, type UploadedVideo } from '../components/upload/Upl
 import { FileSourceRow, TextSourceRow, UploadProgress } from '../components/upload/UploadSourceRows';
 import { StepIndicator, WizardOption, WizardSection } from '../components/upload/WizardSection';
 import { ProcessorSelect, type ProcessorId } from '../components/upload/ProcessorSelect';
+import Header from '../components/Header';
 
 type SourceType = 'file' | 'text';
 type MetadataMode = 'db' | 'manual';
@@ -189,21 +190,19 @@ export default function UploadPage() {
     }
 
     return (
-        <div className="max-w-6xl w-full xl:pr-56 mx-auto p-6 md:p-10 pb-20 flex flex-col gap-y-8 text-white">
-            <div className="flex items-center justify-between gap-4 pt-4">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-12 pb-20 flex flex-col gap-y-12 text-white">
+            <div className="relative mb-6">
                 <button
                     type="button"
                     onClick={handleBack}
                     disabled={currentStep === 0 || isUploading}
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white/5 text-text/45 hover:text-text/85 hover:bg-white/8 transition-colors disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
+                    className="absolute flex items-center justify-center w-9 h-9 rounded-full bg-white/5 text-text/45 hover:text-text/85 hover:bg-white/8 transition-colors disabled:opacity-0 disabled:pointer-events-none cursor-pointer"
                     title="Back"
                 >
                     <ArrowLeft size={17} />
                 </button>
 
-                <h1 className="text-text text-2xl">Upload Video</h1>
-
-                <div className="w-9" />
+                <Header title="Upload Video" desc="Start uploading" />
             </div>
 
             <StepIndicator currentStep={currentStep} steps={WIZARD_STEPS} onStepClick={handleStepClick} disabled={isUploading} />
