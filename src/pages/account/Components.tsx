@@ -30,14 +30,6 @@ export function Section({
     );
 }
 
-export function Header({ title }: { title: string }) {
-    return (
-        <div className="flex w-full justify-center items-center pt-4">
-            <h1 className="text-text text-2xl">{title}</h1>
-        </div>
-    );
-}
-
 interface ListRowProps {
     type: 'info' | 'warn' | 'danger';
     icon: LucideIcon;

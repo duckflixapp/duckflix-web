@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useAccountSessions, useAccountTwoFa } from '../../../hooks/useAccount';
 import { ROUTES } from '../../../config/routes';
-import { ButtonRow, Header, Section } from '../Components';
+import { ButtonRow, Section } from '../Components';
 import { CircleQuestionMark, Monitor, RectangleEllipsis, ScanQrCode, Shield, Smartphone, Tablet } from 'lucide-react';
 import { capitalize } from '../../../utils/string';
 import type { AccountSessionDTO } from '@duckflixapp/shared';
+import Header from '../../../components/Header';
 
 export default function SecurityPage() {
     const auth = useAuthContext();
@@ -35,7 +36,7 @@ export default function SecurityPage() {
 
     return (
         <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
-            <Header title="Privacy & Security" />
+            <Header title="Privacy & Security" desc="Account privacy & security settings" />
             <Section label="Security" desc="Manage ways to sign-in and protect your account">
                 <ButtonRow
                     onClick={handleTwoStepV}

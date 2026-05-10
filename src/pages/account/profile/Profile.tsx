@@ -4,10 +4,11 @@ import { AlertTriangle, KeyRound, Loader2, Mail, User, UserKey, UserMinus, X } f
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { ButtonRow, Header, InfoRow, Section } from '../Components';
+import { ButtonRow, InfoRow, Section } from '../Components';
 import { capitalize } from '../../../utils/string';
 import { useDeleteProfile } from '../../../hooks/useProfile';
 import { ROUTES } from '../../../config/routes';
+import Header from '../../../components/Header';
 
 export default function ProfilePage() {
     const auth = useAuthContext();
@@ -34,7 +35,7 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8">
-            <Header title="My Profile" />
+            <Header title="My Profile" desc="Preview and edit profile" />
 
             <Section label="Account" desc="View and edit your account profile.">
                 <InfoRow
