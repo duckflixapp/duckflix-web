@@ -189,7 +189,7 @@ export default function UploadPage() {
     }
 
     return (
-        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-8 text-white">
+        <div className="max-w-6xl w-full mx-auto px-10 py-6 md:px-16 md:py-10 pb-20 flex flex-col gap-y-12 text-white">
             <div className="flex items-center justify-between gap-4 pt-4">
                 <button
                     type="button"
@@ -201,9 +201,9 @@ export default function UploadPage() {
                     <ArrowLeft size={17} />
                 </button>
 
-                <h1 className="text-text text-2xl">Upload Video</h1>
+                <h1 className="text-text text-3xl font-black tracking-tight">Upload Video</h1>
 
-                <div className="w-9" />
+                <span />
             </div>
 
             <StepIndicator currentStep={currentStep} steps={WIZARD_STEPS} onStepClick={handleStepClick} disabled={isUploading} />

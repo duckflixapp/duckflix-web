@@ -16,6 +16,8 @@ import BrowsePage from '../pages/BrowsePage';
 import { Layout } from '../components/Layout';
 import { Navigate } from 'react-router-dom';
 import ProfileSelector from '../pages/ProfileSelector';
+import MoviesPage from '../pages/Movies';
+import ShowsPage from '../pages/Shows';
 
 const AccountLayout = () => <Layout type="account" />;
 const AdminLayout = () => <Layout type="admin" />;
@@ -58,6 +60,12 @@ export const ROUTES = new RouteNode('root', '/', {
                     children: [
                         new RouteNode('browse', 'browse', {
                             element: BrowsePage,
+                        }),
+                        new RouteNode('movies', 'movies', {
+                            element: MoviesPage,
+                        }),
+                        new RouteNode('shows', 'shows', {
+                            element: ShowsPage,
                         }),
                         new RouteNode('library', 'library', {
                             element: LibraryPage,
