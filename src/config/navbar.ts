@@ -17,7 +17,7 @@ export const accountNavbar: NavbarItem[] = [
 
 export const navbar: NavbarItem[] = [
     { key: 'browse', text: 'Browse' },
-    // { key: 'movies', text: 'Movies' },
-    // { key: 'shows', text: 'Shows' },
+    { key: 'movies', text: 'Movies' },
+    { key: 'shows', text: 'Shows' },
     { key: 'library', text: 'Library' },
 ];

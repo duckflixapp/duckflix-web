@@ -2,9 +2,10 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Navbar from './nav/Navbar';
 import BottomNav from './nav/BottomNav';
 
+const mediaUnderNavbarLocations = ['/browse', '/details', '/movies', '/shows'];
 export const Layout = ({ type }: { type?: 'admin' | 'account' | 'default' }) => {
     const location = useLocation();
-    const hasMediaUnderNavbar = location.pathname.startsWith('/browse') || location.pathname.startsWith('/details');
+    const hasMediaUnderNavbar = !!mediaUnderNavbarLocations.find((path) => location.pathname.startsWith(path));
 
     return (
         <div className="relative flex h-screen w-full bg-background text-text font-sans overflow-hidden">
