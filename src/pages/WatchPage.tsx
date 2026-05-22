@@ -696,7 +696,14 @@ export default function WatchPage() {
             </div>
 
             <PlayerOverlay paused={isScrubbing ? false : player.paused} isBuffering={player.isBuffering} />
-            {watchProgress && <ResumeNotification watchProgress={watchProgress} videoRef={videoRef} onResume={handleResume} />}
+            {watchProgress && (
+                <ResumeNotification
+                    key={`${watchProgress.profileId}:${watchProgress.videoId}`}
+                    watchProgress={watchProgress}
+                    videoRef={videoRef}
+                    onResume={handleResume}
+                />
+            )}
 
             {/* BOTTOM CONTROLS */}
             <div

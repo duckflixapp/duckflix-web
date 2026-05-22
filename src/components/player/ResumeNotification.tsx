@@ -12,21 +12,16 @@ interface ResumeNotificationProps {
 }
 
 export function ResumeNotification({ watchProgress, videoRef, onResume, onClose }: ResumeNotificationProps) {
-    const lastPosition = watchProgress.lastPosition;
-    const [visible, setVisibility] = useState(!!lastPosition && lastPosition > 10);
+    const [resumePosition] = useState(watchProgress.lastPosition);
+    const [visible, setVisibility] = useState(!!resumePosition && resumePosition > 10);
     const [videoLoaded, setVideoLoaded] = useState(false);
-
-    useEffect(() => {
-        setVisibility(!!lastPosition && lastPosition > 10);
-        setVideoLoaded(false);
-    }, [lastPosition, watchProgress.profileId, watchProgress.videoId]);
 
     useEffect(() => {
         const video = videoRef.current;
         if (!video) return;
 
         const handleVideoReady = () => {
-            if (lastPosition && lastPosition > 10) {
+            if (resumePosition && resumePosition > 10) {
                 setVideoLoaded(true);
             }
         };
@@ -40,7 +35,7 @@ export function ResumeNotification({ watchProgress, videoRef, onResume, onClose 
         return () => {
             video.removeEventListener('loadedmetadata', handleVideoReady);
         };
-    }, [videoRef, lastPosition]);
+    }, [videoRef, resumePosition]);
 
     useEffect(() => {
         if (!visible || !videoLoaded) return;
@@ -50,7 +45,7 @@ export function ResumeNotification({ watchProgress, videoRef, onResume, onClose 
     }, [videoLoaded, visible]);
 
     const handleResume = () => {
-        onResume(lastPosition);
+        onResume(resumePosition);
         handleClose();
     };
 
@@ -72,7 +67,7 @@ export function ResumeNotification({ watchProgress, videoRef, onResume, onClose 
                         <div className="flex flex-col gap-1">
                             <span className="text-white text-[10px] uppercase font-black tracking-[0.2em]">Continue Watching?</span>
                             <span className="text-white/70 text-sm">
-                                You stopped at <span className="text-primary/80">{formatTime(lastPosition)}</span>
+                                You stopped at <span className="text-primary/80">{formatTime(resumePosition)}</span>
                             </span>
                         </div>
 
